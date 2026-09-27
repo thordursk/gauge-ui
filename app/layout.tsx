@@ -24,9 +24,14 @@ const fontGeist = Geist({
 })
 
 export const metadata: Metadata = {
+  /* Absolute URLs for the social card, wherever the page is served from. */
+  metadataBase: new URL("https://gauge-ui.vercel.app"),
   title: { default: "Gauge UI", template: "%s · Gauge UI" },
   description:
     "Composable SVG gauge primitives for React, distributed as a shadcn registry.",
+  /* The card itself comes from app/opengraph-image.png; this only asks
+     Twitter for the full-width layout instead of the small square one. */
+  twitter: { card: "summary_large_image" },
 }
 
 /* The studio is exactly one screen tall, so it paints into the safe areas

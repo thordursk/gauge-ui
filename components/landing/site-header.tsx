@@ -1,12 +1,19 @@
 "use client"
 
+import { GithubIcon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 
 import { LogoLink } from "@/components/logo"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Button } from "@/components/ui/button"
-import { TooltipProvider } from "@/components/ui/tooltip"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 
 const links = [
@@ -55,6 +62,28 @@ export const SiteHeader = () => {
           Studio
         </Button>
         <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  size="icon-sm"
+                  variant="ghost-muted"
+                  aria-label="GitHub repository"
+                  nativeButton={false}
+                  render={
+                    <a
+                      href="https://github.com/thordursk/gauge-ui"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    />
+                  }
+                />
+              }
+            >
+              <HugeiconsIcon icon={GithubIcon} strokeWidth={2} />
+            </TooltipTrigger>
+            <TooltipContent side="bottom">GitHub</TooltipContent>
+          </Tooltip>
           <ThemeToggle variant="ghost-muted" />
         </TooltipProvider>
       </div>

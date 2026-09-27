@@ -1,3 +1,9 @@
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset=".github/assets/header-dark.png">
+  <source media="(prefers-color-scheme: light)" srcset=".github/assets/header-light.png">
+  <img alt="Gauge UI — composable SVG gauge components for React, distributed as a shadcn registry" src=".github/assets/header-light.png">
+</picture>
+
 # gauge-ui
 
 Composable SVG gauge primitives for React, distributed as a [shadcn](https://ui.shadcn.com) registry. Design a gauge in the studio, copy the code, and own the source in your project. No runtime dependencies beyond React and the shadcn `cn` helper.
@@ -157,3 +163,7 @@ npm run dev
 ## Registry
 
 `registry.json` at the repository root defines the single `gauge` item. `npm run registry:build` writes the installable JSON to `public/r/`, and the production build runs it automatically so the deployed site always serves the current source.
+
+## License
+
+[MIT](LICENSE)

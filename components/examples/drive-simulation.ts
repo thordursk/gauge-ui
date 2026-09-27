@@ -176,7 +176,8 @@ export const useDriveSimulation = (target: RefObject<Element | null>) => {
     ...PARKED,
     throttle: 0,
     time: 0,
-    phase: { kind: "idle", until: 1.2 },
+    /* A beat of idle, then it pulls away almost as soon as it is seen. */
+    phase: { kind: "idle", until: 0.3 },
   })
   const visible = useInView(target)
 

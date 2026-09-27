@@ -1,0 +1,1 @@
+Gauge UI — build any gauge you can imagine. Composable SVG gauge components for React, distributed as a shadcn registry.

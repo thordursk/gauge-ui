@@ -34,3 +34,6 @@ pnpm-debug.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# generated registry output (rebuilt by `npm run registry:build` / the production build)
+/public/r/

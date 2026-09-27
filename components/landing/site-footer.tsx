@@ -1,3 +1,5 @@
+import { GithubIcon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import Link from "next/link"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -14,6 +16,15 @@ export const SiteFooter = () => (
         <Link href="/studio" className="hover:text-foreground">
           Studio
         </Link>
+        <a
+          href="https://github.com/thordursk/gauge-ui"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="GitHub repository"
+          className="hover:text-foreground"
+        >
+          <HugeiconsIcon icon={GithubIcon} size={16} strokeWidth={2} />
+        </a>
       </div>
       <p className="flex items-center gap-2">
         Built by

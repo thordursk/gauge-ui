@@ -144,7 +144,9 @@ const TICK = 1 / 12
  */
 export const useFlightSimulation = (target: RefObject<Element | null>) => {
   const [readings, setReadings] = useState<FlightReadings>(CRUISING)
-  const state = useRef<FlightState>({ ...CRUISING, time: 0, nextChange: 2 })
+  /* The first clearance comes almost at once, so the flight is visibly
+     manoeuvring as soon as it is seen. */
+  const state = useRef<FlightState>({ ...CRUISING, time: 0, nextChange: 0.4 })
   const visible = useInView(target)
 
   useEffect(() => {
