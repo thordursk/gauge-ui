@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react"
-import { useDialKitController } from "dialkit"
+import { useControlPanel } from "@/hooks/use-control-panel"
 
 import {
   arcsConfig,
@@ -38,10 +38,10 @@ import { readStored, storageKeys, writeStored } from "@/lib/storage"
 const APPLY_PASSES = 3
 
 /**
- * Registers the dialkit panels that make up the studio and keeps the gauges
+ * Registers the control panels that make up the studio and keeps the gauges
  * they describe. The panels hold one gauge at a time, the selected layer; the
  * others keep their values until they come round again. The rendered panel
- * tree itself comes from `DialRoot`, which reads the same registry.
+ * tree itself comes from `ControlsRoot`, which reads the same registry.
  */
 export const useGaugeControllers = () => {
   /* The template the current work started from. Reset returns to it rather
@@ -58,7 +58,7 @@ export const useGaugeControllers = () => {
   const [sweepKey, setSweepKey] = useState(0)
   const kind = selected === 0 ? "host" : "inset"
 
-  const gaugeCtl = useDialKitController(
+  const gaugeCtl = useControlPanel(
     "Gauge",
     gaugeConfig(flatValues("gauge"), kind),
     { id: "gauge" }
@@ -66,47 +66,47 @@ export const useGaugeControllers = () => {
   const gauge = gaugeCtl.values
   const { min, max } = domainOf(gauge)
 
-  const valCtl = useDialKitController("Value", valueConfig(min, max), {
+  const valCtl = useControlPanel("Value", valueConfig(min, max), {
     id: "value",
   })
   const val = valCtl.values
 
-  const arcsCtl = useDialKitController(
+  const arcsCtl = useControlPanel(
     "Track & arc",
     arcsConfig(flatValues("arcs")),
     { id: "arcs" }
   )
   const arcs = arcsCtl.values
 
-  const cutoffsCtl = useDialKitController(
+  const cutoffsCtl = useControlPanel(
     "Cutoffs",
     cutoffsConfig(min, max, flatValues("cutoffs")),
     { id: "cutoffs", defaultCollapsed: true }
   )
   const cutoffs = cutoffsCtl.values
 
-  const ticksCtl = useDialKitController(
+  const ticksCtl = useControlPanel(
     "Ticks",
     ticksConfig(flatValues("ticks")),
     { id: "ticks", defaultCollapsed: true }
   )
   const ticks = ticksCtl.values
 
-  const textCtl = useDialKitController(
+  const textCtl = useControlPanel(
     "Text",
     textPanelConfig(flatValues("text")),
     { id: "text" }
   )
   const text = textCtl.values
 
-  const needleCtl = useDialKitController(
+  const needleCtl = useControlPanel(
     "Needle",
     needleConfig(flatValues("needle")),
     { id: "needle", defaultCollapsed: true }
   )
   const needle = needleCtl.values
 
-  const dotCtl = useDialKitController("Dot", dotConfig(flatValues("dot")), {
+  const dotCtl = useControlPanel("Dot", dotConfig(flatValues("dot")), {
     id: "dot",
     defaultCollapsed: true,
   })

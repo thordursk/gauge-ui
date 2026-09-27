@@ -19,7 +19,6 @@
     "@hugeicons/react": "^1.1.10",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.3.0",
-    "dialkit": "^2.0.2",
     "motion": "^13.4.0",
     "next": "16.3.4",
     "next-themes": "^0.4.6",

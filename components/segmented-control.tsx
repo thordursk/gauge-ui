@@ -20,14 +20,14 @@ export type SegmentedControlProps<T extends string> = {
   itemClassName?: string
 }
 
-/* Mirrors dialkit's `.dialkit-segmented-pill` transition. */
+/* The pill slides rather than jumps between options. */
 const pillTransition = {
   duration: 0.2,
   ease: [0.25, 1, 0.5, 1] as const,
 }
 
 /**
- * A single-select ToggleGroup styled like dialkit's segmented control: a
+ * A single-select ToggleGroup styled as a segmented control: a
  * transparent strip with a pill that slides behind the active option.
  */
 export function SegmentedControl<T extends string>({

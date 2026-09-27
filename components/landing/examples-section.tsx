@@ -12,7 +12,7 @@ export const ExamplesSection = () => (
       </h2>
     </div>
     <Tabs defaultValue={examples[0].id} className="gap-4">
-      <TabsList className="max-w-full overflow-x-auto">
+      <TabsList className="max-w-full justify-start overflow-x-auto">
         {examples.map((example) => (
           <TabsTrigger key={example.id} value={example.id}>
             {example.name}

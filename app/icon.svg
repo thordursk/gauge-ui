@@ -1,16 +1,24 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-linecap="round">
   <!-- The logo mark from components/logo.tsx, frozen: the mark draws in
-       currentColor, so a standalone file picks its colours here instead. -->
+       currentColor on the page, so a standalone file picks its colours here.
+       The rounded rect mirrors bg-background in each colour scheme. -->
   <style>
+    rect { fill: #ffffff; }
     path { stroke: #171717; }
     circle { fill: #171717; }
     @media (prefers-color-scheme: dark) {
+      rect { fill: #171717; }
       path { stroke: #fafafa; }
       circle { fill: #fafafa; }
     }
   </style>
-  <path d="M6.34 18.66 A8 8 0 1 1 17.66 18.66" stroke-width="2.5" opacity="0.3"/>
-  <path d="M6.34 18.66 A8 8 0 1 1 17.66 18.66" pathLength="270" stroke-width="2.5" stroke-dasharray="270" stroke-dashoffset="105"/>
-  <path d="M12 13 L14.75 8.24" stroke-width="2"/>
-  <circle cx="12" cy="13" r="1.75"/>
+  <rect width="24" height="24" rx="5.25"/>
+  <!-- The mark, scaled down about the tile's centre for a little breathing
+       room against the rounded edges. -->
+  <g transform="translate(12 12) scale(0.82) translate(-12 -12)">
+    <path d="M6.34 18.66 A8 8 0 1 1 17.66 18.66" stroke-width="2.5" opacity="0.3"/>
+    <path d="M6.34 18.66 A8 8 0 1 1 17.66 18.66" pathLength="270" stroke-width="2.5" stroke-dasharray="270" stroke-dashoffset="105"/>
+    <path d="M12 13 L14.75 8.24" stroke-width="2"/>
+    <circle cx="12" cy="13" r="1.75"/>
+  </g>
 </svg>

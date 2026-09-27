@@ -1,16 +1,16 @@
 /**
- * The dialkit panel configs behind the studio, plus the pure functions that
+ * The control panel configs behind the studio, plus the pure functions that
  * turn panel values into a `GaugeSpec`. Kept free of React so templates can
  * be described and previewed against the same source the panels use.
  */
 
 import {
-  DialStore,
-  type DialConfig,
-  type DialKitValueUpdates,
+  ControlsStore,
+  type ControlConfig,
+  type ControlValueUpdates,
   type ResolvedValues,
   type TransitionConfig,
-} from "dialkit"
+} from "@/lib/controls"
 
 import { clamp, type GaugeTransition } from "@/components/gauge"
 import type {
@@ -31,7 +31,7 @@ export const RADIUS = 200
 
 /* ---------- control helpers ---------- */
 
-type Option = string | { value: string; label: string }
+type Option = string | { value: string; label: string; swatch?: string }
 type Select = { type: "select"; options: Option[]; default: string }
 type Axis = [number, number, number, number]
 type Pad = { type: "pad"; x: Axis; y: Axis }
@@ -85,10 +85,14 @@ const paletteCss = new Map<string, string>(
 
 const DEFAULT_CUSTOM = "#38bdf8"
 
+/** A hint of every colour, for the entry that stands for "any colour". */
+const CUSTOM_SWATCH =
+  "conic-gradient(from 0.5turn, #f87171, #facc15, #4ade80, #38bdf8, #a78bfa, #f87171)"
+
 /** The store's current values for a panel, flat and keyed by dotted path. */
 export type Flat = Record<string, unknown>
 export const flatValues = (panelId: string): Flat =>
-  DialStore.getValues(panelId)
+  ControlsStore.getValues(panelId)
 
 type ColorFolder = { token: Select; custom: string; _collapsed: true }
 
@@ -104,7 +108,14 @@ type ColorFolder = { token: Select; custom: string; _collapsed: true }
 const color = (flat: Flat, path: string, token: Token): ColorFolder => {
   const folder: Record<string, unknown> = {
     token: select(
-      [...palette.map(({ value, label }) => ({ value, label })), "custom"],
+      [
+        ...palette.map(({ value, label, css }) => ({
+          value,
+          label,
+          swatch: css,
+        })),
+        { value: "custom", label: "Custom", swatch: CUSTOM_SWATCH },
+      ],
       token
     ),
     _collapsed: true,
@@ -169,7 +180,7 @@ const fullGaugeConfig = (flat: Flat = {}) =>
       /** Size relative to the host, strokes and text along with it. */
       scale: [0.5, 0.05, 1.5, 0.01],
     },
-  }) satisfies DialConfig
+  }) satisfies ControlConfig
 
 /**
  * The domain and geometry panel. An inset sits inside another gauge rather
@@ -184,7 +195,7 @@ export const gaugeConfig = (flat: Flat = {}, kind: LayerKind = "host") =>
   without(fullGaugeConfig(flat), kind === "host" ? INSET_ONLY : HOST_ONLY)
 
 /* Panels whose slider ranges follow the domain are built from functions so
-   dialkit can reconcile them when min or max changes. */
+   the store can reconcile them when min or max changes. */
 export const valueConfig = (min: number, max: number) =>
   ({
     value: [clamp(62, min, max), min, max, stepFor(max - min)],
@@ -197,7 +208,7 @@ export const valueConfig = (min: number, max: number) =>
        code alike. Off means the gauge jumps. */
     animate: toggle(true),
     motion: { type: "spring", visualDuration: 0.5, bounce: 0.1 },
-  }) satisfies DialConfig
+  }) satisfies ControlConfig
 
 export const arcsConfig = (flat: Flat = {}) =>
   ({
@@ -221,7 +232,7 @@ export const arcsConfig = (flat: Flat = {}) =>
       cap: cap("round"),
       offset: [0, -120, 120, 1],
     },
-  }) satisfies DialConfig
+  }) satisfies ControlConfig
 
 export const cutoffsConfig = (min: number, max: number, flat: Flat = {}) => {
   const step = stepFor(max - min)
@@ -252,7 +263,7 @@ export const cutoffsConfig = (min: number, max: number, flat: Flat = {}) => {
       offset: [0, -120, 120, 1],
       cap: cap("round"),
     },
-  } satisfies DialConfig
+  } satisfies ControlConfig
 }
 
 const tickConfig = (
@@ -272,7 +283,7 @@ const tickConfig = (
     offset: [-44, -160, 160, 1],
     cap: cap("round"),
     opacity: [opacity, 0, 1, 0.01],
-  }) satisfies DialConfig
+  }) satisfies ControlConfig
 
 export const ticksConfig = (flat: Flat = {}) =>
   ({
@@ -290,7 +301,7 @@ export const ticksConfig = (flat: Flat = {}) =>
       format: select(["number", "compass", "clock"], "number"),
       _collapsed: true,
     },
-  }) satisfies DialConfig
+  }) satisfies ControlConfig
 
 const textConfig = (
   flat: Flat,
@@ -311,7 +322,7 @@ const textConfig = (
     font: font("sans"),
     weight: weight("medium"),
     anchor: anchor("middle"),
-  }) satisfies DialConfig
+  }) satisfies ControlConfig
 
 export const textPanelConfig = (flat: Flat = {}) =>
   ({
@@ -351,7 +362,7 @@ export const textPanelConfig = (flat: Flat = {}) =>
       ),
       _collapsed: true,
     },
-  }) satisfies DialConfig
+  }) satisfies ControlConfig
 
 const needleFolder = (
   flat: Flat,
@@ -374,7 +385,7 @@ const needleFolder = (
     gap: [0, 0, 200, 1],
     /* Sweeps across the domain. A clock's hands turn 1, 12 and 720 times. */
     turns: [turns, 1, 720, 1],
-  }) satisfies DialConfig
+  }) satisfies ControlConfig
 
 /* Up to three needles share one hub. The defaults for the second and third
    are a clock's minute and second hands, so a clock is a matter of count. */
@@ -395,7 +406,7 @@ export const needleConfig = (flat: Flat = {}) =>
       radius: [12, 0, 60, 1],
       color: color(flat, "hub.color", "foreground"),
     },
-  }) satisfies DialConfig
+  }) satisfies ControlConfig
 
 /**
  * The dot that rides the arc at the value. `turns` is the needle's control by
@@ -409,7 +420,7 @@ export const dotConfig = (flat: Flat = {}) =>
     opacity: [1, 0, 1, 0.01],
     offset: [0, -120, 120, 1],
     turns: [1, 1, 720, 1],
-  }) satisfies DialConfig
+  }) satisfies ControlConfig
 
 /* ---------- values ---------- */
 
@@ -436,25 +447,25 @@ export type PanelValues = {
 
 /** A partial update for every panel, in the shape `setValues` accepts. */
 export type PanelUpdates = {
-  gauge?: DialKitValueUpdates<ReturnType<typeof gaugeConfig>>
-  value?: DialKitValueUpdates<ReturnType<typeof valueConfig>>
-  arcs?: DialKitValueUpdates<ReturnType<typeof arcsConfig>>
-  cutoffs?: DialKitValueUpdates<ReturnType<typeof cutoffsConfig>>
-  ticks?: DialKitValueUpdates<ReturnType<typeof ticksConfig>>
-  text?: DialKitValueUpdates<ReturnType<typeof textPanelConfig>>
-  needle?: DialKitValueUpdates<ReturnType<typeof needleConfig>>
-  dot?: DialKitValueUpdates<ReturnType<typeof dotConfig>>
+  gauge?: ControlValueUpdates<ReturnType<typeof gaugeConfig>>
+  value?: ControlValueUpdates<ReturnType<typeof valueConfig>>
+  arcs?: ControlValueUpdates<ReturnType<typeof arcsConfig>>
+  cutoffs?: ControlValueUpdates<ReturnType<typeof cutoffsConfig>>
+  ticks?: ControlValueUpdates<ReturnType<typeof ticksConfig>>
+  text?: ControlValueUpdates<ReturnType<typeof textPanelConfig>>
+  needle?: ControlValueUpdates<ReturnType<typeof needleConfig>>
+  dot?: ControlValueUpdates<ReturnType<typeof dotConfig>>
 }
 
 const isRecord = (v: unknown): v is Record<string, unknown> =>
   typeof v === "object" && v !== null && !Array.isArray(v)
 
 /**
- * Resolves a dialkit config to its default values: sliders take their first
+ * Resolves a control config to its default values: sliders take their first
  * element, selects their `default`, pads their axis defaults, and folders
- * recurse. Mirrors what dialkit does when a panel first mounts.
+ * recurse. Mirrors what the store does when a panel first registers.
  */
-export const defaultsOf = <T extends DialConfig>(
+export const defaultsOf = <T extends ControlConfig>(
   config: T
 ): ResolvedValues<T> => {
   const out: Record<string, unknown> = {}
@@ -472,14 +483,15 @@ export const defaultsOf = <T extends DialConfig>(
       (entry.type === "spring" || entry.type === "easing")
     )
       out[key] = entry
-    else if (isRecord(entry)) out[key] = defaultsOf(entry as DialConfig)
+    else if (isRecord(entry)) out[key] = defaultsOf(entry as ControlConfig)
     else out[key] = entry
   }
   return out as ResolvedValues<T>
 }
 
 /**
- * A deep copy without the keys dialkit keeps for itself, such as `_collapsed`.
+ * A deep copy without the keys the panels keep for themselves, such as
+ * `_collapsed`.
  * Panel values read back out of the store are fed to `setValues` when a layer
  * comes round again, and those keys are not values to set.
  */
@@ -532,7 +544,7 @@ export const domainOf = (gauge: GaugeValues) => ({
 })
 
 /** Turns panel values into the normalised spec the preview and code share. */
-/** The gauge's own transition shape for a dialkit transition control. */
+/** The gauge's own transition shape for a panel transition control. */
 export const toGaugeTransition = (t: TransitionConfig): GaugeTransition => {
   if (t.type === "easing")
     return { type: "tween", duration: t.duration, ease: t.ease }

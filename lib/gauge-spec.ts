@@ -1,5 +1,5 @@
 /**
- * A normalised description of a gauge. The studio turns dialkit panel values
+ * A normalised description of a gauge. The studio turns control panel values
  * into a `GaugeSpec`; the preview renders it with the gauge primitives and the
  * code generator prints the equivalent JSX. Keeping one shape in the middle
  * guarantees the copied code matches what is on screen.

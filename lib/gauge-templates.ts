@@ -1,6 +1,6 @@
 /**
  * Starting points for the studio. Each template is a partial update over the
- * panel defaults, in the shape the dialkit controllers accept, so applying one
+ * panel defaults, in the shape the panel controllers accept, so applying one
  * is "reset, then set". The same updates drive the picker's mini previews.
  *
  * Templates stay within the greyscale theme tokens so they follow light and

@@ -7,13 +7,11 @@ import {
   SourceCodeIcon,
 } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { DialRoot } from "dialkit"
-import "dialkit/styles.css"
-import { useTheme } from "next-themes"
 
 import { AnimatedGauge } from "@/components/animated-gauge"
 import { CodeDrawer } from "@/components/code-drawer"
 import { ControlBar } from "@/components/control-bar"
+import { ControlsRoot } from "@/components/controls/controls-root"
 import { CopyValuesButton } from "@/components/copy-values-button"
 import { LogoLink } from "@/components/logo"
 import { TemplateNav } from "@/components/template-nav"
@@ -26,7 +24,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { useColorSwatches } from "@/hooks/use-color-swatches"
 import { useGaugeControllers } from "@/hooks/use-gauge-controllers"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { useStoredValue } from "@/hooks/use-stored-value"
@@ -66,11 +63,6 @@ export const GaugeStudio = () => {
   const showControls =
     useStoredValue(storageKeys.controls, "shown") !== "hidden"
 
-  const { resolvedTheme } = useTheme()
-
-  /* Paints the palette dropdowns in the panels with the colours they name. */
-  useColorSwatches()
-
   const toggleControls = () =>
     writeStored(storageKeys.controls, showControls ? "hidden" : "shown")
 
@@ -79,13 +71,6 @@ export const GaugeStudio = () => {
   /* The slider drives whichever gauge is selected, so the gauge itself takes
      the slider only while it is the one being edited. */
   const shown = selected === 0 ? current : hostValue
-
-  const theme =
-    resolvedTheme === "dark"
-      ? "dark"
-      : resolvedTheme === "light"
-        ? "light"
-        : "system"
 
   return (
     <div className="flex h-svh flex-col overflow-hidden pr-[env(safe-area-inset-right)] pl-[env(safe-area-inset-left)] md:flex-row">
@@ -216,7 +201,7 @@ export const GaugeStudio = () => {
               <CopyValuesButton values={layers[selected].values} />
             </div>
             <ScrollArea revealOnHover className="min-h-0 w-full flex-1">
-              <DialRoot mode="inline" productionEnabled theme={theme} />
+              <ControlsRoot />
             </ScrollArea>
           </div>
         </aside>
