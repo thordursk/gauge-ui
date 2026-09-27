@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Inter, Nunito } from "next/font/google"
 
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
+import { siteDescription, siteName, siteUrl } from "@/lib/site"
 import { cn } from "@/lib/utils"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
@@ -25,10 +26,33 @@ const fontGeist = Geist({
 
 export const metadata: Metadata = {
   /* Absolute URLs for the social card, wherever the page is served from. */
-  metadataBase: new URL("https://gauge-ui.vercel.app"),
-  title: { default: "Gauge UI", template: "%s · Gauge UI" },
-  description:
-    "Composable SVG gauge primitives for React, distributed as a shadcn registry.",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "Gauge UI — composable gauge components for React",
+    template: "%s · Gauge UI",
+  },
+  description: siteDescription,
+  applicationName: siteName,
+  authors: [{ name: "Thordur", url: "https://github.com/thordursk" }],
+  creator: "Thordur",
+  keywords: [
+    "react gauge component",
+    "svg gauge",
+    "speedometer component",
+    "radial gauge",
+    "dial component",
+    "shadcn registry",
+    "shadcn/ui",
+  ],
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    siteName,
+    url: "/",
+    title: "Gauge UI — composable gauge components for React",
+    description: siteDescription,
+    locale: "en_US",
+  },
   /* The card itself comes from app/opengraph-image.png; this only asks
      Twitter for the full-width layout instead of the small square one. */
   twitter: { card: "summary_large_image" },
