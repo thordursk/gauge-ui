@@ -182,8 +182,8 @@ export const CarDashboard = () => {
   const drive = useDriveSimulation(frame)
 
   return (
-    <div ref={frame} className="rounded-3xl border bg-muted p-1">
-      <div className="grid grid-cols-2 gap-4 rounded-[1.3rem] border bg-background p-4 sm:gap-10 sm:px-12 sm:py-8">
+    <div ref={frame}>
+      <div className="grid grid-cols-2 gap-4 rounded-xl border p-4 sm:gap-10 sm:px-12 sm:py-8">
         <Pod>
           <Tachometer rpm={drive.rpm} />
         </Pod>

@@ -23,7 +23,9 @@ function Slider({
   if (variant === "dial") {
     return (
       <SliderPrimitive.Root
-        className={cn("relative w-full", className)}
+        /* Height and radius live here so a caller's className can shrink
+           the row or round the corners; the control inherits the radius. */
+        className={cn("relative h-8 w-full rounded-md", className)}
         data-slot="slider"
         data-variant="dial"
         defaultValue={defaultValue}
@@ -33,7 +35,7 @@ function Slider({
         thumbAlignment="edge"
         {...props}
       >
-        <SliderPrimitive.Control className="group relative flex h-8 w-full cursor-ew-resize touch-none items-center overflow-hidden rounded-md bg-input/50 select-none data-disabled:opacity-50">
+        <SliderPrimitive.Control className="group relative flex h-full w-full cursor-ew-resize touch-none items-center overflow-hidden rounded-[inherit] bg-input/50 select-none data-disabled:opacity-50">
           {/* Sized in flow: Base UI pins the track to `position: relative`
               inline, so absolute positioning would be overridden and the
               track would collapse. */}

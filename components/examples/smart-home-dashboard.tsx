@@ -800,9 +800,9 @@ const Climate = ({
               onClick={() => onSelect(i)}
               aria-pressed={i === selected}
               className={cn(
-                "flex items-center justify-between gap-3 rounded-lg border p-3 text-left transition-colors",
-                "outline-none hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring",
-                i === selected && "border-accent bg-muted"
+                "flex items-center justify-between gap-3 rounded-lg border p-3 text-left",
+                "outline-none hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-ring",
+                i === selected && "bg-muted/50"
               )}
             >
               <span className="flex min-w-0 flex-col gap-1">

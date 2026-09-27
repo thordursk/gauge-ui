@@ -485,8 +485,8 @@ export const Cockpit = () => {
   const flight = useFlightSimulation(frame)
 
   return (
-    <div ref={frame} className="rounded-3xl border bg-muted p-1">
-      <div className="rounded-[1.3rem] border bg-background px-4 py-4 sm:px-8 sm:py-6">
+    <div ref={frame}>
+      <div className="rounded-xl border px-4 py-4 sm:px-8 sm:py-6">
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-6">
           <Pod>
             <AirspeedIndicator airspeed={flight.airspeed} />
