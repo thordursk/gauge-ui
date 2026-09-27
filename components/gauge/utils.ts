@@ -7,7 +7,7 @@
 export type StrokeCap = "round" | "butt"
 export type FontFamily = "sans" | "rounded" | "mono"
 export type FontWeight = "regular" | "medium" | "semibold" | "bold"
-export type NeedleStyle = "line" | "pointer" | "compass"
+export type NeedleStyle = "line" | "pointer" | "compass" | "arrow"
 /** Which edge of a text sits at its position: left, centre or right. */
 export type TextAnchor = "start" | "middle" | "end"
 
@@ -77,3 +77,27 @@ export const compassLabel = (degrees: number) => {
 /** Formats a value in hours as a clock numeral, so 0 and 12 both read "12". */
 export const clockLabel = (hours: number) =>
   String(((Math.round(hours) % 12) + 12) % 12 || 12)
+
+const pad = (n: number) => String(n).padStart(2, "0")
+
+/**
+ * Hours past midnight as a 24-hour clock time: 6.5 reads "06:30". Negative
+ * hours reach back into the day before, and past 24 into the day after.
+ */
+export const clockTime = (hours: number) => {
+  const minutes = Math.round((((hours % 24) + 24) % 24) * 60)
+  return `${pad(Math.floor(minutes / 60) % 24)}:${pad(minutes % 60)}`
+}
+
+/** A duration in hours as "7h 32m". */
+export const durationLabel = (hours: number) => {
+  const minutes = Math.round(hours * 60)
+  return `${Math.floor(minutes / 60)}h ${pad(minutes % 60)}m`
+}
+
+/**
+ * `color` thinned towards transparent: the one ink of a face taken down to
+ * its quieter tones, holding apart in either theme.
+ */
+export const fadeColor = (color: string, percent: number) =>
+  `color-mix(in oklch, ${color} ${percent}%, transparent)`

@@ -8,10 +8,14 @@ export {
 export {
   GaugeTrack,
   GaugeArc,
+  GaugeStack,
   GaugeZones,
   type GaugeArcProps,
+  type GaugeStackPart,
+  type GaugeStackProps,
   type GaugeZonesProps,
 } from "./arcs"
+export { GaugeControl, type GaugeControlProps } from "./control"
 export {
   GaugeTicks,
   GaugeMarks,
@@ -34,9 +38,11 @@ export {
   type GaugeHubProps,
 } from "./needle"
 export {
+  angleToValue,
   arcBox,
   arcPath,
   clamp,
+  cutValues,
   degreesToRadians,
   polar,
   stepValues,
@@ -45,7 +51,10 @@ export {
 } from "./math"
 export {
   clockLabel,
+  clockTime,
   compassLabel,
+  durationLabel,
+  fadeColor,
   fontClass,
   weightClass,
   zoneColor,

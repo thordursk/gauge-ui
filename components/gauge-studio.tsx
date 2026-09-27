@@ -14,6 +14,8 @@ import { useTheme } from "next-themes"
 import { AnimatedGauge } from "@/components/animated-gauge"
 import { CodeDrawer } from "@/components/code-drawer"
 import { ControlBar } from "@/components/control-bar"
+import { CopyValuesButton } from "@/components/copy-values-button"
+import { LogoLink } from "@/components/logo"
 import { TemplateNav } from "@/components/template-nav"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Button } from "@/components/ui/button"
@@ -89,8 +91,8 @@ export const GaugeStudio = () => {
     <div className="flex h-svh flex-col overflow-hidden pr-[env(safe-area-inset-right)] pl-[env(safe-area-inset-left)] md:flex-row">
       <main className="flex min-h-0 min-w-0 flex-1 flex-col">
         <header className="flex flex-wrap items-center gap-2 px-3 pt-[max(0.5rem,env(safe-area-inset-top))] pb-2 sm:px-4">
-          <h1 className="mr-auto text-sm font-medium tracking-tight">
-            gauge-ui
+          <h1 className="mr-auto">
+            <LogoLink />
           </h1>
           <TemplateNav
             selected={activeTemplate}
@@ -206,9 +208,17 @@ export const GaugeStudio = () => {
           stage the full width. */}
       {hasSidebar && showControls && (
         <aside className="flex h-full w-72 shrink-0 flex-col overflow-hidden p-2 lg:w-80 xl:w-88">
-          <ScrollArea className="min-h-0 w-full flex-1 rounded-xl bg-card ring ring-foreground/10">
-            <DialRoot mode="inline" productionEnabled theme={theme} />
-          </ScrollArea>
+          <div className="flex min-h-0 w-full flex-1 flex-col overflow-hidden rounded-xl bg-card ring ring-foreground/10">
+            <div className="flex shrink-0 items-center justify-between border-b border-foreground/10 py-1.5 pr-1.5 pl-3">
+              <span className="text-xs font-medium text-muted-foreground">
+                Controls
+              </span>
+              <CopyValuesButton values={layers[selected].values} />
+            </div>
+            <ScrollArea revealOnHover className="min-h-0 w-full flex-1">
+              <DialRoot mode="inline" productionEnabled theme={theme} />
+            </ScrollArea>
+          </div>
         </aside>
       )}
     </div>

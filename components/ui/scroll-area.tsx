@@ -7,8 +7,12 @@ import { cn } from "cn"
 function ScrollArea({
   className,
   children,
+  revealOnHover = false,
   ...props
-}: ScrollAreaPrimitive.Root.Props) {
+}: ScrollAreaPrimitive.Root.Props & {
+  /** Keep the scrollbar out of sight until the area is hovered or scrolled. */
+  revealOnHover?: boolean
+}) {
   return (
     <ScrollAreaPrimitive.Root
       data-slot="scroll-area"
@@ -21,7 +25,12 @@ function ScrollArea({
       >
         {children}
       </ScrollAreaPrimitive.Viewport>
-      <ScrollBar />
+      <ScrollBar
+        className={cn(
+          revealOnHover &&
+            "opacity-0 transition-opacity duration-200 data-hovering:opacity-100 data-scrolling:opacity-100"
+        )}
+      />
       <ScrollAreaPrimitive.Corner />
     </ScrollAreaPrimitive.Root>
   )

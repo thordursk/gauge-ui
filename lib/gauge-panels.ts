@@ -363,12 +363,15 @@ const needleFolder = (
   turns: number
 ) =>
   ({
-    style: select(["line", "pointer", "compass"], style),
+    style: select(["line", "pointer", "compass", "arrow"], style),
     length: [length, 0.1, 1.2, 0.01],
     width: [width, 1, 40, 0.5],
     color: color(flat, `${path}.color`, "foreground"),
     tail: [tail, 0, 200, 1],
     tailColor: color(flat, `${path}.tailColor`, "foreground"),
+    tailDot: [0, 0, 40, 0.5],
+    /* A clear circle at the centre, splitting the needle round a readout. */
+    gap: [0, 0, 200, 1],
     /* Sweeps across the domain. A clock's hands turn 1, 12 and 720 times. */
     turns: [turns, 1, 720, 1],
   }) satisfies DialConfig
@@ -586,6 +589,8 @@ export const buildSpec = (v: PanelValues): GaugeSpec => {
     color: css(n.color),
     tail: n.tail,
     tailColor: css(n.tailColor),
+    tailDot: n.tailDot,
+    gap: n.gap,
     turns: n.turns,
   })
 

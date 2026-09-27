@@ -64,7 +64,7 @@ export const ControlBar = ({
           onModeChange={onModeChange}
           className="shrink-0"
         />
-        <div className="mt-auto mr-2 ml-auto shrink-0 font-rounded text-base font-semibold text-muted-foreground tabular-nums">
+        <div className="mt-auto mr-2 ml-auto shrink-0 text-base font-semibold text-muted-foreground tabular-nums">
           {value.toFixed(decimals)}
         </div>
       </div>

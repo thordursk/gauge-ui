@@ -36,7 +36,7 @@ export const GaugeTrack = ({
 }
 
 export type GaugeArcProps = ArcStyleProps & {
-  /** Domain value the arc starts at. Defaults to `min`. */
+  /** Domain value the arc is anchored at. Defaults to `min`. */
   from?: number
   /** Domain value the arc ends at. Defaults to the current value. */
   to?: number
@@ -46,9 +46,20 @@ export type GaugeArcProps = ArcStyleProps & {
    * which is what a dial filling towards its start needs.
    */
   reverse?: boolean
+  /**
+   * Carry the arc on round a closed ring instead of clamping it at the
+   * domain: a span from eleven at night to two in the morning crosses the
+   * seam in one piece. The arc runs forward from `from` however far past
+   * `max` the `to` reaches.
+   */
+  wrap?: boolean
 }
 
-/** The filled arc, from `min` (or `from`) up to the current value (or `to`). */
+/**
+ * The filled arc, from `min` (or `from`) up to the current value (or `to`).
+ * The ends may arrive either way round: an arc anchored above the value
+ * grows back towards it, which is what a dial centred on zero needs.
+ */
 export const GaugeArc = ({
   width = 24,
   color = "currentColor",
@@ -58,13 +69,27 @@ export const GaugeArc = ({
   from,
   to,
   reverse = false,
+  wrap = false,
 }: GaugeArcProps) => {
-  const { radius, min, max, value, angleOf } = useGauge()
+  const { radius, min, max, value, startAngle, endAngle, angleOf } = useGauge()
   const tail = from ?? min
   const head = to ?? value
-  const [a0, a1] = reverse
-    ? [angleOf(max - (head - tail)), angleOf(max)]
-    : [angleOf(tail), angleOf(head)]
+  const lo = Math.min(tail, head)
+  const hi = Math.max(tail, head)
+
+  let a0: number
+  let a1: number
+  if (wrap) {
+    const span = max - min
+    if (span <= 0) return null
+    const perUnit = (endAngle - startAngle) / span
+    a0 = startAngle + ((((lo - min) % span) + span) % span) * perUnit
+    a1 = a0 + Math.min((hi - lo) * perUnit, 360)
+  } else {
+    ;[a0, a1] = reverse
+      ? [angleOf(max - (hi - lo)), angleOf(max)]
+      : [angleOf(lo), angleOf(hi)]
+  }
   if (a1 <= a0) return null
 
   return (
@@ -76,6 +101,80 @@ export const GaugeArc = ({
       strokeWidth={width}
       strokeLinecap={cap}
     />
+  )
+}
+
+export type GaugeStackPart = {
+  /** Share of the fill. Weighted parts split the value between them. */
+  weight?: number
+  /** Fixed upper cutoff in domain units, for parts that stand still while
+      the value sweeps across them. Runs from the end of the part before. */
+  to?: number
+  color: string
+  opacity?: number
+}
+
+export type GaugeStackProps = Omit<ArcStyleProps, "color"> & {
+  parts: GaugeStackPart[]
+  /** Domain value the stack starts at. Defaults to `min`. */
+  from?: number
+}
+
+/**
+ * The value arc split into parts that sweep as one. A part with a `weight`
+ * takes that share of the fill, so a memory ring keeps wired, app and cache
+ * in proportion frame by frame; a part with a fixed `to` runs from the end
+ * of the one before and is clipped to the value, so a night of sleep stages
+ * draws on in order as the dial sweeps in. Use one kind or the other in a
+ * single stack.
+ */
+export const GaugeStack = ({
+  parts,
+  width = 24,
+  opacity = 1,
+  cap = "butt",
+  offset = 0,
+  from,
+}: GaugeStackProps) => {
+  const { radius, min, value, angleOf } = useGauge()
+  if (parts.length === 0) return null
+
+  const total = parts.reduce((sum, p) => sum + (p.weight ?? 0), 0)
+  const start = from ?? min
+  const fill = value - start
+  const r = radius + offset
+
+  /* Each part runs from the end of the one before: its own cutoff, or its
+     share of the fill. */
+  const ends = parts.reduce<number[]>(
+    (acc, p) => [
+      ...acc,
+      p.to ??
+        (acc.at(-1) ?? start) +
+          (total > 0 ? (fill * (p.weight ?? 0)) / total : 0),
+    ],
+    []
+  )
+
+  return (
+    <g opacity={opacity}>
+      {parts.map((p, i) => {
+        const a0 = angleOf(i === 0 ? start : ends[i - 1])
+        const a1 = angleOf(Math.min(ends[i], value))
+        if (a1 <= a0) return null
+        return (
+          <path
+            key={i}
+            d={arcPath(r, a0, a1)}
+            fill="none"
+            stroke={p.color}
+            strokeOpacity={p.opacity}
+            strokeWidth={width}
+            strokeLinecap={cap}
+          />
+        )
+      })}
+    </g>
   )
 }
 

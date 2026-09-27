@@ -118,4 +118,35 @@ export const stepValues = (min: number, max: number, intervals: number) => {
   return Array.from({ length: n + 1 }, (_, i) => min + ((max - min) * i) / n)
 }
 
+/**
+ * The cutoffs that split the domain into `segments` equal parts: the values
+ * between the segments, none at the two ends. Ten glasses of water make nine
+ * cuts.
+ */
+export const cutValues = (min: number, max: number, segments: number) =>
+  stepValues(min, max, segments).slice(1, -1)
+
+/**
+ * Inverse of `valueToAngle`: the domain value under a gauge angle. An angle
+ * in the opening outside the sweep goes to whichever end is nearer, so a
+ * pointer dragged past an end holds there rather than jumping to the other.
+ */
+export const angleToValue = (
+  angle: number,
+  min: number,
+  max: number,
+  startAngle: number,
+  endAngle: number
+) => {
+  let a = angle
+  while (a < startAngle) a += 360
+  while (a >= startAngle + 360) a -= 360
+  if (a > endAngle) {
+    a = a - endAngle < startAngle + 360 - a ? endAngle : startAngle
+  }
+  const sweep = endAngle - startAngle
+  const t = sweep === 0 ? 0 : (a - startAngle) / sweep
+  return min + t * (max - min)
+}
+
 const fmt = (n: number) => Number(n.toFixed(3)).toString()

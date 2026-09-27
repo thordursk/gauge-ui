@@ -400,6 +400,62 @@ export const gaugeTemplates: GaugeTemplate[] = [
     },
   },
   {
+    id: "thermostat",
+    name: "Thermostat",
+    /* The smart home's thermostat: a broad band sliced into segments by a
+       ribbon of ticks drawn in the stage's colour, filled to the setpoint,
+       with the dot as the handle a drag would turn. The ticks are longer than
+       the band is wide, so they cut it clean through at either edge. */
+    values: {
+      gauge: { min: 10, max: 30, startAngle: 40, endAngle: 320 },
+      value: { value: 21.5 },
+      arcs: {
+        track: { width: 26, cap: "butt" },
+        arc: {
+          width: 26,
+          color: token("foreground"),
+          opacity: 0.4,
+          cap: "butt",
+        },
+      },
+      ticks: {
+        major: {
+          show: true,
+          count: 80,
+          length: 30,
+          width: 2.5,
+          offset: 0,
+          cap: "butt",
+          color: token("background"),
+          opacity: 1,
+        },
+      },
+      dot: { show: true, radius: 13, color: token("foreground") },
+      text: {
+        value: {
+          fontSize: 88,
+          font: "rounded",
+          weight: "bold",
+          decimals: 1,
+          position: { x: 0, y: 0.02 },
+        },
+        unit: {
+          show: true,
+          text: "°C",
+          fontSize: 24,
+          position: { x: 0, y: -0.32 },
+        },
+        title: {
+          show: true,
+          text: "Heating",
+          fontSize: 20,
+          weight: "semibold",
+          position: { x: 0, y: 0.4 },
+        },
+      },
+    },
+  },
+  {
     id: "progress-ring",
     name: "Progress ring",
     values: {
@@ -423,6 +479,40 @@ export const gaugeTemplates: GaugeTemplate[] = [
           fontSize: 20,
           position: { x: 0, y: 0.34 },
         },
+      },
+    },
+  },
+  {
+    id: "dimmer",
+    name: "Dimmer",
+    /* A light's dimmer: the brightness fills a broad sweep, and the notch at
+       its head — a dot in the stage's colour — is the grip a finger would
+       find. */
+    values: {
+      gauge: { min: 0, max: 100, startAngle: 40, endAngle: 320 },
+      value: { value: 68 },
+      arcs: {
+        track: { width: 40, color: token("foreground"), opacity: 0.1 },
+        arc: { width: 40, color: token("foreground") },
+      },
+      dot: { show: true, radius: 9, color: token("background") },
+      text: {
+        value: {
+          fontSize: 84,
+          font: "rounded",
+          weight: "bold",
+          position: { x: -0.07, y: 0 },
+        },
+        unit: {
+          show: true,
+          text: "%",
+          fontSize: 30,
+          font: "rounded",
+          weight: "bold",
+          anchor: "start",
+          position: { x: 0.22, y: 0.04 },
+        },
+        title: { show: false },
       },
     },
   },
@@ -539,6 +629,69 @@ export const gaugeTemplates: GaugeTemplate[] = [
         value: { show: false },
         unit: { show: false },
         title: { show: false },
+      },
+    },
+  },
+  {
+    id: "wind",
+    name: "Wind direction",
+    /* A masthead wind indicator: the arrowhead points at the bearing the wind
+       blows from, and its tail runs out to a disc on the far rim, like a vane's
+       counterweight. The arrow spans the whole dial and crosses the broad
+       rim at both ends. Instead of a hub it is split round the centre, where
+       a fixed wind speed sits between the halves. Round ticks every 10°,
+       heavier at the cardinal points, which are labelled. */
+    values: {
+      gauge: { min: 0, max: 360, startAngle: 180, endAngle: 540 },
+      value: { value: 196 },
+      arcs: { track: { cap: "butt" }, arc: { show: false } },
+      ticks: {
+        major: { show: true, count: 4, length: 8, offset: 0 },
+        minor: { show: true, count: 36, length: 4, width: 3, offset: 0 },
+        labels: {
+          show: true,
+          count: 4,
+          offset: -44,
+          fontSize: 32,
+          font: "rounded",
+          weight: "bold",
+          format: "compass",
+        },
+      },
+      needle: {
+        show: true,
+        needle1: {
+          style: "arrow",
+          length: 1.05,
+          width: 7,
+          tail: 200,
+          tailDot: 12,
+          gap: 84,
+        },
+        hub: { radius: 0 },
+      },
+      /* The value is the bearing, so the wind speed in the middle is fixed
+         text: the figure in the title, the unit under it. */
+      text: {
+        value: { show: false },
+        title: {
+          show: true,
+          text: "5",
+          position: { x: 0, y: 0.07 },
+          fontSize: 72,
+          color: token("foreground"),
+          font: "rounded",
+          weight: "bold",
+        },
+        unit: {
+          show: true,
+          text: "m/s",
+          position: { x: 0, y: -0.16 },
+          fontSize: 26,
+          color: token("muted-foreground"),
+          font: "rounded",
+          weight: "medium",
+        },
       },
     },
   },
@@ -700,6 +853,65 @@ export const gaugeTemplates: GaugeTemplate[] = [
     },
   },
   {
+    id: "battery",
+    name: "Battery",
+    /* An EV charging: the charge fills the ring and the charge limit is a
+       notch across the band. The notch is the cutoff between two zones in the
+       track's own colour, with the band's opacity at zero so only its mark
+       draws. */
+    values: {
+      gauge: { min: 0, max: 100, startAngle: 180, endAngle: 540 },
+      value: { value: 64 },
+      arcs: {
+        track: { width: 30, cap: "butt" },
+        arc: { width: 30, color: token("foreground"), cap: "butt" },
+      },
+      cutoffs: {
+        show: true,
+        count: 2,
+        zone1: { to: 80, color: token("muted") },
+        zone2: { color: token("muted") },
+        band: {
+          width: 30,
+          offset: 0,
+          gap: 0,
+          cap: "butt",
+          endCap: "butt",
+          opacity: 0,
+        },
+        marks: {
+          show: true,
+          length: 46,
+          width: 5,
+          offset: 0,
+          cap: "butt",
+          color: token("foreground"),
+        },
+      },
+      text: {
+        value: {
+          fontSize: 92,
+          font: "rounded",
+          weight: "bold",
+          position: { x: -0.06, y: 0.02 },
+        },
+        unit: {
+          show: true,
+          text: "%",
+          fontSize: 30,
+          anchor: "start",
+          position: { x: 0.24, y: 0.06 },
+        },
+        title: {
+          show: true,
+          text: "307 km",
+          fontSize: 22,
+          position: { x: 0, y: -0.36 },
+        },
+      },
+    },
+  },
+  {
     id: "tachometer",
     name: "Tachometer",
     values: {
@@ -761,6 +973,74 @@ export const gaugeTemplates: GaugeTemplate[] = [
           position: { x: 0, y: -0.64 },
         },
         title: { show: false },
+      },
+    },
+  },
+  {
+    id: "power-meter",
+    name: "Power meter",
+    /* The house's grid connection: a half dial centred on zero, the needle
+       leaning left while power flows out to the grid and right while the
+       house draws it in. The words either side of the hub name the two
+       directions, since the value itself carries the sign. */
+    values: {
+      gauge: {
+        min: -10,
+        max: 10,
+        startAngle: 90,
+        endAngle: 270,
+        fit: "content",
+      },
+      value: { value: 2.4 },
+      arcs: {
+        track: { width: 20, cap: "butt" },
+        arc: { show: false },
+      },
+      ticks: {
+        major: {
+          show: true,
+          count: 4,
+          length: 14,
+          width: 3,
+          offset: -24,
+          cap: "butt",
+          color: token("foreground"),
+        },
+        minor: {
+          show: true,
+          count: 20,
+          length: 8,
+          width: 2,
+          offset: -20,
+          opacity: 0.5,
+        },
+        labels: {
+          show: true,
+          count: 4,
+          offset: -56,
+          fontSize: 22,
+          weight: "semibold",
+        },
+      },
+      needle: {
+        show: true,
+        needle1: { style: "pointer", length: 0.9, width: 18, tail: 0 },
+        hub: { radius: 16 },
+      },
+      text: {
+        value: { show: false },
+        unit: {
+          show: true,
+          text: "kW in",
+          fontSize: 20,
+          position: { x: 0.42, y: 0.16 },
+        },
+        title: {
+          show: true,
+          text: "kW out",
+          fontSize: 20,
+          position: { x: -0.42, y: 0.16 },
+        },
       },
     },
   },
@@ -891,6 +1171,114 @@ export const gaugeTemplates: GaugeTemplate[] = [
         title: { show: false },
       },
     },
+  },
+  {
+    id: "chronograph",
+    name: "Chronograph",
+    /* A mechanical stopwatch: sixty seconds round the rim under a sweep hand
+       with a counterweight dot, the split printed above the centre, and a
+       thirty-minute register inset above six o'clock. The register is a whole
+       second dial, so it is an inset with its own hand to drive. */
+    values: {
+      gauge: { min: 0, max: 60, startAngle: 180, endAngle: 540 },
+      value: { value: 42 },
+      arcs: { track: { show: false }, arc: { show: false } },
+      ticks: {
+        major: {
+          show: true,
+          count: 12,
+          length: 22,
+          width: 4,
+          offset: -11,
+          cap: "butt",
+          color: token("foreground"),
+        },
+        minor: {
+          show: true,
+          count: 60,
+          length: 14,
+          width: 2.5,
+          offset: -7,
+          cap: "butt",
+          opacity: 0.6,
+        },
+        labels: {
+          show: true,
+          count: 12,
+          offset: -50,
+          fontSize: 26,
+          weight: "semibold",
+          color: token("foreground"),
+        },
+      },
+      needle: {
+        show: true,
+        needle1: {
+          style: "line",
+          length: 0.92,
+          width: 4,
+          tail: 44,
+          tailDot: 10,
+        },
+        hub: { radius: 11 },
+      },
+      text: {
+        value: { show: false },
+        unit: { show: false },
+        title: {
+          show: true,
+          text: "05:42.1",
+          fontSize: 30,
+          font: "mono",
+          position: { x: 0, y: 0.36 },
+        },
+      },
+    },
+    insets: [
+      {
+        name: "minutes",
+        values: {
+          gauge: {
+            min: 0,
+            max: 30,
+            startAngle: 180,
+            endAngle: 540,
+            placement: { position: { x: 0, y: -0.36 }, scale: 0.28 },
+          },
+          value: { value: 5.7 },
+          arcs: {
+            track: { width: 6, cap: "butt", opacity: 0.25, offset: -3 },
+            arc: { show: false },
+          },
+          ticks: {
+            major: {
+              show: true,
+              count: 6,
+              length: 34,
+              width: 9,
+              offset: -26,
+              cap: "butt",
+              color: token("foreground"),
+            },
+            minor: {
+              show: true,
+              count: 30,
+              length: 18,
+              width: 5,
+              offset: -18,
+              cap: "butt",
+              opacity: 0.5,
+            },
+          },
+          needle: {
+            show: true,
+            needle1: { style: "pointer", length: 0.78, width: 30, tail: 0 },
+            hub: { radius: 22 },
+          },
+          text: { value: { show: false }, unit: { show: false } },
+        },
+      },
+    ],
   },
   {
     id: "speed-fuel",

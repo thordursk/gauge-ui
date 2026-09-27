@@ -50,6 +50,19 @@ export type GaugeDomainProps = {
   transition?: GaugeTransition | boolean
   /** Where the value starts on mount when animating, for a sweep-in effect. */
   initialValue?: number
+  /**
+   * Treat the domain as circular, as a compass rose or clock face is: the
+   * value is mapped into the domain modulo its span and animates the
+   * shortest way round, so a heading crossing north never swings the long
+   * way back. Meant for closed rings, where `min` and `max` read the same.
+   */
+  wrap?: boolean
+  /**
+   * Turn the whole scale this many degrees clockwise, the way a compass card
+   * turns under a fixed lubber line. Animated by `transition`, always the
+   * shortest way round.
+   */
+  rotate?: number
 }
 
 /**
@@ -67,25 +80,41 @@ export const useGaugeContextValue = ({
   radius = 200,
   transition,
   initialValue,
+  wrap = false,
+  rotate = 0,
 }: GaugeDomainProps): GaugeContextValue => {
   const lo = Math.min(min, max)
   const hi = Math.max(min, max)
-  const target = clamp(value, lo, hi)
+  const span = hi - lo
+  /* A wrapped domain folds any value back inside itself instead of clamping,
+     so 370° on a compass reads as 10°. */
+  const fold = (v: number) =>
+    span === 0 ? lo : lo + ((((v - lo) % span) + span) % span)
+  const settle = wrap ? fold : (v: number) => clamp(v, lo, hi)
+
+  const target = settle(value)
   const shown = useAnimatedValue(
     target,
     transition,
-    hi - lo,
-    initialValue === undefined ? undefined : clamp(initialValue, lo, hi)
+    span,
+    initialValue === undefined ? undefined : settle(initialValue),
+    wrap
   )
+  /* The rotation is a bearing, so it always takes the short way round. */
+  const turned = useAnimatedValue(rotate, transition, 360, undefined, true)
+  const a0 = startAngle + turned
+  const a1 = endAngle + turned
 
   return {
-    value: shown,
+    /* Folded when wrapped, otherwise as the spring left it, overshoot and
+       all — a bounce past the end is part of the motion. */
+    value: wrap ? fold(shown) : shown,
     target,
     min,
     max,
-    startAngle,
-    endAngle,
+    startAngle: a0,
+    endAngle: a1,
     radius,
-    angleOf: (v) => valueToAngle(v, min, max, startAngle, endAngle),
+    angleOf: (v) => valueToAngle(v, min, max, a0, a1),
   }
 }

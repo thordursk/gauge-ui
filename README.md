@@ -67,18 +67,23 @@ export function Speed({ value }: { value: number }) {
 | Primitive | Draws |
 | --- | --- |
 | `GaugeTrack` | Background arc across the whole sweep |
-| `GaugeArc` | Filled arc from the start to the current value, or back from the end with `reverse` |
+| `GaugeArc` | Filled arc anchored at `from`, growing either way to the current value or `to`; `reverse` grows it back from the end, `wrap` carries it past the seam of a closed ring |
+| `GaugeStack` | The value arc split into parts that sweep as one, by `weight` shares or fixed `to` cutoffs |
 | `GaugeZones` | Coloured bands between zone cutoffs |
 | `GaugeTicks` | Evenly spaced tick marks |
-| `GaugeMarks` | Marks at arbitrary values, such as zone cutoffs |
+| `GaugeMarks` | Marks at arbitrary values, or at the `count` equal cuts of the domain |
 | `GaugeTickLabels` | Numeric, compass or clock labels along the arc |
-| `GaugeNeedle` | Line, pointer or compass needle |
+| `GaugeNeedle` | Line, pointer, compass or arrow needle |
 | `GaugeHub` | Centre cap for the needle |
+| `GaugeDot` | A disc riding the arc at the current value, with an optional `halo` to stand it off a band |
 | `GaugeValue` | Formatted current value |
 | `GaugeText` | Free text at any position, for units and titles |
 | `GaugeInset` | A whole gauge nested inside another, at its own scale |
+| `GaugeControl` | Wraps a gauge as an accessible slider: drag round the ring or use the keyboard to set its value |
 
-Helpers `zoneColor`, `zoneCutoffs`, `compassLabel` and `clockLabel` are exported from the same module and are what the studio's generated code uses.
+`Gauge` and `GaugeInset` also take `wrap`, which treats the domain as circular so a heading animates the shortest way round, and `rotate`, which turns the whole scale under a fixed pointer the way a compass card turns.
+
+Helpers `zoneColor`, `zoneCutoffs`, `compassLabel`, `clockLabel`, `clockTime`, `durationLabel` and `fadeColor` are exported from the same module and are what the studio's generated code uses.
 
 ## Nested gauges
 
@@ -142,7 +147,7 @@ Inside custom primitives, `useGauge()` exposes both `value`, the animated figure
 
 ## Studio
 
-This repository is also the studio at the registry homepage. Run it locally with:
+This repository is also the site: a landing page at `/` and the studio at `/studio`. Run it locally with:
 
 ```bash
 npm install

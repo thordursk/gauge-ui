@@ -16,6 +16,13 @@ export type GaugeDotProps = {
    * two sends it round twice while the value crosses the domain once.
    */
   turns?: number
+  /**
+   * Width of a ring drawn behind the dot in `haloColor`, so it stands off
+   * whatever band it rides. 0 leaves the dot bare.
+   */
+  halo?: number
+  /** Colour of the halo: the surface under the gauge, usually. */
+  haloColor?: string
 }
 
 /**
@@ -30,6 +37,8 @@ export const GaugeDot = ({
   opacity = 1,
   offset = 0,
   turns = 1,
+  halo = 0,
+  haloColor = "var(--background)",
 }: GaugeDotProps) => {
   const gauge = useGauge()
   const angle = valueToTurnedAngle(
@@ -42,5 +51,18 @@ export const GaugeDot = ({
   )
   const { x, y } = polar(gauge.radius + offset, angle)
 
-  return <circle cx={x} cy={y} r={radius} fill={color} fillOpacity={opacity} />
+  return (
+    <>
+      {halo > 0 && (
+        <circle
+          cx={x}
+          cy={y}
+          r={radius + halo}
+          fill={haloColor}
+          fillOpacity={opacity}
+        />
+      )}
+      <circle cx={x} cy={y} r={radius} fill={color} fillOpacity={opacity} />
+    </>
+  )
 }

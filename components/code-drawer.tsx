@@ -75,8 +75,15 @@ export const CodeDrawer = ({ code, open, onOpenChange }: CodeDrawerProps) => {
               dangerouslySetInnerHTML={{ __html: html }}
             />
           ) : (
-            <pre className="overflow-x-auto px-4 py-4 font-mono text-xs leading-relaxed text-foreground/90 sm:px-5">
-              <code>{code}</code>
+            <pre className="code-block overflow-x-auto px-4 py-4 font-mono text-xs leading-relaxed text-foreground/90 sm:px-5">
+              <code>
+                {code.split("\n").map((line, index) => (
+                  <span key={index} className="line">
+                    {line}
+                    {"\n"}
+                  </span>
+                ))}
+              </code>
             </pre>
           )}
         </ScrollArea>

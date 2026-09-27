@@ -9,13 +9,8 @@
       "title": "Gauge",
       "description": "Composable SVG gauge primitives: track, arc, zones, ticks, labels, needle, hub, dot and value text, with optional spring or tween animation and nested gauges. No runtime dependencies.",
       "author": "Thordur <https://github.com/doddi>",
-      "categories": [
-        "data-display",
-        "charts"
-      ],
-      "registryDependencies": [
-        "utils"
-      ],
+      "categories": ["data-display", "charts"],
+      "registryDependencies": ["utils"],
       "files": [
         {
           "path": "components/gauge/index.ts",
@@ -61,6 +56,11 @@
           "path": "components/gauge/dot.tsx",
           "type": "registry:ui",
           "target": "@components/gauge/dot.tsx"
+        },
+        {
+          "path": "components/gauge/control.tsx",
+          "type": "registry:ui",
+          "target": "@components/gauge/control.tsx"
         },
         {
           "path": "components/gauge/math.ts",

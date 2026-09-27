@@ -69,6 +69,10 @@ export type NeedleSpec = {
   color: string
   tail: number
   tailColor: string
+  /** Radius of the disc at the end of the tail; 0 for none. */
+  tailDot: number
+  /** Radius of the clear circle that splits the needle at the centre; 0 for none. */
+  gap: number
   /** Sweeps of the arc across the domain; 1 follows the value directly. */
   turns: number
 }

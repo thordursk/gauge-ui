@@ -2,12 +2,21 @@
 
 import { Moon02Icon, Sun03Icon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
+import type { VariantProps } from "class-variance-authority"
 import { useTheme } from "next-themes"
 
-import { Button } from "@/components/ui/button"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { Button, type buttonVariants } from "@/components/ui/button"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
-function ThemeToggle() {
+type ThemeToggleProps = {
+  variant?: VariantProps<typeof buttonVariants>["variant"]
+}
+
+function ThemeToggle({ variant = "secondary" }: ThemeToggleProps) {
   const { resolvedTheme, setTheme } = useTheme()
 
   return (
@@ -16,9 +25,11 @@ function ThemeToggle() {
         render={
           <Button
             size="icon-sm"
-            variant="secondary"
+            variant={variant}
             aria-label="Toggle theme"
-            onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+            onClick={() =>
+              setTheme(resolvedTheme === "dark" ? "light" : "dark")
+            }
           />
         }
       >
@@ -34,7 +45,7 @@ function ThemeToggle() {
           strokeWidth={2}
         />
       </TooltipTrigger>
-      <TooltipContent side="bottom">Toggle theme (D)</TooltipContent>
+      <TooltipContent side="bottom">Toggle theme</TooltipContent>
     </Tooltip>
   )
 }

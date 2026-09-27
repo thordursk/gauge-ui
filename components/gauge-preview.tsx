@@ -222,6 +222,8 @@ const GaugeParts = ({ spec, value }: { spec: GaugeSpec; value: number }) => {
             color={needle.color}
             tail={needle.tail}
             tailColor={needle.tailColor}
+            tailDot={needle.tailDot}
+            gap={needle.gap}
             turns={needle.turns}
           />
         ))}

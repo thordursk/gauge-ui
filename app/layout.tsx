@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next"
-import { Geist_Mono, Inter, Nunito } from "next/font/google"
+import { Geist, Geist_Mono, Inter, Nunito } from "next/font/google"
 
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
@@ -17,9 +17,16 @@ const fontRounded = Nunito({
   variable: "--font-rounded",
 })
 
+/* The site's own face, for text and headings alike, on every page. */
+const fontGeist = Geist({
+  subsets: ["latin"],
+  variable: "--font-geist",
+})
+
 export const metadata: Metadata = {
-  title: "Gauge Studio",
-  description: "Compose and tune a custom gauge, then copy the code.",
+  title: { default: "Gauge UI", template: "%s · Gauge UI" },
+  description:
+    "Composable SVG gauge primitives for React, distributed as a shadcn registry.",
 }
 
 /* The studio is exactly one screen tall, so it paints into the safe areas
@@ -28,10 +35,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "oklch(1 0 0)" },
-    { media: "(prefers-color-scheme: dark)", color: "oklch(0.205 0 0)" },
-  ],
+  themeColor: "oklch(0.205 0 0)",
 }
 
 export default function RootLayout({
@@ -45,10 +49,11 @@ export default function RootLayout({
       suppressHydrationWarning
       className={cn(
         "antialiased",
-        "font-sans",
+        "font-geist",
         inter.variable,
         fontMono.variable,
-        fontRounded.variable
+        fontRounded.variable,
+        fontGeist.variable
       )}
     >
       <body>

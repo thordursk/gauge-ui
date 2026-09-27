@@ -1,7 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { polar, stepValues } from "./math"
+import { cutValues, polar, stepValues } from "./math"
 import type { GaugeContextValue } from "./context"
 import {
   fontClass,
@@ -80,13 +80,29 @@ export const GaugeTicks = ({ count = 10, ...props }: GaugeTicksProps) => {
 
 export type GaugeMarksProps = RadialLineProps & {
   /** Domain values to mark, for example the cutoffs between zones. */
-  values: number[]
+  values?: number[]
+  /**
+   * Cut the domain into this many equal segments instead: the marks fall
+   * between the segments, none at the two ends. On a closed ring the seam is
+   * cut too, since the last segment meets the first there. Drawn in the
+   * surface's colour over a band, they slice it the way a water ring is cut
+   * into glasses.
+   */
+  count?: number
 }
 
-/** Radial marks at arbitrary domain values. */
-export const GaugeMarks = ({ values, ...props }: GaugeMarksProps) => {
-  const { angleOf } = useGauge()
-  return <RadialLines angles={values.map(angleOf)} {...props} />
+/** Radial marks at arbitrary domain values, or at equal cuts of the domain. */
+export const GaugeMarks = ({ values, count, ...props }: GaugeMarksProps) => {
+  const { min, max, startAngle, endAngle, angleOf } = useGauge()
+  const marks =
+    values ??
+    (count && count > 1
+      ? [
+          ...(endAngle - startAngle >= 360 ? [min] : []),
+          ...cutValues(min, max, count),
+        ]
+      : [])
+  return <RadialLines angles={marks.map(angleOf)} {...props} />
 }
 
 export type GaugeTickLabelsProps = {

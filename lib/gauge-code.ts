@@ -235,6 +235,8 @@ const parts = (
             tail: needle.tail,
             tailColor:
               needle.tailColor === needle.color ? undefined : needle.tailColor,
+            tailDot: needle.tailDot > 0 ? needle.tailDot : undefined,
+            gap: needle.gap > 0 ? needle.gap : undefined,
             turns: needle.turns === 1 ? undefined : needle.turns,
           },
           indent
