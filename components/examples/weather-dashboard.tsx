@@ -43,6 +43,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { useInView } from "@/hooks/use-in-view"
 import { cn } from "@/lib/utils"
 
@@ -851,40 +852,42 @@ const Hourly = ({
   selected: number
   onSelect: (index: number) => void
 }) => (
-  <div className="-mx-1 flex overflow-x-auto pb-1">
-    {HOURS.map((h, i) => (
-      <button
-        key={h.hour}
-        type="button"
-        onClick={() => onSelect(i)}
-        aria-pressed={i === selected}
-        className={cn(
-          "flex w-13 shrink-0 flex-col items-center gap-2 rounded-lg px-1 py-2 text-xs transition-colors",
-          "outline-none hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring",
-          i === selected && "bg-muted"
-        )}
-      >
-        <span
+  <ScrollArea orientation="horizontal" revealOnHover className="-mx-1">
+    <div className="flex pb-3">
+      {HOURS.map((h, i) => (
+        <button
+          key={h.hour}
+          type="button"
+          onClick={() => onSelect(i)}
+          aria-pressed={i === selected}
           className={cn(
-            "font-medium tabular-nums",
-            i === selected ? "text-foreground" : "text-muted-foreground"
+            "flex w-13 shrink-0 flex-col items-center gap-2 rounded-lg px-1 py-2 text-xs transition-colors",
+            "outline-none hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring",
+            i === selected && "bg-muted"
           )}
         >
-          {i === 0 ? "Now" : pad(h.hour)}
-        </span>
-        <SkyIcon sky={h.sky} />
-        <span className="font-rounded text-sm font-bold tabular-nums">
-          {degrees(h.temp)}
-        </span>
-        <span className="flex items-center gap-1 text-[10px] text-muted-foreground tabular-nums">
-          <span className="size-2.5">
-            <RainRing chance={h.rain} />
+          <span
+            className={cn(
+              "font-medium tabular-nums",
+              i === selected ? "text-foreground" : "text-muted-foreground"
+            )}
+          >
+            {i === 0 ? "Now" : pad(h.hour)}
           </span>
-          {h.rain}%
-        </span>
-      </button>
-    ))}
-  </div>
+          <SkyIcon sky={h.sky} />
+          <span className="font-rounded text-sm font-bold tabular-nums">
+            {degrees(h.temp)}
+          </span>
+          <span className="flex items-center gap-1 text-[10px] text-muted-foreground tabular-nums">
+            <span className="size-2.5">
+              <RainRing chance={h.rain} />
+            </span>
+            {h.rain}%
+          </span>
+        </button>
+      ))}
+    </div>
+  </ScrollArea>
 )
 
 const Now = ({

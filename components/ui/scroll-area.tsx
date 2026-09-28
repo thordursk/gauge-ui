@@ -8,10 +8,13 @@ function ScrollArea({
   className,
   children,
   revealOnHover = false,
+  orientation = "vertical",
   ...props
 }: ScrollAreaPrimitive.Root.Props & {
   /** Keep the scrollbar out of sight until the area is hovered or scrolled. */
   revealOnHover?: boolean
+  /** Which way the content scrolls. */
+  orientation?: "vertical" | "horizontal"
 }) {
   return (
     <ScrollAreaPrimitive.Root
@@ -26,6 +29,7 @@ function ScrollArea({
         {children}
       </ScrollAreaPrimitive.Viewport>
       <ScrollBar
+        orientation={orientation}
         className={cn(
           revealOnHover &&
             "opacity-0 transition-opacity duration-200 data-hovering:opacity-100 data-scrolling:opacity-100"
