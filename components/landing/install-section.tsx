@@ -21,9 +21,9 @@ const runners = [
 /** Prompts for building a gauge from the installed primitives. */
 const prompts = [
   {
-    title: "Speedometer with zones",
+    title: "Speedometer with a redline",
     prompt:
-      "Using the primitives in @/components/gauge, build a speedometer from 0 to 240 km/h with green, amber and red zones, a pointer needle and tick labels every 40.",
+      "Using the primitives in @/components/gauge, build a monochrome speedometer from 0 to 240 km/h with a single red zone at the top end, a pointer needle and tick labels every 40.",
   },
   {
     title: "Live metric",
