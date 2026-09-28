@@ -1,7 +1,7 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry.json",
   "name": "gauge-ui",
-  "homepage": "https://gauge-ui.vercel.app",
+  "homepage": "https://gauge-ui.dev",
   "items": [
     {
       "name": "gauge",

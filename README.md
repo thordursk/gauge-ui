@@ -11,7 +11,7 @@ Composable SVG gauge primitives for React, distributed as a [shadcn](https://ui.
 ## Install
 
 ```bash
-npx shadcn@latest add https://gauge-ui.vercel.app/r/gauge.json
+npx shadcn@latest add https://gauge-ui.dev/r/gauge.json
 ```
 
 Or register the namespace once in `components.json` and install by name:
@@ -19,7 +19,7 @@ Or register the namespace once in `components.json` and install by name:
 ```json
 {
   "registries": {
-    "@gauge-ui": "https://gauge-ui.vercel.app/r/{name}.json"
+    "@gauge-ui": "https://gauge-ui.dev/r/{name}.json"
   }
 }
 ```
