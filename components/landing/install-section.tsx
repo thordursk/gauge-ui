@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
-const REGISTRY_URL = "https://gauge-ui.vercel.app/r/gauge.json"
+const REGISTRY_URL = "https://gauge-ui.dev/r/gauge.json"
 
 const runners = [
   { id: "npm", command: `npx shadcn@latest add ${REGISTRY_URL}` },
