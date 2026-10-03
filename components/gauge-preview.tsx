@@ -130,6 +130,9 @@ const GaugeParts = ({ spec, value }: { spec: GaugeSpec; value: number }) => {
 
   return (
     <>
+      {spec.face.show && (
+        <GaugeHub radius={spec.face.radius} color={spec.face.color} />
+      )}
       {track.show && (
         <GaugeTrack
           width={track.width}

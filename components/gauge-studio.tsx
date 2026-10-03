@@ -28,7 +28,7 @@ import { useGaugeControllers } from "@/hooks/use-gauge-controllers"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { useStoredValue } from "@/hooks/use-stored-value"
 import { gaugeToCode } from "@/lib/gauge-code"
-import { clamp } from "@/components/gauge"
+import { GaugeControl, clamp } from "@/components/gauge"
 import { css, stepFor, type PlayMode } from "@/lib/gauge-panels"
 import { storageKeys, writeStored } from "@/lib/storage"
 
@@ -71,6 +71,20 @@ export const GaugeStudio = () => {
   /* The slider drives whichever gauge is selected, so the gauge itself takes
      the slider only while it is the one being edited. */
   const shown = selected === 0 ? current : hostValue
+
+  /* Keyed on the composition, so loading a template or resetting remounts
+     the gauges and sweeps them in. */
+  const gauge = (
+    <AnimatedGauge
+      key={sweepKey}
+      spec={spec}
+      value={shown}
+      mode={mode}
+      period={val.period}
+      amplitude={val.amplitude}
+      sweepIn
+    />
+  )
 
   return (
     <div className="flex h-svh flex-col overflow-hidden pr-[env(safe-area-inset-right)] pl-[env(safe-area-inset-left)] md:flex-row">
@@ -155,19 +169,33 @@ export const GaugeStudio = () => {
           <div className="flex min-h-0 w-full flex-1 items-center justify-center py-1 sm:py-4">
             {/* No aspect ratio here: a square gauge fills the stage and centres
                 itself, a fitted one takes its height from its own ratio. */}
-            <div className="flex h-full w-full items-center justify-center">
-              {/* Keyed on the composition, so loading a template or
-                  resetting remounts the gauges and sweeps them in. */}
-              <AnimatedGauge
-                key={sweepKey}
-                spec={spec}
-                value={shown}
-                mode={mode}
-                period={val.period}
-                amplitude={val.amplitude}
-                sweepIn
-              />
-            </div>
+            {spec.control ? (
+              /* A gauge set by hand is measured round the middle of its box,
+                 so the control is the largest square the stage holds. It
+                 sets the host's value, so it waits while an inset is in the
+                 panels and the value slider is busy with that instead. */
+              <div className="flex h-full w-full items-center justify-center [container-type:size]">
+                <GaugeControl
+                  value={shown}
+                  onChange={setValue}
+                  min={spec.domain.min}
+                  max={spec.domain.max}
+                  step={spec.control.step}
+                  startAngle={spec.domain.startAngle}
+                  endAngle={spec.domain.endAngle}
+                  label={spec.title.show ? spec.title.text : "Value"}
+                  knob={spec.control.knob}
+                  disabled={selected !== 0}
+                  className="size-[min(100cqw,100cqh)]"
+                >
+                  {gauge}
+                </GaugeControl>
+              </div>
+            ) : (
+              <div className="flex h-full w-full items-center justify-center">
+                {gauge}
+              </div>
+            )}
           </div>
           <ControlBar
             layers={layers}

@@ -97,6 +97,17 @@ const parts = (
 ) => {
   const body: string[] = []
 
+  if (spec.face.show) {
+    used.add("GaugeHub")
+    body.push(
+      element(
+        "GaugeHub",
+        { radius: spec.face.radius, color: spec.face.color },
+        indent
+      )
+    )
+  }
+
   if (spec.track.show) {
     used.add("GaugeTrack")
     body.push(
@@ -356,10 +367,13 @@ const insetElement = (
 
 /** JSX for a component that renders `spec` with the gauge primitives. */
 export const gaugeToCode = (spec: GaugeSpec) => {
-  const { domain } = spec
+  const { domain, control } = spec
   const used = new Set<string>(["Gauge"])
   const insets = spec.insets ?? []
-  const pad = "      "
+  /* A gauge that can be set by hand sits one level down, inside its control. */
+  const outer = control ? "      " : "    "
+  const pad = `${outer}  `
+  if (control) used.add("GaugeControl")
 
   /* Each gauge gets its own zone list, named after the inset it belongs to. */
   const consts = [usesZones(spec) ? zonesConst(spec, "zones") : null]
@@ -371,20 +385,60 @@ export const gaugeToCode = (spec: GaugeSpec) => {
     body.push(insetElement(inset, pad, used))
   }
 
-  /* Every gauge in the tree takes its value from a prop of its own. A gauge
-     on its own keeps the one-line signature; a list of them is broken up the
-     way prettier would. */
-  const params = ["value", ...insets.map((inset) => inset.name)]
+  /* Every gauge in the tree takes its value from a prop of its own, and one
+     that can be set by hand hands the new value back. A gauge on its own
+     keeps the one-line signature; a list of them is broken up the way
+     prettier would. */
+  const params = [
+    ["value", "number"],
+    ...(control ? [["onChange", "(value: number) => void"]] : []),
+    ...insets.map((inset) => [inset.name, "number"]),
+  ]
   const signature =
-    insets.length === 0
+    params.length === 1
       ? `export function CustomGauge({ value }: { value: number }) {`
       : [
           `export function CustomGauge({`,
-          ...params.map((name) => `  ${name},`),
+          ...params.map(([name]) => `  ${name},`),
           `}: {`,
-          ...params.map((name) => `  ${name}: number`),
+          ...params.map(([name, type]) => `  ${name}: ${type}`),
           `}) {`,
         ].join("\n")
+
+  const gauge = [
+    `${outer}<Gauge`,
+    `${pad}value={value}`,
+    `${pad}min={${num(domain.min)}}`,
+    `${pad}max={${num(domain.max)}}`,
+    `${pad}startAngle={${num(domain.startAngle)}}`,
+    `${pad}endAngle={${num(domain.endAngle)}}`,
+    `${pad}radius={${num(domain.radius)}}`,
+    `${pad}padding={${num(domain.padding)}}`,
+    domain.fit === "content" ? `${pad}fit="content"` : null,
+    spec.transition ? `${pad}transition={${literal(spec.transition)}}` : null,
+    `${outer}>`,
+    ...body,
+    `${outer}</Gauge>`,
+  ]
+
+  /* The control takes the same domain and sweep as the gauge it turns. */
+  const wrapped = control
+    ? [
+        `    <GaugeControl`,
+        `      value={value}`,
+        `      onChange={onChange}`,
+        `      min={${num(domain.min)}}`,
+        `      max={${num(domain.max)}}`,
+        `      step={${num(control.step)}}`,
+        `      startAngle={${num(domain.startAngle)}}`,
+        `      endAngle={${num(domain.endAngle)}}`,
+        `      label=${JSON.stringify(spec.title.show ? spec.title.text : "Value")}`,
+        control.knob ? `      knob` : null,
+        `    >`,
+        ...gauge,
+        `    </GaugeControl>`,
+      ]
+    : gauge
 
   const imports = [...used].sort().join(",\n  ")
 
@@ -394,19 +448,7 @@ export const gaugeToCode = (spec: GaugeSpec) => {
     ...consts,
     signature,
     `  return (`,
-    `    <Gauge`,
-    `      value={value}`,
-    `      min={${num(domain.min)}}`,
-    `      max={${num(domain.max)}}`,
-    `      startAngle={${num(domain.startAngle)}}`,
-    `      endAngle={${num(domain.endAngle)}}`,
-    `      radius={${num(domain.radius)}}`,
-    `      padding={${num(domain.padding)}}`,
-    domain.fit === "content" ? `      fit="content"` : null,
-    spec.transition ? `      transition={${literal(spec.transition)}}` : null,
-    `    >`,
-    ...body,
-    `    </Gauge>`,
+    ...wrapped,
     `  )`,
     `}`,
   ]

@@ -920,6 +920,7 @@ const MusicPanel = ({
             {...SWEEP}
             label="Volume"
             valueText={`${music.volume}%`}
+            knob
             className="w-full"
           >
             <VolumeKnob volume={music.volume} />

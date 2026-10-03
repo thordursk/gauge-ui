@@ -552,8 +552,8 @@ const formatWait = (minutes: number) => {
 }
 
 /**
- * A twenty-four hour dial with midnight at the top. The hand is the time now,
- * every alarm is a dot on the rim, dimmed while it is off, and the arc runs
+ * A twenty-four hour dial with midnight at the top. Every alarm is a dot on
+ * the rim, dimmed while it is off, and the arc runs
  * from now to the next one to ring, if that falls within the day.
  */
 const AlarmDial = ({
@@ -611,9 +611,6 @@ const AlarmDial = ({
         />
       </GaugeInset>
     ))}
-    {hour !== null && (
-      <GaugeNeedle style="line" length={0.6} width={6} tail={0} gap={80} />
-    )}
     <GaugeText y={-8} fontSize={52} font="mono" weight="semibold">
       {next ? clockTime(next.alarm.at) : "--:--"}
     </GaugeText>

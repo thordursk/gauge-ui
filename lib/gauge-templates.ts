@@ -517,6 +517,55 @@ export const gaugeTemplates: GaugeTemplate[] = [
     },
   },
   {
+    id: "volume",
+    name: "Volume",
+    /* The smart home's volume knob, and the one template that can be set by
+       hand: drag round the scale to jump to a level, or take hold of the
+       face and turn it like a real knob. A thin scale fills round the
+       outside, and the face carries a single dot for its pointer. */
+    values: {
+      gauge: {
+        min: 0,
+        max: 100,
+        startAngle: 40,
+        endAngle: 320,
+        control: "knob",
+      },
+      value: {
+        value: 42,
+        motion: { type: "spring", visualDuration: 0.3, bounce: 0 },
+      },
+      arcs: {
+        track: {
+          width: 6,
+          offset: -18,
+          color: token("foreground"),
+          opacity: 0.12,
+        },
+        arc: { width: 6, offset: -18, color: token("foreground") },
+        face: { show: true, radius: 156, color: token("muted") },
+      },
+      ticks: {
+        major: {
+          show: true,
+          count: 20,
+          length: 12,
+          width: 3,
+          offset: 6,
+          cap: "round",
+          color: token("muted-foreground"),
+          opacity: 0.45,
+        },
+      },
+      dot: { show: true, radius: 11, offset: -76, color: token("foreground") },
+      text: {
+        value: { fontSize: 64, font: "rounded", weight: "bold" },
+        unit: { show: false },
+        title: { show: false },
+      },
+    },
+  },
+  {
     id: "analog-dial",
     name: "Analog dial",
     values: {

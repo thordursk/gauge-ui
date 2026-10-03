@@ -14,6 +14,9 @@ import { angleToValue, clamp } from "./math"
     share of the half width. Inside it is the face, left for `onPress`. */
 const FACE = 0.55
 
+/** Too near the centre for the angle under the pointer to mean anything. */
+const HUB = 0.08
+
 /** The gauge angle under a point, measured round the element's centre. */
 const angleAt = (el: HTMLElement, x: number, y: number) => {
   const box = el.getBoundingClientRect()
@@ -45,6 +48,9 @@ export type GaugeControlProps = {
   label: string
   /** The value as it would be spoken: "21.5 °C" rather than 21.5. */
   valueText?: string
+  /** The face turns like a knob: a drag anywhere on it moves the value by as
+      far as the pointer goes round, rather than jumping to where it is. */
+  knob?: boolean
   disabled?: boolean
   className?: string
   children: ReactNode
@@ -55,7 +61,8 @@ export type GaugeControlProps = {
  * or use the arrow keys, Page Up and Down, Home and End. A drag past either
  * end of the sweep holds there rather than jumping to the other. A press in
  * the middle of the face, or Enter, is left for `onPress`, which a dimmer
- * uses to switch on and off. The domain and angles default to `Gauge`'s own.
+ * uses to switch on and off, or, with `knob`, turns the face from where it
+ * is. The domain and angles default to `Gauge`'s own.
  */
 export const GaugeControl = ({
   value,
@@ -68,12 +75,16 @@ export const GaugeControl = ({
   endAngle = 320,
   label,
   valueText,
+  knob = false,
   disabled = false,
   className,
   children,
 }: GaugeControlProps) => {
   /* Whether the press that is down started in the middle of the face. */
   const pressed = useRef(false)
+  /* A knob turn under way: the angle last seen, and the value it has got to
+     before rounding to a step. */
+  const turn = useRef<{ angle: number; value: number } | null>(null)
 
   const set = (next: number) =>
     onChange(clamp(Number(next.toFixed(2)), min, max))
@@ -91,7 +102,12 @@ export const GaugeControl = ({
 
   const onPointerDown = (e: PointerEvent<HTMLDivElement>) => {
     if (disabled) return
-    const { reach } = angleAt(e.currentTarget, e.clientX, e.clientY)
+    const { angle, reach } = angleAt(e.currentTarget, e.clientX, e.clientY)
+    if (reach < FACE && knob) {
+      e.currentTarget.setPointerCapture(e.pointerId)
+      turn.current = { angle, value }
+      return
+    }
     if (reach < FACE) {
       pressed.current = true
       return
@@ -102,12 +118,28 @@ export const GaugeControl = ({
 
   const onPointerMove = (e: PointerEvent<HTMLDivElement>) => {
     if (!e.currentTarget.hasPointerCapture(e.pointerId)) return
+    if (turn.current) {
+      const { angle, reach } = angleAt(e.currentTarget, e.clientX, e.clientY)
+      if (reach < HUB) return
+      /* The shortest way round from the last angle, so crossing six o'clock
+         is a small step and not a whole turn back. */
+      const by = ((angle - turn.current.angle + 540) % 360) - 180
+      const value = clamp(
+        turn.current.value + (by / (endAngle - startAngle)) * (max - min),
+        min,
+        max
+      )
+      turn.current = { angle, value }
+      set(Math.round(value / step) * step)
+      return
+    }
     set(valueUnder(e.currentTarget, e.clientX, e.clientY))
   }
 
   const onPointerUp = () => {
     if (pressed.current) onPress?.()
     pressed.current = false
+    turn.current = null
   }
 
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
@@ -145,7 +177,10 @@ export const GaugeControl = ({
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
-      onPointerCancel={() => (pressed.current = false)}
+      onPointerCancel={() => {
+        pressed.current = false
+        turn.current = null
+      }}
       onKeyDown={onKeyDown}
       className={cn(
         "aspect-square touch-none rounded-full outline-none select-none focus-visible:ring-2 focus-visible:ring-ring",
