@@ -166,7 +166,7 @@ const Pod = ({
       className
     )}
   >
-    <div className="size-full rounded-full border bg-background text-foreground">
+    <div className="aspect-square w-full rounded-full border bg-background text-foreground [&>svg]:h-auto">
       {children}
     </div>
   </div>
