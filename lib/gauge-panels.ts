@@ -146,7 +146,7 @@ export type PlayMode = (typeof playModes)[number]
 export type LayerKind = "host" | "inset"
 
 /** Controls only the host has, and the one only an inset has. */
-const HOST_ONLY = ["padding", "fit", "stage"] as const
+const HOST_ONLY = ["padding", "fit", "stage", "control"] as const
 const INSET_ONLY = ["placement"] as const
 
 const without = <T extends object>(config: T, keys: readonly string[]): T =>
@@ -174,6 +174,10 @@ const fullGaugeConfig = (flat: Flat = {}) =>
        back on gauges that stop well short of a full turn. */
     fit: select(["square", "content"], "square"),
     stage: color(flat, "stage", "background"),
+    /* Makes the gauge a slider: drag round the ring, or with `knob` turn the
+       face as well. Only a square gauge can be turned, since the drag is
+       measured round the middle of its box. */
+    control: select(["off", "ring", "knob"], "off"),
     placement: {
       /** Centre in the host gauge, as a fraction of its radius. */
       position: position(0, 0),
@@ -231,6 +235,11 @@ export const arcsConfig = (flat: Flat = {}) =>
       opacity: [1, 0, 1, 0.01],
       cap: cap("round"),
       offset: [0, -120, 120, 1],
+    },
+    face: {
+      show: toggle(false),
+      radius: [150, 1, 260, 1],
+      color: color(flat, "face.color", "muted"),
     },
   }) satisfies ControlConfig
 
@@ -619,6 +628,10 @@ export const buildSpec = (v: PanelValues): GaugeSpec => {
 
   return {
     transition: value.animate ? toGaugeTransition(value.motion) : undefined,
+    control:
+      gauge.control === "off" || gauge.fit === "content"
+        ? undefined
+        : { knob: gauge.control === "knob", step: stepFor(max - min) },
     domain: {
       min,
       max,
@@ -628,6 +641,7 @@ export const buildSpec = (v: PanelValues): GaugeSpec => {
       padding: gauge.padding,
       fit: gauge.fit as GaugeFit,
     },
+    face: { ...arcs.face, color: css(arcs.face.color) },
     track: {
       ...arcs.track,
       color: css(arcs.track.color),

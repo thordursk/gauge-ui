@@ -85,7 +85,7 @@ export function Speed({ value }: { value: number }) {
 | `GaugeValue` | Formatted current value |
 | `GaugeText` | Free text at any position, for units and titles |
 | `GaugeInset` | A whole gauge nested inside another, at its own scale |
-| `GaugeControl` | Wraps a gauge as an accessible slider: drag round the ring or use the keyboard to set its value |
+| `GaugeControl` | Wraps a gauge as an accessible slider: drag round the ring, turn the face with `knob`, or use the keyboard to set its value |
 
 `Gauge` and `GaugeInset` also take `wrap`, which treats the domain as circular so a heading animates the shortest way round, and `rotate`, which turns the whole scale under a fixed pointer the way a compass card turns.
 

@@ -80,6 +80,9 @@ export type NeedleSpec = {
 export type GaugeSpec = {
   /** How the gauge settles on a new value. Absent means instant. */
   transition?: GaugeTransition
+  /** Set by hand through `GaugeControl`: dragged round the ring, and with
+      `knob`, turned by the face as well. Absent means it only shows a value. */
+  control?: { knob: boolean; step: number }
   /** Whole gauges drawn inside this one, such as a fuel dial under a speedo. */
   insets?: GaugeInsetSpec[]
   domain: {
@@ -92,6 +95,8 @@ export type GaugeSpec = {
     /** Square box, or one fitted to the arc's sweep. See `GaugeProps.fit`. */
     fit: GaugeFit
   }
+  /** A disc filling the middle, under everything else: a knob's face. */
+  face: { show: boolean; radius: number; color: string }
   track: {
     show: boolean
     width: number
