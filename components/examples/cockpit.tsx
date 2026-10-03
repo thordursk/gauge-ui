@@ -468,7 +468,7 @@ const VerticalSpeedIndicator = ({
 /** A round instrument in a flat rim, set into the panel. */
 const Pod = ({ children }: { children: ReactNode }) => (
   <div className="aspect-square rounded-full border bg-muted p-[2.5%]">
-    <div className="size-full rounded-full border bg-background text-foreground">
+    <div className="aspect-square w-full rounded-full border bg-background text-foreground [&>svg]:h-auto">
       {children}
     </div>
   </div>
