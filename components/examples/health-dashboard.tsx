@@ -31,6 +31,7 @@ import {
   GaugeText,
   GaugeTickLabels,
   GaugeTicks,
+  GaugeTooltip,
   GaugeTrack,
   GaugeValue,
   GaugeZones,
@@ -114,6 +115,15 @@ const WEEK: Rings[] = [
   { move: 420, exercise: 24, stand: 9 },
 ]
 const WEEKDAYS = ["M", "T", "W", "T", "F", "S", "S"]
+const DAY_NAMES = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Today",
+]
 const TODAY = WEEK[WEEK.length - 1]
 
 /** Lowest and highest bpm in each hour so far: asleep, a run at seven, a desk. */
@@ -244,10 +254,12 @@ const ActivityRings = ({
   day,
   width,
   gap,
+  children,
 }: {
   day: Rings
   width: number
   gap: number
+  children?: ReactNode
 }) => (
   <Gauge value={0} {...ring} padding={width / 2 + 4}>
     {RINGS.map(({ key, goal }, i) => (
@@ -272,6 +284,7 @@ const ActivityRings = ({
         />
       </GaugeInset>
     ))}
+    {children}
   </Gauge>
 )
 
@@ -690,6 +703,26 @@ const Vital = ({
   </Card>
 )
 
+/** A day's three rings against their goals, for a tooltip. */
+const DaySummary = ({ name, day }: { name: string; day: Rings }) => (
+  <div className="flex flex-col gap-1.5">
+    <span className="font-medium">{name}</span>
+    <dl className="grid grid-cols-[auto_auto] gap-x-4 gap-y-1">
+      {RINGS.map(({ key, label, goal, unit }) => (
+        <div key={key} className="contents">
+          <dt className="flex items-center gap-1.5 text-muted-foreground">
+            <Swatch color={RING_TONE[key]} />
+            {label}
+          </dt>
+          <dd className="text-right tabular-nums">
+            {day[key]}/{goal} {unit}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  </div>
+)
+
 /* ---------- sections ---------- */
 
 const Activity = () => (
@@ -726,7 +759,16 @@ const Activity = () => (
             const today = i === WEEK.length - 1
             return (
               <div key={i} className="flex flex-col items-center gap-1.5">
-                <ActivityRings day={day} width={56} gap={8} />
+                <ActivityRings day={day} width={56} gap={8}>
+                  {/* The week's rings are too small to carry figures, so
+                      hovering one brings up the day's totals above it. */}
+                  <GaugeTooltip
+                    position="top"
+                    className="bg-popover text-popover-foreground ring-1 ring-border"
+                  >
+                    <DaySummary name={DAY_NAMES[i]} day={day} />
+                  </GaugeTooltip>
+                </ActivityRings>
                 <span
                   className={cn(
                     "text-[11px] font-medium",

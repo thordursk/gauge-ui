@@ -38,6 +38,8 @@ export const Gauge = ({
   radius,
   transition,
   initialValue,
+  wrap,
+  rotate,
   padding = 48,
   fit = "square",
   className,
@@ -54,6 +56,8 @@ export const Gauge = ({
     radius,
     transition,
     initialValue,
+    wrap,
+    rotate,
   })
 
   const half = gauge.radius + padding

@@ -18,6 +18,8 @@ import type {
   FontWeight,
   GaugeFit,
   GaugeSpec,
+  GaugeTooltipPosition,
+  GaugeTooltipSide,
   LabelFormat,
   NeedleSpec,
   NeedleStyle,
@@ -431,6 +433,39 @@ export const dotConfig = (flat: Flat = {}) =>
     turns: [1, 1, 720, 1],
   }) satisfies ControlConfig
 
+/**
+ * The HTML tooltip shown while the gauge is hovered. The text fields are
+ * plain strings, and an empty one leaves its line out. `pin` holds it open
+ * so it can be placed without keeping the pointer on the gauge.
+ */
+export const tooltipConfig = () =>
+  ({
+    show: toggle(false),
+    pin: toggle(false),
+    label: "Value",
+    unit: "",
+    decimals: [0, 0, 3, 1],
+    position: select(
+      [
+        "value",
+        "pointer",
+        "center",
+        "top",
+        "right",
+        "bottom",
+        "left",
+        "top-left",
+        "top-right",
+        "bottom-left",
+        "bottom-right",
+      ],
+      "value"
+    ),
+    side: select(["auto", "center", "top", "right", "bottom", "left"], "auto"),
+    offset: [24, -160, 160, 1],
+    gap: [8, 0, 64, 1],
+  }) satisfies ControlConfig
+
 /* ---------- values ---------- */
 
 export type GaugeValues = ResolvedValues<ReturnType<typeof gaugeConfig>>
@@ -441,6 +476,7 @@ export type TicksValues = ResolvedValues<ReturnType<typeof ticksConfig>>
 export type TextValues = ResolvedValues<ReturnType<typeof textPanelConfig>>
 export type NeedleValues = ResolvedValues<ReturnType<typeof needleConfig>>
 export type DotValues = ResolvedValues<ReturnType<typeof dotConfig>>
+export type TooltipValues = ResolvedValues<ReturnType<typeof tooltipConfig>>
 
 /** Every panel's resolved values, keyed by panel id. */
 export type PanelValues = {
@@ -452,6 +488,7 @@ export type PanelValues = {
   text: TextValues
   needle: NeedleValues
   dot: DotValues
+  tooltip: TooltipValues
 }
 
 /** A partial update for every panel, in the shape `setValues` accepts. */
@@ -464,6 +501,7 @@ export type PanelUpdates = {
   text?: ControlValueUpdates<ReturnType<typeof textPanelConfig>>
   needle?: ControlValueUpdates<ReturnType<typeof needleConfig>>
   dot?: ControlValueUpdates<ReturnType<typeof dotConfig>>
+  tooltip?: ControlValueUpdates<ReturnType<typeof tooltipConfig>>
 }
 
 const isRecord = (v: unknown): v is Record<string, unknown> =>
@@ -535,6 +573,7 @@ export const defaultPanelValues = (min = 0, max = 100): PanelValues => ({
   text: defaultsOf(textPanelConfig()),
   needle: defaultsOf(needleConfig()),
   dot: defaultsOf(dotConfig()),
+  tooltip: defaultsOf(tooltipConfig()),
 })
 
 /** Panel values for a set of updates applied over the defaults. */
@@ -571,7 +610,7 @@ export const toGaugeTransition = (t: TransitionConfig): GaugeTransition => {
 }
 
 export const buildSpec = (v: PanelValues): GaugeSpec => {
-  const { gauge, value, arcs, cutoffs, ticks, text, needle, dot } = v
+  const { gauge, value, arcs, cutoffs, ticks, text, needle, dot, tooltip } = v
   const { min, max } = domainOf(gauge)
 
   /* Zones keep their panel order. The last zone always runs to `max`, so its
@@ -686,6 +725,17 @@ export const buildSpec = (v: PanelValues): GaugeSpec => {
       hub: { radius: needle.hub.radius, color: css(needle.hub.color) },
     },
     dot: { ...dot, color: css(dot.color) },
+    tooltip: {
+      show: tooltip.show,
+      open: tooltip.pin,
+      label: tooltip.label,
+      unit: tooltip.unit,
+      decimals: tooltip.decimals,
+      position: tooltip.position as GaugeTooltipPosition,
+      side: tooltip.side as GaugeTooltipSide,
+      offset: tooltip.offset,
+      gap: tooltip.gap,
+    },
     value: {
       show: text.value.show,
       x: text.value.position.x * RADIUS,

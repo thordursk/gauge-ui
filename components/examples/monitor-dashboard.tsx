@@ -14,9 +14,11 @@ import {
   GaugeText,
   GaugeTickLabels,
   GaugeTicks,
+  GaugeTooltip,
   GaugeTrack,
   GaugeValue,
   GaugeZones,
+  type GaugeTooltipProps,
   type GaugeTransition,
 } from "@/components/gauge"
 import {
@@ -230,17 +232,20 @@ const useLiveReadings = (visible: boolean) => {
 
 /**
  * The small top-half dial in the stat tiles: a track split into quarters, a
- * needle, and whatever fill or zone the metric needs underneath it.
+ * needle, and whatever fill or zone the metric needs underneath it. Hovering
+ * it brings up the reading on the arc where the needle points.
  */
 const MiniDial = ({
   value,
   min = 0,
   max,
+  tooltip,
   children,
 }: {
   value: number
   min?: number
   max: number
+  tooltip: GaugeTooltipProps
   children?: ReactNode
 }) => (
   <Gauge
@@ -266,6 +271,7 @@ const MiniDial = ({
     />
     <GaugeNeedle style="pointer" length={0.95} width={36} tail={0} />
     <GaugeHub radius={22} />
+    <GaugeTooltip {...tooltip} />
   </Gauge>
 )
 
@@ -624,7 +630,11 @@ export const MonitorDashboard = () => {
           value={load1.toFixed(2)}
           caption={`${load5.toFixed(2)} · ${load15.toFixed(2)}`}
         >
-          <MiniDial value={load1} max={CORES}>
+          <MiniDial
+            value={load1}
+            max={CORES}
+            tooltip={{ label: "1 min", decimals: 2, unit: `/ ${CORES}` }}
+          >
             <GaugeZones
               zones={[
                 { to: CORES * 0.75, color: CLEAR },
@@ -639,7 +649,12 @@ export const MonitorDashboard = () => {
           value={`${Math.round(temp)} °C`}
           caption="Throttles at 95 °C"
         >
-          <MiniDial value={temp} min={20} max={100}>
+          <MiniDial
+            value={temp}
+            min={20}
+            max={100}
+            tooltip={{ label: "Package", unit: "°C" }}
+          >
             <GaugeZones
               zones={[
                 { to: 85, color: CLEAR },
@@ -654,12 +669,24 @@ export const MonitorDashboard = () => {
           value={fan.toLocaleString("en-US")}
           caption="rpm, max 5,000"
         >
-          <MiniDial value={fan} max={5000}>
+          <MiniDial
+            value={fan}
+            max={5000}
+            tooltip={{
+              label: "Fan speed",
+              unit: "rpm",
+              format: (v) => Math.round(v).toLocaleString("en-US"),
+            }}
+          >
             <GaugeArc width={40} cap="butt" opacity={0.3} />
           </MiniDial>
         </Stat>
         <Stat label="Swap" value={gb(live.swap)} caption={`of ${SWAP} GB`}>
-          <MiniDial value={live.swap} max={SWAP}>
+          <MiniDial
+            value={live.swap}
+            max={SWAP}
+            tooltip={{ label: "Swap used", decimals: 1, unit: "GB" }}
+          >
             <GaugeArc width={40} cap="butt" opacity={0.3} />
           </MiniDial>
         </Stat>

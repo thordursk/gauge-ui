@@ -27,6 +27,7 @@ import {
   GaugeText,
   GaugeTickLabels,
   GaugeTicks,
+  GaugeTooltip,
   GaugeTrack,
   GaugeValue,
   GaugeZones,
@@ -458,7 +459,8 @@ const TemperatureDial = ({ temp }: { temp: number }) => (
 /**
  * The Wind direction template: the arrowhead points at the bearing the wind
  * blows from, the counterweight rides the far rim, and the speed sits in the
- * gap the arrow leaves round the centre.
+ * gap the arrow leaves round the centre. Hovering it names the point of the
+ * compass at the arrowhead, following the vane as it swings.
  */
 const WindDial = ({ speed, from }: { speed: number; from: number }) => (
   <Gauge
@@ -497,6 +499,11 @@ const WindDial = ({ speed, from }: { speed: number; from: number }) => (
     <GaugeText y={44} fontSize={24} color={MUTED}>
       m/s
     </GaugeText>
+    <GaugeTooltip>
+      {(v) =>
+        `From ${compassLabel(Math.round(v / 22.5) * 22.5)} · ${Math.round(v)}°`
+      }
+    </GaugeTooltip>
   </Gauge>
 )
 
@@ -573,7 +580,8 @@ const BAROMETER_WORDS = ["Stormy", "Rain", "Change", "Fair", "Dry"]
  * An aneroid barometer: a pointer on the pressure, a hectopascal a tick, the
  * old weather words round the face, and the set hand as a mark on the rim
  * where the pressure stood three hours ago. The stretch between is the fall,
- * and the pointer swings down it as the dial opens.
+ * and the pointer swings down it as the dial opens. Hovering it explains the
+ * set hand with a tooltip pinned to it.
  */
 const Barometer = ({ hpa, set }: { hpa: number; set: number }) => (
   <Gauge
@@ -625,6 +633,14 @@ const Barometer = ({ hpa, set }: { hpa: number; set: number }) => (
     />
     <GaugeHub radius={14} color={INK} />
     <GaugeHub radius={5} color={CUT} />
+    <GaugeTooltip at={set}>
+      <div className="flex flex-col leading-tight">
+        <span className="opacity-70">Set hand, 3 h ago</span>
+        <span className="font-semibold tabular-nums">
+          {`${set.toFixed(1)} hPa, ${(hpa - set).toFixed(1)} since`}
+        </span>
+      </div>
+    </GaugeTooltip>
   </Gauge>
 )
 

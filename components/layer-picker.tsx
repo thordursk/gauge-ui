@@ -165,6 +165,7 @@ const LayerRow = ({
             spec={spec}
             value={layer.values.value.value}
             transition={false}
+            tooltips={false}
           />
         </span>
         <span className="truncate text-sm font-medium">{layer.name}</span>

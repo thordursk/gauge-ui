@@ -32,6 +32,12 @@ export {
 } from "./text"
 export { GaugeDot, type GaugeDotProps } from "./dot"
 export {
+  GaugeTooltip,
+  type GaugeTooltipPosition,
+  type GaugeTooltipProps,
+  type GaugeTooltipSide,
+} from "./tooltip"
+export {
   GaugeNeedle,
   GaugeHub,
   type GaugeNeedleProps,
