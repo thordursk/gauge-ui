@@ -11,6 +11,7 @@ import {
   needleConfig,
   textPanelConfig,
   ticksConfig,
+  tooltipConfig,
   valueConfig,
   type PanelValues,
   type PlayMode,
@@ -85,18 +86,15 @@ export const useGaugeControllers = () => {
   )
   const cutoffs = cutoffsCtl.values
 
-  const ticksCtl = useControlPanel(
-    "Ticks",
-    ticksConfig(flatValues("ticks")),
-    { id: "ticks", defaultCollapsed: true }
-  )
+  const ticksCtl = useControlPanel("Ticks", ticksConfig(flatValues("ticks")), {
+    id: "ticks",
+    defaultCollapsed: true,
+  })
   const ticks = ticksCtl.values
 
-  const textCtl = useControlPanel(
-    "Text",
-    textPanelConfig(flatValues("text")),
-    { id: "text" }
-  )
+  const textCtl = useControlPanel("Text", textPanelConfig(flatValues("text")), {
+    id: "text",
+  })
   const text = textCtl.values
 
   const needleCtl = useControlPanel(
@@ -112,6 +110,12 @@ export const useGaugeControllers = () => {
   })
   const dot = dotCtl.values
 
+  const tooltipCtl = useControlPanel("Tooltip", tooltipConfig(), {
+    id: "tooltip",
+    defaultCollapsed: true,
+  })
+  const tooltip = tooltipCtl.values
+
   const controllers = {
     gauge: gaugeCtl,
     value: valCtl,
@@ -121,6 +125,7 @@ export const useGaugeControllers = () => {
     text: textCtl,
     needle: needleCtl,
     dot: dotCtl,
+    tooltip: tooltipCtl,
   }
 
   /* The controllers are read through a ref so applying a layer does not have
@@ -140,6 +145,7 @@ export const useGaugeControllers = () => {
     text: panels.current.text.getValues(),
     needle: panels.current.needle.getValues(),
     dot: panels.current.dot.getValues(),
+    tooltip: panels.current.tooltip.getValues(),
   })
 
   /* Wrapped so that loading the same layer twice over is still a new request. */
@@ -151,7 +157,7 @@ export const useGaugeControllers = () => {
 
   useEffect(() => {
     if (!request) return
-    const { gauge, value, arcs, cutoffs, ticks, text, needle, dot } =
+    const { gauge, value, arcs, cutoffs, ticks, text, needle, dot, tooltip } =
       request.values
     let pass = 0
     let frame = 0
@@ -165,6 +171,7 @@ export const useGaugeControllers = () => {
       panels.current.text.setValues(text)
       panels.current.needle.setValues(needle)
       panels.current.dot.setValues(dot)
+      panels.current.tooltip.setValues(tooltip)
       /* The next pass waits for the panels to have been rebuilt around what
          this one set. One more frame after the last of them, and what they
          report is the layer that was asked for. */
@@ -196,6 +203,7 @@ export const useGaugeControllers = () => {
               text,
               needle,
               dot,
+              tooltip,
             })
           : layer
       ),
@@ -211,6 +219,7 @@ export const useGaugeControllers = () => {
       text,
       needle,
       dot,
+      tooltip,
     ]
   )
 

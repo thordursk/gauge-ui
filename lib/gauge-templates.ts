@@ -87,6 +87,50 @@ const insetHalfDial = (
 })
 
 /**
+ * One workstream's ring for the Sprint template: a small full ring from
+ * twelve o'clock placed in the grid, its name in the middle, and a tooltip
+ * with the tasks behind the share.
+ */
+const sprintRing = (
+  x: number,
+  y: number,
+  value: number,
+  title: string,
+  done: number,
+  total: number
+): PanelUpdates => ({
+  gauge: {
+    min: 0,
+    max: 100,
+    startAngle: 180,
+    endAngle: 540,
+    placement: { position: { x, y }, scale: 0.42 },
+  },
+  value: { value },
+  arcs: {
+    track: { width: 36 },
+    arc: { width: 36, color: token("foreground") },
+  },
+  tooltip: {
+    show: true,
+    label: `${done} of ${total} tasks`,
+    unit: "%",
+    position: "value",
+  },
+  text: {
+    value: { show: false },
+    unit: { show: false },
+    title: {
+      show: true,
+      text: title,
+      fontSize: 52,
+      weight: "semibold",
+      position: { x: 0, y: 0 },
+    },
+  },
+})
+
+/**
  * One planet on its orbit, for the Orrery. The track is the orbit itself,
  * pulled in from the gauge's radius by `offset` rather than scaled down, so
  * every ring stays the same hairline and every planet the same size however
@@ -478,6 +522,52 @@ export const gaugeTemplates: GaugeTemplate[] = [
           text: "Complete",
           fontSize: 20,
           position: { x: 0, y: 0.34 },
+        },
+      },
+    },
+  },
+  {
+    id: "data-usage",
+    name: "Data usage",
+    /* A month's mobile data. Hovering the dial brings up a tooltip on the
+       head of the arc with what has been used so far, which swings round
+       with the fill as the value moves. */
+    values: {
+      gauge: { min: 0, max: 50, startAngle: 60, endAngle: 300 },
+      value: { value: 32 },
+      arcs: {
+        track: { width: 28 },
+        arc: { width: 28, color: token("foreground") },
+      },
+      dot: { show: true, radius: 7, color: token("background") },
+      tooltip: {
+        show: true,
+        label: "Used",
+        unit: "GB",
+        decimals: 1,
+        position: "value",
+      },
+      text: {
+        value: {
+          fontSize: 96,
+          font: "rounded",
+          weight: "bold",
+          position: { x: -0.08, y: 0.06 },
+        },
+        unit: {
+          show: true,
+          text: "GB",
+          fontSize: 32,
+          font: "rounded",
+          weight: "bold",
+          anchor: "start",
+          position: { x: 0.2, y: 0.02 },
+        },
+        title: {
+          show: true,
+          text: "of 50 GB",
+          fontSize: 26,
+          position: { x: 0, y: -0.26 },
         },
       },
     },
@@ -1527,6 +1617,34 @@ export const gaugeTemplates: GaugeTemplate[] = [
           },
           text: { value: { show: false }, unit: { show: false } },
         },
+      },
+    ],
+  },
+  {
+    id: "sprint",
+    name: "Sprint",
+    /* A sprint's four workstreams as small progress rings in a grid, each
+       carrying only its name. The host draws nothing itself and only places
+       them. Hovering the grid brings up a tooltip on the head of every ring
+       at once with its tasks done and its share. The values are picked so
+       each head, and so each bubble, points out of the grid at its own
+       corner rather than into a neighbour. */
+    values: {
+      gauge: { min: 0, max: 100, startAngle: 180, endAngle: 540 },
+      value: { value: 0 },
+      arcs: { track: { show: false }, arc: { show: false } },
+      text: { value: { show: false }, unit: { show: false } },
+    },
+    insets: [
+      { name: "design", values: sprintRing(-0.5, 0.5, 85, "Design", 17, 20) },
+      { name: "qa", values: sprintRing(0.5, 0.5, 12, "QA", 3, 25) },
+      {
+        name: "frontend",
+        values: sprintRing(-0.5, -0.5, 62, "Frontend", 13, 21),
+      },
+      {
+        name: "backend",
+        values: sprintRing(0.5, -0.5, 38, "Backend", 9, 24),
       },
     ],
   },

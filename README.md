@@ -82,6 +82,7 @@ export function Speed({ value }: { value: number }) {
 | `GaugeNeedle` | Line, pointer, compass or arrow needle |
 | `GaugeHub` | Centre cap for the needle |
 | `GaugeDot` | A disc riding the arc at the current value, with an optional `halo` to stand it off a band |
+| `GaugeTooltip` | An HTML tooltip shown on hover, pinned to the value, the pointer or a fixed spot on the dial: the value with a label and unit by default, or any content you give it |
 | `GaugeValue` | Formatted current value |
 | `GaugeText` | Free text at any position, for units and titles |
 | `GaugeInset` | A whole gauge nested inside another, at its own scale |
@@ -90,6 +91,43 @@ export function Speed({ value }: { value: number }) {
 `Gauge` and `GaugeInset` also take `wrap`, which treats the domain as circular so a heading animates the shortest way round, and `rotate`, which turns the whole scale under a fixed pointer the way a compass card turns.
 
 Helpers `zoneColor`, `zoneCutoffs`, `compassLabel`, `clockLabel`, `clockTime`, `durationLabel` and `fadeColor` are exported from the same module and are what the studio's generated code uses.
+
+## Tooltips
+
+`GaugeTooltip` is an HTML tooltip that shows while the pointer is over the gauge. By default it reads the value, with an optional `label` above it and `unit` after it, styled like the shadcn tooltip.
+
+```tsx
+<GaugeTooltip label="Used" unit="GB" decimals={1} />
+```
+
+`position` decides what it is pinned to:
+
+| `position` | Pinned to |
+| --- | --- |
+| `value` | The arc at the current value, or at `at` when given. The default |
+| `pointer` | The cursor, following it round the gauge |
+| `center` | The middle of the dial |
+| `top`, `right`, `bottom`, `left` | The middle of that edge of the box round the sweep |
+| `top-left`, `top-right`, `bottom-left`, `bottom-right` | That corner of the same box |
+
+`side` sets which way the bubble stands off that point: `top`, `right`, `bottom`, `left` or `center`. The default, `auto`, points outward along the radius at the value, so the bubble swings round as the value moves. It sits above the pointer, centres on the centre, and points away from the dial at an edge or corner. `offset` moves the point in or out from the reference radius in SVG units, as it does for arcs and dots, and `gap` is the room between the point and the bubble in CSS pixels. It also stays up while a press that started on the gauge is held, wherever the pointer goes, so it follows a drag on a `GaugeControl` and shows on touch screens, and while the gauge or the nearest focusable element round it, such as a `GaugeControl`, has keyboard focus. Pass `open` to hold it open, or shut, instead of following hover, presses and focus.
+
+The bubble avoids the edges of the viewport without leaving its point. When it would cross an edge, it flips to the other side of the point if that side has more room. If it still crosses the left or right edge, it slides sideways, but only as far as it keeps overlapping the point. It never slides up or down, so a tooltip whose gauge is below the fold stays with it and scrolls into view alongside it. `collisionPadding` is the room kept clear of the edge, 8 pixels by default, and `avoidCollisions={false}` turns this off.
+
+Children replace the default content with any HTML. Pass a function to get the value being shown, animated frame by frame, and `className` to restyle the bubble:
+
+```tsx
+<GaugeTooltip position="pointer" className="bg-popover text-popover-foreground">
+  {(v) => (
+    <div className="flex items-center gap-2">
+      <span className="size-2 rounded-full" style={{ background: zoneColor(zones, v, "gray") }} />
+      {v < 60 ? "Normal" : "High"} · {v.toFixed(0)}°
+    </div>
+  )}
+</GaugeTooltip>
+```
+
+The bubble is portalled to `document.body` and placed through the SVG's screen transform. The gauge never clips it, and it keeps its CSS size however the gauge, or an inset it sits in, is scaled. Hover is taken over the whole `<svg>`, so a tooltip inside a `GaugeInset` shows when the pointer is anywhere over the host gauge. The entrance animation uses the `tw-animate-css` classes that shadcn projects already include.
 
 ## Nested gauges
 

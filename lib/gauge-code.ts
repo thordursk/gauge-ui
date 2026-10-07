@@ -283,6 +283,27 @@ const parts = (
     )
   }
 
+  if (spec.tooltip.show) {
+    used.add("GaugeTooltip")
+    const { tooltip } = spec
+    body.push(
+      element(
+        "GaugeTooltip",
+        {
+          label: tooltip.label || undefined,
+          unit: tooltip.unit || undefined,
+          decimals: tooltip.decimals,
+          position: tooltip.position,
+          side: tooltip.side === "auto" ? undefined : tooltip.side,
+          offset: tooltip.offset,
+          gap: tooltip.gap,
+          open: tooltip.open || undefined,
+        },
+        indent
+      )
+    )
+  }
+
   if (spec.value.show) {
     used.add("GaugeValue")
     body.push(

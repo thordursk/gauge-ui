@@ -97,7 +97,7 @@ const TemplateCard = ({ template, selected, onSelect }: TemplateCardProps) => {
       )}
     >
       <div className="flex aspect-square w-full items-center justify-center rounded-xl border border-foreground/10 bg-background p-3">
-        <GaugePreview spec={spec} value={value} />
+        <GaugePreview spec={spec} value={value} tooltips={false} />
       </div>
       <div className="px-1 pb-0.5 text-center text-xs font-medium">
         {template.name}

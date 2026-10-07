@@ -11,6 +11,7 @@ import {
   GaugeText,
   GaugeTickLabels,
   GaugeTicks,
+  GaugeTooltip,
   GaugeTrack,
   GaugeValue,
   GaugeZones,
@@ -37,6 +38,11 @@ type GaugePreviewProps = {
    * forth for as long as it is on.
    */
   sweepIn?: boolean
+  /**
+   * Whether a tooltip in the spec shows on hover. Thumbnails turn it off, so
+   * pointing at a card in a picker does not bring one up over the picker.
+   */
+  tooltips?: boolean
 }
 
 /**
@@ -77,6 +83,7 @@ export const GaugePreview = ({
   value,
   transition = spec.transition,
   sweepIn = false,
+  tooltips = true,
 }: GaugePreviewProps) => {
   const { domain } = spec
 
@@ -93,7 +100,7 @@ export const GaugePreview = ({
       transition={transition}
       initialValue={sweepIn ? sweepFrom(spec, value) : undefined}
     >
-      <GaugeParts spec={spec} value={value} />
+      <GaugeParts spec={spec} value={value} tooltips={tooltips} />
       {spec.insets?.map((inset) => (
         <GaugeInset
           key={inset.name}
@@ -111,7 +118,11 @@ export const GaugePreview = ({
             sweepIn ? sweepFrom(inset.spec, inset.value) : undefined
           }
         >
-          <GaugeParts spec={inset.spec} value={inset.value} />
+          <GaugeParts
+            spec={inset.spec}
+            value={inset.value}
+            tooltips={tooltips}
+          />
         </GaugeInset>
       ))}
     </Gauge>
@@ -123,9 +134,18 @@ export const GaugePreview = ({
  * same way the host does. `value` is only needed for the zone the arc takes
  * its colour from; the parts themselves read the animated value from context.
  */
-const GaugeParts = ({ spec, value }: { spec: GaugeSpec; value: number }) => {
+const GaugeParts = ({
+  spec,
+  value,
+  tooltips,
+}: {
+  spec: GaugeSpec
+  value: number
+  tooltips: boolean
+}) => {
   const { track, arc, zones, marks, majorTicks, minorTicks } = spec
-  const { tickLabels, needles, dot, value: valueText, unit, title } = spec
+  const { tickLabels, needles, dot, tooltip } = spec
+  const { value: valueText, unit, title } = spec
   const labelFormat = { compass: compassLabel, clock: clockLabel }
 
   return (
@@ -240,6 +260,18 @@ const GaugeParts = ({ spec, value }: { spec: GaugeSpec; value: number }) => {
           opacity={dot.opacity}
           offset={dot.offset}
           turns={dot.turns}
+        />
+      )}
+      {tooltips && tooltip.show && (
+        <GaugeTooltip
+          label={tooltip.label || undefined}
+          unit={tooltip.unit || undefined}
+          decimals={tooltip.decimals}
+          position={tooltip.position}
+          side={tooltip.side}
+          offset={tooltip.offset}
+          gap={tooltip.gap}
+          open={tooltip.open || undefined}
         />
       )}
       {valueText.show && (

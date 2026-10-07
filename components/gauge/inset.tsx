@@ -33,6 +33,8 @@ export const GaugeInset = ({
   radius,
   transition,
   initialValue,
+  wrap,
+  rotate,
   x = 0,
   y = 0,
   scale = 1,
@@ -48,6 +50,8 @@ export const GaugeInset = ({
     radius,
     transition,
     initialValue,
+    wrap,
+    rotate,
   })
 
   return (

@@ -32,7 +32,7 @@ export const HeroBackdrop = ({ className }: { className?: string }) => (
   <div
     aria-hidden
     className={cn(
-      "pointer-events-none absolute inset-0 -z-10 overflow-hidden opacity-45 perspective-[1000px] select-none dark:opacity-35",
+      "pointer-events-none absolute inset-0 -z-10 overflow-hidden opacity-45 select-none perspective-[1000px] dark:opacity-35",
       className
     )}
     style={{
@@ -65,6 +65,7 @@ export const HeroBackdrop = ({ className }: { className?: string }) => (
                 spec={preview.spec}
                 value={preview.value}
                 transition={false}
+                tooltips={false}
               />
             </div>
           ))}

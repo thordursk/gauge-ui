@@ -9,6 +9,8 @@ import type {
   FontFamily,
   FontWeight,
   GaugeFit,
+  GaugeTooltipPosition,
+  GaugeTooltipSide,
   GaugeTransition,
   NeedleStyle,
   StrokeCap,
@@ -28,6 +30,8 @@ export {
   type FontFamily,
   type FontWeight,
   type GaugeFit,
+  type GaugeTooltipPosition,
+  type GaugeTooltipSide,
   type NeedleStyle,
   type StrokeCap,
   type TextAnchor,
@@ -164,6 +168,22 @@ export type GaugeSpec = {
     opacity: number
     offset: number
     turns: number
+  }
+  /** An HTML tooltip shown on hover. See `GaugeTooltip`. */
+  tooltip: {
+    show: boolean
+    /** Held open rather than shown on hover, to see it while designing. */
+    open: boolean
+    /** The small line over the value; empty for none. */
+    label: string
+    /** Printed after the value; empty for none. */
+    unit: string
+    decimals: number
+    position: GaugeTooltipPosition
+    side: GaugeTooltipSide
+    offset: number
+    /** CSS pixels between the point and the bubble. */
+    gap: number
   }
   value: TextSpec & { decimals: number }
   unit: TextSpec & { text: string }
