@@ -49,6 +49,7 @@ export const GaugeStudio = () => {
     value: val,
     domain: { min, max },
     setValue,
+    setRange,
     setMode,
     activeTemplate,
     selectTemplate,
@@ -85,6 +86,19 @@ export const GaugeStudio = () => {
       sweepIn
     />
   )
+
+  /* What the stage's control takes whether it sets a value or a range. */
+  const controlProps = (control: NonNullable<typeof spec.control>) => ({
+    min: spec.domain.min,
+    max: spec.domain.max,
+    step: control.step,
+    startAngle: spec.domain.startAngle,
+    endAngle: spec.domain.endAngle,
+    label: spec.title.show ? spec.title.text : "Value",
+    knob: control.knob,
+    disabled: selected !== 0,
+    className: "size-[min(100cqw,100cqh)]",
+  })
 
   return (
     <div className="flex h-svh flex-col overflow-hidden pr-[env(safe-area-inset-right)] pl-[env(safe-area-inset-left)] md:flex-row">
@@ -174,22 +188,31 @@ export const GaugeStudio = () => {
                  so the control is the largest square the stage holds. It
                  sets the host's value, so it waits while an inset is in the
                  panels and the value slider is busy with that instead. */
-              <div className="flex h-full w-full items-center justify-center [container-type:size]">
-                <GaugeControl
-                  value={shown}
-                  onChange={setValue}
-                  min={spec.domain.min}
-                  max={spec.domain.max}
-                  step={spec.control.step}
-                  startAngle={spec.domain.startAngle}
-                  endAngle={spec.domain.endAngle}
-                  label={spec.title.show ? spec.title.text : "Value"}
-                  knob={spec.control.knob}
-                  disabled={selected !== 0}
-                  className="size-[min(100cqw,100cqh)]"
-                >
-                  {gauge}
-                </GaugeControl>
+              <div className="[container-type:size] flex h-full w-full items-center justify-center">
+                {spec.rangeFrom === undefined ? (
+                  <GaugeControl
+                    value={shown}
+                    onChange={setValue}
+                    {...controlProps(spec.control)}
+                  >
+                    {gauge}
+                  </GaugeControl>
+                ) : (
+                  <GaugeControl
+                    /* In order, since the far end can be slid below the
+                       start; the thumbs hold apart from there. */
+                    value={
+                      [
+                        Math.min(spec.rangeFrom, shown),
+                        Math.max(spec.rangeFrom, shown),
+                      ] as [number, number]
+                    }
+                    onChange={setRange}
+                    {...controlProps(spec.control)}
+                  >
+                    {gauge}
+                  </GaugeControl>
+                )}
               </div>
             ) : (
               <div className="flex h-full w-full items-center justify-center">

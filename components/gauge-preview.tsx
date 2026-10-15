@@ -9,6 +9,7 @@ import {
   GaugeMarks,
   GaugeNeedle,
   GaugeText,
+  GaugeTickFill,
   GaugeTickLabels,
   GaugeTicks,
   GaugeTooltip,
@@ -74,6 +75,10 @@ const sweepFrom = (spec: GaugeSpec, value: number) => {
   return Math.max(min, value - reach)
 }
 
+/** The value a spec's gauge is given: the value, or a range ending at it. */
+const valueOf = (spec: GaugeSpec, value: number) =>
+  spec.rangeFrom === undefined ? value : ([spec.rangeFrom, value] as const)
+
 /**
  * Renders a `GaugeSpec` with the gauge primitives. The generated code in
  * `lib/gauge-code.ts` mirrors this composition, so keep the two in step.
@@ -89,7 +94,7 @@ export const GaugePreview = ({
 
   return (
     <Gauge
-      value={value}
+      value={valueOf(spec, value)}
       min={domain.min}
       max={domain.max}
       startAngle={domain.startAngle}
@@ -107,7 +112,7 @@ export const GaugePreview = ({
           x={inset.x}
           y={inset.y}
           scale={inset.scale}
-          value={inset.value}
+          value={valueOf(inset.spec, inset.value)}
           min={inset.spec.domain.min}
           max={inset.spec.domain.max}
           startAngle={inset.spec.domain.startAngle}
@@ -197,6 +202,19 @@ const GaugeParts = ({
           cap={marks.cap}
         />
       )}
+      {spec.tickFill.show && (
+        <GaugeTickFill
+          mode={spec.tickFill.mode}
+          count={spec.tickFill.count}
+          length={spec.tickFill.length}
+          litLength={spec.tickFill.litLength}
+          width={spec.tickFill.width}
+          color={spec.tickFill.color}
+          dimColor={spec.tickFill.dimColor}
+          offset={spec.tickFill.offset}
+          cap={spec.tickFill.cap}
+        />
+      )}
       {minorTicks.show && (
         <GaugeTicks
           count={minorTicks.count}
@@ -252,6 +270,16 @@ const GaugeParts = ({
         ))}
       {needles.show && (
         <GaugeHub radius={needles.hub.radius} color={needles.hub.color} />
+      )}
+      {dot.show && dot.both && (
+        <GaugeDot
+          end="from"
+          radius={dot.radius}
+          color={dot.color}
+          opacity={dot.opacity}
+          offset={dot.offset}
+          turns={dot.turns}
+        />
       )}
       {dot.show && (
         <GaugeDot
