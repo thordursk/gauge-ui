@@ -9,6 +9,16 @@
 export const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value))
 
+/**
+ * A value folded back inside [min, max) modulo the span, as on a closed ring:
+ * 370° on a compass reads as 10°, and 25 o'clock as 1.
+ */
+export const foldValue = (value: number, min: number, max: number) => {
+  const lo = Math.min(min, max)
+  const span = Math.abs(max - min)
+  return span === 0 ? lo : lo + ((((value - lo) % span) + span) % span)
+}
+
 export const degreesToRadians = (degrees: number) => (degrees * Math.PI) / 180
 
 /**

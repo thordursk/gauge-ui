@@ -8,6 +8,13 @@ export type StrokeCap = "round" | "butt"
 export type FontFamily = "sans" | "rounded" | "mono"
 export type FontWeight = "regular" | "medium" | "semibold" | "bold"
 export type NeedleStyle = "line" | "pointer" | "compass" | "arrow"
+/**
+ * Which end of a range a part follows: `to`, the far end, which is the value
+ * itself on a single-value gauge, or `from`, where the range starts.
+ */
+export type GaugeEnd = "from" | "to"
+/** A colour for every mark alike, or one per mark worked out from its value. */
+export type ValueColor = string | ((value: number) => string)
 /** Which edge of a text sits at its position: left, centre or right. */
 export type TextAnchor = "start" | "middle" | "end"
 

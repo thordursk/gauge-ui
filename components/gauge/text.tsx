@@ -8,6 +8,7 @@ import {
   weightClass,
   type FontFamily,
   type FontWeight,
+  type GaugeEnd,
   type TextAnchor,
 } from "./utils"
 
@@ -53,19 +54,27 @@ export const GaugeText = ({
 
 export type GaugeValueProps = Omit<GaugeTextProps, "children"> & {
   decimals?: number
+  /** Formats each number shown; a range formats its two ends apart. */
   format?: (value: number) => string
+  /** Placed between the two ends of a range. */
+  separator?: string
+  /** Show only one end of a range rather than both. */
+  end?: GaugeEnd
 }
 
-/** The current value as text. */
+/** The current value as text, or a range as its two ends. */
 export const GaugeValue = ({
   decimals = 0,
   format,
+  separator = "–",
+  end,
   className,
   fontSize = 96,
   weight = "semibold",
   ...props
 }: GaugeValueProps) => {
-  const { value } = useGauge()
+  const { value, from, range } = useGauge()
+  const text = (v: number) => (format ? format(v) : v.toFixed(decimals))
   return (
     <GaugeText
       fontSize={fontSize}
@@ -73,7 +82,11 @@ export const GaugeValue = ({
       className={cn("tabular-nums", className)}
       {...props}
     >
-      {format ? format(value) : value.toFixed(decimals)}
+      {end === "from"
+        ? text(from)
+        : range && !end
+          ? `${text(from)}${separator}${text(value)}`
+          : text(value)}
     </GaugeText>
   )
 }

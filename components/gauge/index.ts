@@ -4,6 +4,7 @@ export {
   useGauge,
   type GaugeContextValue,
   type GaugeDomainProps,
+  type GaugeRange,
 } from "./context"
 export {
   GaugeTrack,
@@ -18,9 +19,11 @@ export {
 export { GaugeControl, type GaugeControlProps } from "./control"
 export {
   GaugeTicks,
+  GaugeTickFill,
   GaugeMarks,
   GaugeTickLabels,
   type GaugeTicksProps,
+  type GaugeTickFillProps,
   type GaugeMarksProps,
   type GaugeTickLabelsProps,
 } from "./ticks"
@@ -50,6 +53,7 @@ export {
   clamp,
   cutValues,
   degreesToRadians,
+  foldValue,
   polar,
   stepValues,
   valueToAngle,
@@ -67,9 +71,11 @@ export {
   zoneCutoffs,
   type FontFamily,
   type FontWeight,
+  type GaugeEnd,
   type NeedleStyle,
   type StrokeCap,
   type TextAnchor,
+  type ValueColor,
   type Zone,
 } from "./utils"
 export {

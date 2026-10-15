@@ -1,6 +1,7 @@
 "use client"
 
 import { polar, valueToTurnedAngle } from "./math"
+import type { GaugeEnd } from "./utils"
 
 import { useGauge } from "./context"
 
@@ -23,6 +24,9 @@ export type GaugeDotProps = {
   halo?: number
   /** Colour of the halo: the surface under the gauge, usually. */
   haloColor?: string
+  /** Which end of a range the dot rides. Two dots, one at each end, make
+      the handles of a range. */
+  end?: GaugeEnd
 }
 
 /**
@@ -39,10 +43,11 @@ export const GaugeDot = ({
   turns = 1,
   halo = 0,
   haloColor = "var(--background)",
+  end = "to",
 }: GaugeDotProps) => {
   const gauge = useGauge()
   const angle = valueToTurnedAngle(
-    gauge.value,
+    end === "from" ? gauge.from : gauge.value,
     gauge.min,
     gauge.max,
     gauge.startAngle,
