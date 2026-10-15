@@ -14,6 +14,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { repoUrl } from "@/lib/site"
 import { cn } from "@/lib/utils"
 
 const links = [
@@ -21,7 +22,13 @@ const links = [
   { href: "#examples", label: "Examples" },
 ]
 
-export const SiteHeader = () => {
+/* 118 → "118", 1234 → "1.2K". Pinned to en-US so server and client agree. */
+const starFormat = new Intl.NumberFormat("en-US", {
+  notation: "compact",
+  maximumFractionDigits: 1,
+})
+
+export const SiteHeader = ({ stars }: { stars?: number | null }) => {
   const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
@@ -66,13 +73,17 @@ export const SiteHeader = () => {
             <TooltipTrigger
               render={
                 <Button
-                  size="icon-sm"
+                  size={stars == null ? "icon-sm" : "sm"}
                   variant="ghost-muted"
-                  aria-label="GitHub repository"
+                  aria-label={
+                    stars == null
+                      ? "GitHub repository"
+                      : `GitHub repository, ${stars.toLocaleString("en-US")} stars`
+                  }
                   nativeButton={false}
                   render={
                     <a
-                      href="https://github.com/thordursk/gauge-ui"
+                      href={repoUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                     />
@@ -80,7 +91,14 @@ export const SiteHeader = () => {
                 />
               }
             >
-              <HugeiconsIcon icon={GithubIcon} strokeWidth={2} />
+              <HugeiconsIcon
+                icon={GithubIcon}
+                strokeWidth={2}
+                data-icon={stars == null ? undefined : "inline-start"}
+              />
+              {stars != null && (
+                <span className="tabular-nums">{starFormat.format(stars)}</span>
+              )}
             </TooltipTrigger>
             <TooltipContent side="bottom">GitHub</TooltipContent>
           </Tooltip>
