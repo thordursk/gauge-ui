@@ -4,6 +4,7 @@ import { ExamplesSection } from "@/components/landing/examples-section"
 import { SiteFooter } from "@/components/landing/site-footer"
 import { SiteHeader } from "@/components/landing/site-header"
 import { Separator } from "@/components/ui/separator"
+import { getRepoStars } from "@/lib/github"
 import { siteDescription, siteName, siteUrl } from "@/lib/site"
 
 /* Tells search engines what the site is: free developer tooling, one author,
@@ -25,14 +26,16 @@ const structuredData = {
   },
 }
 
-export default function HomePage() {
+export default async function HomePage() {
+  const stars = await getRepoStars()
+
   return (
     <div className="flex min-h-svh flex-col pr-[env(safe-area-inset-right)] pl-[env(safe-area-inset-left)]">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      <SiteHeader />
+      <SiteHeader stars={stars} />
       <main className="mb-10 flex-1">
         <HeroSection />
         <InstallSection />
