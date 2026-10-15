@@ -500,6 +500,70 @@ export const gaugeTemplates: GaugeTemplate[] = [
     },
   },
   {
+    id: "range",
+    name: "Range",
+    /* A comfort band rather than a reading: the value is a [from, to] range,
+       the arc fills between its two ends and a dot rides each one. The ring
+       is a control, so either end can be dragged on its own, and it follows
+       the thumbs exactly rather than springing after them. */
+    values: {
+      gauge: {
+        min: 10,
+        max: 30,
+        startAngle: 40,
+        endAngle: 320,
+        control: "ring",
+      },
+      value: { value: 23, range: true, from: 19, animate: false },
+      arcs: {
+        track: { width: 28, cap: "butt" },
+        arc: {
+          width: 28,
+          color: token("foreground"),
+          opacity: 0.35,
+          cap: "butt",
+        },
+      },
+      ticks: {
+        major: {
+          show: true,
+          count: 20,
+          length: 8,
+          width: 2,
+          offset: -38,
+          opacity: 0.6,
+        },
+      },
+      dot: {
+        show: true,
+        ends: "both",
+        radius: 16,
+        color: token("foreground"),
+      },
+      text: {
+        value: {
+          fontSize: 76,
+          font: "rounded",
+          weight: "bold",
+          position: { x: 0, y: 0.02 },
+        },
+        unit: {
+          show: true,
+          text: "°C",
+          fontSize: 24,
+          position: { x: 0, y: -0.3 },
+        },
+        title: {
+          show: true,
+          text: "Comfort",
+          fontSize: 20,
+          weight: "semibold",
+          position: { x: 0, y: 0.36 },
+        },
+      },
+    },
+  },
+  {
     id: "progress-ring",
     name: "Progress ring",
     values: {
@@ -523,6 +587,37 @@ export const gaugeTemplates: GaugeTemplate[] = [
           fontSize: 20,
           position: { x: 0, y: 0.34 },
         },
+      },
+    },
+  },
+  {
+    id: "segments",
+    name: "Segments",
+    /* No track and no arc: a ring of ticks is the fill, lit up to the value
+       and dim past it, the lit ones standing a little longer. */
+    values: {
+      value: { value: 64 },
+      arcs: { track: { show: false }, arc: { show: false } },
+      ticks: {
+        fill: {
+          show: true,
+          count: 40,
+          length: 28,
+          litLength: 40,
+          width: 7,
+          color: token("foreground"),
+          dimColor: token("muted"),
+        },
+      },
+      text: {
+        value: { fontSize: 104, font: "rounded", weight: "bold" },
+        unit: {
+          show: true,
+          text: "%",
+          fontSize: 26,
+          position: { x: 0, y: -0.34 },
+        },
+        title: { show: false },
       },
     },
   },

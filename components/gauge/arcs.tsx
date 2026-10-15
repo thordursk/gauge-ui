@@ -1,6 +1,6 @@
 "use client"
 
-import { arcPath, polar } from "./math"
+import { arcPath, foldValue, polar } from "./math"
 import type { StrokeCap, Zone } from "./utils"
 
 import { useGauge } from "./context"
@@ -36,7 +36,8 @@ export const GaugeTrack = ({
 }
 
 export type GaugeArcProps = ArcStyleProps & {
-  /** Domain value the arc is anchored at. Defaults to `min`. */
+  /** Domain value the arc is anchored at. Defaults to `min`, or to the start
+      of the gauge's range. */
   from?: number
   /** Domain value the arc ends at. Defaults to the current value. */
   to?: number
@@ -58,7 +59,9 @@ export type GaugeArcProps = ArcStyleProps & {
 /**
  * The filled arc, from `min` (or `from`) up to the current value (or `to`).
  * The ends may arrive either way round: an arc anchored above the value
- * grows back towards it, which is what a dial centred on zero needs.
+ * grows back towards it, which is what a dial centred on zero needs. On a
+ * gauge showing a range it fills between the two ends, and on a wrapped one
+ * runs forward from the start across the seam where the range does.
  */
 export const GaugeArc = ({
   width = 24,
@@ -71,15 +74,21 @@ export const GaugeArc = ({
   reverse = false,
   wrap = false,
 }: GaugeArcProps) => {
-  const { radius, min, max, value, startAngle, endAngle, angleOf } = useGauge()
-  const tail = from ?? min
-  const head = to ?? value
+  const gauge = useGauge()
+  const { radius, min, max, value, startAngle, endAngle, angleOf } = gauge
+  const tail = from ?? gauge.from
+  let head = to ?? value
+  /* A range on a closed ring is read forward from its start, so the far end
+     is carried round past the seam when it sits below the start. */
+  const forward =
+    gauge.range && gauge.wrap && from === undefined && to === undefined
+  if (forward) head = tail + foldValue(head - tail, 0, Math.abs(max - min))
   const lo = Math.min(tail, head)
   const hi = Math.max(tail, head)
 
   let a0: number
   let a1: number
-  if (wrap) {
+  if (wrap || forward) {
     const span = max - min
     if (span <= 0) return null
     const perUnit = (endAngle - startAngle) / span
@@ -116,7 +125,8 @@ export type GaugeStackPart = {
 
 export type GaugeStackProps = Omit<ArcStyleProps, "color"> & {
   parts: GaugeStackPart[]
-  /** Domain value the stack starts at. Defaults to `min`. */
+  /** Domain value the stack starts at. Defaults to `min`, or to the start of
+      the gauge's range. */
   from?: number
 }
 
@@ -136,11 +146,12 @@ export const GaugeStack = ({
   offset = 0,
   from,
 }: GaugeStackProps) => {
-  const { radius, min, value, angleOf } = useGauge()
+  const gauge = useGauge()
+  const { radius, value, angleOf } = gauge
   if (parts.length === 0) return null
 
   const total = parts.reduce((sum, p) => sum + (p.weight ?? 0), 0)
-  const start = from ?? min
+  const start = from ?? gauge.from
   const fill = value - start
   const r = radius + offset
 

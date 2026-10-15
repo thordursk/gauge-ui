@@ -201,10 +201,18 @@ export const gaugeConfig = (flat: Flat = {}, kind: LayerKind = "host") =>
   without(fullGaugeConfig(flat), kind === "host" ? INSET_ONLY : HOST_ONLY)
 
 /* Panels whose slider ranges follow the domain are built from functions so
-   the store can reconcile them when min or max changes. */
-export const valueConfig = (min: number, max: number) =>
+   the store can reconcile them when min or max changes.
+
+   `range` makes the value a `[from, to]` pair: the slider above is the far
+   end, and `from` appears under it for the start, only while it is on.
+   Without `flat`, for the defaults, `from` is always there. */
+export const valueConfig = (min: number, max: number, flat?: Flat) =>
   ({
     value: [clamp(62, min, max), min, max, stepFor(max - min)],
+    range: toggle(false),
+    ...((flat === undefined || flat.range === true
+      ? { from: [clamp(30, min, max), min, max, stepFor(max - min)] }
+      : {}) as { from: Axis }),
     /* manual: follow the slider. sweep: min to max and back. wander: drift
        around the slider value. jump: random targets, settled by `motion`. */
     mode: select([...playModes], "manual"),
@@ -300,6 +308,21 @@ export const ticksConfig = (flat: Flat = {}) =>
   ({
     major: tickConfig(flat, "major", 10, 16, 3, 1),
     minor: { ...tickConfig(flat, "minor", 50, 8, 1.5, 0.6), _collapsed: true },
+    /* Ticks that are the fill: lit up to the value, or across a range, and
+       dim elsewhere. `nearest` lights only the tick at each end. */
+    fill: {
+      show: toggle(false),
+      mode: select(["fill", "nearest"], "fill"),
+      count: [40, 1, 120, 1],
+      length: [24, 0, 80, 1],
+      litLength: [24, 0, 80, 1],
+      width: [6, 0.5, 20, 0.5],
+      color: color(flat, "fill.color", "primary"),
+      dimColor: color(flat, "fill.dimColor", "muted"),
+      offset: [0, -160, 160, 1],
+      cap: cap("round"),
+      _collapsed: true,
+    },
     labels: {
       show: toggle(false),
       count: [10, 1, 40, 1],
@@ -431,6 +454,8 @@ export const dotConfig = (flat: Flat = {}) =>
     opacity: [1, 0, 1, 0.01],
     offset: [0, -120, 120, 1],
     turns: [1, 1, 720, 1],
+    /* `both` puts a second dot on the start of a range, as its handles. */
+    ends: select(["value", "both"], "value"),
   }) satisfies ControlConfig
 
 /**
@@ -667,6 +692,7 @@ export const buildSpec = (v: PanelValues): GaugeSpec => {
 
   return {
     transition: value.animate ? toGaugeTransition(value.motion) : undefined,
+    rangeFrom: value.range ? clamp(value.from, min, max) : undefined,
     control:
       gauge.control === "off" || gauge.fit === "content"
         ? undefined
@@ -710,6 +736,18 @@ export const buildSpec = (v: PanelValues): GaugeSpec => {
     },
     majorTicks: tick(ticks.major),
     minorTicks: tick(ticks.minor),
+    tickFill: {
+      show: ticks.fill.show,
+      mode: ticks.fill.mode as "fill" | "nearest",
+      count: ticks.fill.count,
+      length: ticks.fill.length,
+      litLength: ticks.fill.litLength,
+      width: ticks.fill.width,
+      color: css(ticks.fill.color),
+      dimColor: css(ticks.fill.dimColor),
+      offset: ticks.fill.offset,
+      cap: ticks.fill.cap as StrokeCap,
+    },
     tickLabels: {
       ...ticks.labels,
       color: css(ticks.labels.color),
@@ -724,7 +762,15 @@ export const buildSpec = (v: PanelValues): GaugeSpec => {
         .map(needleSpec),
       hub: { radius: needle.hub.radius, color: css(needle.hub.color) },
     },
-    dot: { ...dot, color: css(dot.color) },
+    dot: {
+      show: dot.show,
+      radius: dot.radius,
+      color: css(dot.color),
+      opacity: dot.opacity,
+      offset: dot.offset,
+      turns: dot.turns,
+      both: dot.ends === "both",
+    },
     tooltip: {
       show: tooltip.show,
       open: tooltip.pin,

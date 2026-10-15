@@ -67,9 +67,13 @@ export const useGaugeControllers = () => {
   const gauge = gaugeCtl.values
   const { min, max } = domainOf(gauge)
 
-  const valCtl = useControlPanel("Value", valueConfig(min, max), {
-    id: "value",
-  })
+  const valCtl = useControlPanel(
+    "Value",
+    valueConfig(min, max, flatValues("value")),
+    {
+      id: "value",
+    }
+  )
   const val = valCtl.values
 
   const arcsCtl = useControlPanel(
@@ -302,6 +306,12 @@ export const useGaugeControllers = () => {
     if (val.mode !== "manual") valCtl.setValue("mode", "manual")
   }
 
+  /* A range's two thumbs on the stage set both of its ends at once. */
+  const setRange = ([from, to]: [number, number]) => {
+    valCtl.setValue("from", from)
+    setValue(to)
+  }
+
   /* The play mode drives the whole composition, so every layer is given it
      and not just the one in the panels. Without that, picking another layer
      would hand the panels that layer's own mode and quietly stop the run. */
@@ -329,6 +339,7 @@ export const useGaugeControllers = () => {
     value: val,
     domain: { min, max },
     setValue,
+    setRange,
     setMode,
     activeTemplate,
     selectTemplate,

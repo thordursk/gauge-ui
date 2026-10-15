@@ -77,6 +77,7 @@ export function Speed({ value }: { value: number }) {
 | `GaugeStack` | The value arc split into parts that sweep as one, by `weight` shares or fixed `to` cutoffs |
 | `GaugeZones` | Coloured bands between zone cutoffs |
 | `GaugeTicks` | Evenly spaced tick marks |
+| `GaugeTickFill` | Ticks as the fill: those between the ends of the value or range are lit, the rest dim, or with `mode="nearest"` only the tick at each end. Lit and dim colours can be functions of the value |
 | `GaugeMarks` | Marks at arbitrary values, or at the `count` equal cuts of the domain |
 | `GaugeTickLabels` | Numeric, compass or clock labels along the arc |
 | `GaugeNeedle` | Line, pointer, compass or arrow needle |
@@ -89,6 +90,40 @@ export function Speed({ value }: { value: number }) {
 | `GaugeControl` | Wraps a gauge as an accessible slider: drag round the ring, turn the face with `knob`, or use the keyboard to set its value |
 
 `Gauge` and `GaugeInset` also take `wrap`, which treats the domain as circular so a heading animates the shortest way round, and `rotate`, which turns the whole scale under a fixed pointer the way a compass card turns.
+
+## Ranges
+
+Pass a `[from, to]` pair as `value` to show a span of the domain instead of a single reading: a forecast's low and high, a target band, a sleep window. Both ends animate with the gauge's `transition`.
+
+```tsx
+<GaugeControl value={range} onChange={setRange} label="Level">
+  <Gauge value={range} transition>
+    <GaugeTrack />
+    <GaugeArc />
+    <GaugeDot end="from" />
+    <GaugeDot />
+    <GaugeValue />
+    <GaugeTooltip unit="%" />
+  </Gauge>
+</GaugeControl>
+```
+
+- `GaugeArc` and `GaugeStack` fill between the two ends rather than from `min`.
+- `GaugeDot` and `GaugeNeedle` follow the far end. Use `end="from"` to put one on the start.
+- `GaugeValue` and `GaugeTooltip` show both ends, joined by `separator` (default `–`), with `format` applied to each. The tooltip points at the middle of the range. `GaugeValue` takes `end` to show just one end.
+- `GaugeControl` gets two thumbs. A press on the ring moves the nearer one, and each thumb can be tabbed to and moved with the keys on its own. Name them with `thumbLabels`, and pass one `valueText` per end. With `knob`, turning the face moves the whole range and keeps its width.
+
+`GaugeTicks`, `GaugeMarks` and `GaugeTickLabels` take a function as `color`, called with each mark's value, so marks inside a range can stand out: `color={(v) => (v >= 50 && v <= 70 ? "green" : "gray")}`.
+
+`GaugeTickFill` builds a gauge from ticks alone. It ticks the whole sweep and lights the ticks the fill covers, following the value or range the way `GaugeArc` does:
+
+```tsx
+<GaugeTickFill count={40} length={36} width={8} color="dodgerblue" />
+<GaugeTickFill count={64} litLength={30} color={(v) => (v > 120 ? "red" : "white")} />
+<GaugeTickFill count={72} mode="nearest" length={0} litLength={40} dimColor="transparent" />
+```
+
+On an open domain, the ends are sorted and the control's thumbs stop when they meet. On a `wrap` domain the order matters, because the range runs forward from `from`: `[22, 6]` on a 24-hour ring is the night and `[6, 22]` is the day. Pass `wrap` to `GaugeControl` too, so its thumbs can cross the seam.
 
 Helpers `zoneColor`, `zoneCutoffs`, `compassLabel`, `clockLabel`, `clockTime`, `durationLabel` and `fadeColor` are exported from the same module and are what the studio's generated code uses.
 
@@ -187,7 +222,7 @@ Value changes are instant by default. Pass `transition` to `Gauge` and every par
 | `duration` | tween | Seconds. Default 0.5 |
 | `ease` | tween | `linear`, `easeIn`, `easeOut`, `easeInOut`, `[x1, y1, x2, y2]` or `(t) => number`. Default `easeInOut` |
 
-Inside custom primitives, `useGauge()` exposes both `value`, the animated figure being drawn this frame, and `target`, the value the gauge is heading for. The studio's Value panel has the same controls, and the code it generates carries your transition.
+Inside custom primitives, `useGauge()` exposes both `value`, the animated figure being drawn this frame, and `target`, the value the gauge is heading for. On a range, `from` and `targetFrom` are the same for its start, and `range` is `true`. The studio's Value panel has the same controls, and the code it generates carries your transition.
 
 ## Studio
 

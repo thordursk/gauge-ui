@@ -78,6 +78,14 @@ const zonesConst = (spec: GaugeSpec, name: string) =>
     })
     .join("\n")}\n]\n`
 
+/** The type of the prop a gauge's value arrives on. */
+const valueType = (spec: GaugeSpec) =>
+  spec.rangeFrom === undefined ? "number" : "[number, number]"
+
+/** The value as a single number, for a range its far end. */
+const reading = (spec: GaugeSpec, name: string) =>
+  spec.rangeFrom === undefined ? name : `${name}[1]`
+
 type Names = {
   /** The variable holding this gauge's zone list. */
   zones: string
@@ -156,7 +164,7 @@ const parts = (
           width: spec.arc.width,
           color: spec.arc.colorByZone
             ? new Raw(
-                `zoneColor(${names.zones}, ${names.value}, ${JSON.stringify(spec.arc.color)})`
+                `zoneColor(${names.zones}, ${reading(spec, names.value)}, ${JSON.stringify(spec.arc.color)})`
               )
             : spec.arc.color,
           opacity: spec.arc.opacity,
@@ -181,6 +189,29 @@ const parts = (
           color: spec.marks.color,
           offset: spec.marks.offset,
           cap: spec.marks.cap,
+        },
+        indent
+      )
+    )
+  }
+
+  if (spec.tickFill.show) {
+    used.add("GaugeTickFill")
+    const fill = spec.tickFill
+    body.push(
+      element(
+        "GaugeTickFill",
+        {
+          mode: fill.mode === "fill" ? undefined : fill.mode,
+          count: fill.count,
+          length: fill.length,
+          litLength:
+            fill.litLength === fill.length ? undefined : fill.litLength,
+          width: fill.width,
+          color: fill.color,
+          dimColor: fill.dimColor,
+          offset: fill.offset,
+          cap: fill.cap,
         },
         indent
       )
@@ -268,19 +299,17 @@ const parts = (
 
   if (spec.dot.show) {
     used.add("GaugeDot")
-    body.push(
-      element(
-        "GaugeDot",
-        {
-          radius: spec.dot.radius,
-          color: spec.dot.color,
-          opacity: spec.dot.opacity,
-          offset: spec.dot.offset,
-          turns: spec.dot.turns === 1 ? undefined : spec.dot.turns,
-        },
-        indent
-      )
-    )
+    const dot = {
+      radius: spec.dot.radius,
+      color: spec.dot.color,
+      opacity: spec.dot.opacity,
+      offset: spec.dot.offset,
+      turns: spec.dot.turns === 1 ? undefined : spec.dot.turns,
+    }
+    if (spec.dot.both) {
+      body.push(element("GaugeDot", { end: "from", ...dot }, indent))
+    }
+    body.push(element("GaugeDot", dot, indent))
   }
 
   if (spec.tooltip.show) {
@@ -411,13 +440,13 @@ export const gaugeToCode = (spec: GaugeSpec) => {
      keeps the one-line signature; a list of them is broken up the way
      prettier would. */
   const params = [
-    ["value", "number"],
-    ...(control ? [["onChange", "(value: number) => void"]] : []),
-    ...insets.map((inset) => [inset.name, "number"]),
+    ["value", valueType(spec)],
+    ...(control ? [["onChange", `(value: ${valueType(spec)}) => void`]] : []),
+    ...insets.map((inset) => [inset.name, valueType(inset.spec)]),
   ]
   const signature =
     params.length === 1
-      ? `export function CustomGauge({ value }: { value: number }) {`
+      ? `export function CustomGauge({ value }: { value: ${valueType(spec)} }) {`
       : [
           `export function CustomGauge({`,
           ...params.map(([name]) => `  ${name},`),

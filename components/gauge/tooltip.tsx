@@ -13,7 +13,7 @@ import {
 import { createPortal } from "react-dom"
 
 import { cn } from "@/lib/utils"
-import { arcBox, polar } from "./math"
+import { arcBox, foldValue, polar } from "./math"
 
 import { useGauge } from "./context"
 
@@ -50,7 +50,8 @@ export type GaugeTooltipProps = {
   side?: GaugeTooltipSide
   /**
    * Domain value a `value` tooltip points at and shows. Defaults to the
-   * current value; a fixed one marks a target or a cutoff.
+   * current value, or for a range the middle of it, showing both ends; a
+   * fixed one marks a target or a cutoff.
    */
   at?: number
   /**
@@ -79,15 +80,19 @@ export type GaugeTooltipProps = {
   /** Printed after the value, a size down. */
   unit?: ReactNode
   decimals?: number
+  /** Formats each number shown; a range formats its two ends apart. */
   format?: (value: number) => string
+  /** Placed between the two ends of a range. */
+  separator?: string
   /** Classes for the bubble, merged over its defaults. */
   className?: string
   style?: CSSProperties
   /**
    * Replaces the default label, value and unit with any HTML, or a function
-   * of the value being shown for content that has to follow it.
+   * of the value being shown for content that has to follow it. On a range
+   * the function gets its start as well.
    */
-  children?: ReactNode | ((value: number) => ReactNode)
+  children?: ReactNode | ((value: number, from?: number) => ReactNode)
 }
 
 type Point = { x: number; y: number }
@@ -130,9 +135,10 @@ const boxPoints: Record<string, Point> = {
   "bottom-right": { x: 1, y: 1 },
 }
 
-/** What can take keyboard focus, to find the element that owns the gauge's. */
+/** What can take keyboard focus, to find the element that owns the gauge's.
+    A range control is not focusable itself but holds the thumbs that are. */
 const FOCUSABLE =
-  '[tabindex]:not([tabindex="-1"]), a[href], button, input, select, textarea'
+  '[tabindex]:not([tabindex="-1"]), a[href], button, input, select, textarea, [data-slot="gauge-control"]'
 
 /* The portal needs a document, which the server render has none of. */
 const subscribe = () => () => {}
@@ -166,6 +172,7 @@ export const GaugeTooltip = ({
   unit,
   decimals = 0,
   format,
+  separator = "–",
   className,
   style,
   children,
@@ -182,7 +189,19 @@ export const GaugeTooltip = ({
   const shown = open ?? (hovered || pressed || focused)
 
   const value = at ?? gauge.value
-  const angle = gauge.angleOf(value)
+  /* A range is pointed at in its middle, measured forward round a ring. */
+  const spread = at === undefined && gauge.range
+  const middle = !spread
+    ? value
+    : gauge.wrap
+      ? foldValue(
+          gauge.from +
+            foldValue(gauge.value - gauge.from, 0, gauge.max - gauge.min) / 2,
+          gauge.min,
+          gauge.max
+        )
+      : (gauge.from + gauge.value) / 2
+  const angle = gauge.angleOf(middle)
 
   /** The point the bubble is pinned to, in client pixels. */
   const pinned = (): Point | null => {
@@ -315,22 +334,34 @@ export const GaugeTooltip = ({
   useEffect(() => {
     const owner = anchor.current?.ownerSVGElement?.closest(FOCUSABLE)
     if (!owner) return
+    /* Focus on the owner or anything in it, such as a range's thumbs. */
+    const within = () => owner.contains(document.activeElement)
     const check = () =>
       setFocused(
-        document.activeElement === owner && owner.matches(":focus-visible")
+        within() &&
+          /* Not a range thumb a GaugeControl focused for a drag. */
+          Boolean(
+            document.activeElement?.matches(
+              ":focus-visible:not([data-pointer])"
+            )
+          )
       )
     /* A key pressed while it has focus is keyboard use, whether or not the
        browser has switched its ring on yet. */
-    const key = () => setFocused(document.activeElement === owner)
-    const blur = () => setFocused(false)
+    const key = () => setFocused(within())
+    /* Moving between two thumbs leaves one only to land on the other. */
+    const blur = (e: Event) => {
+      const next = (e as FocusEvent).relatedTarget as Node | null
+      if (!owner.contains(next)) setFocused(false)
+    }
     check()
-    owner.addEventListener("focus", check)
+    owner.addEventListener("focusin", check)
     owner.addEventListener("keydown", key)
-    owner.addEventListener("blur", blur)
+    owner.addEventListener("focusout", blur)
     return () => {
-      owner.removeEventListener("focus", check)
+      owner.removeEventListener("focusin", check)
       owner.removeEventListener("keydown", key)
-      owner.removeEventListener("blur", blur)
+      owner.removeEventListener("focusout", blur)
     }
   }, [])
 
@@ -373,12 +404,19 @@ export const GaugeTooltip = ({
     if (shown) place()
   })
 
+  const text = (v: number) => (format ? format(v) : v.toFixed(decimals))
   const content =
     typeof children === "function"
-      ? children(value)
+      ? spread
+        ? children(value, gauge.from)
+        : children(value)
       : (children ?? (
           <DefaultContent
-            text={format ? format(value) : value.toFixed(decimals)}
+            text={
+              spread
+                ? `${text(gauge.from)}${separator}${text(value)}`
+                : text(value)
+            }
             label={label}
             unit={unit}
           />

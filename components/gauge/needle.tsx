@@ -3,7 +3,7 @@
 import { useId } from "react"
 
 import { polar, valueToTurnedAngle } from "./math"
-import type { NeedleStyle } from "./utils"
+import type { GaugeEnd, NeedleStyle } from "./utils"
 
 import { useGauge } from "./context"
 
@@ -39,6 +39,8 @@ export type GaugeNeedleProps = {
    * needle in two so a readout can sit between the halves. 0 draws it whole.
    */
   gap?: number
+  /** Which end of a range the needle points at. */
+  end?: GaugeEnd
 }
 
 const pts = (points: { x: number; y: number }[]) =>
@@ -86,8 +88,11 @@ const NeedleShape = ({
   tailColor = color,
   tailDot = 0,
   turns = 1,
+  end = "to",
 }: Omit<GaugeNeedleProps, "gap">) => {
-  const { radius, value, min, max, startAngle, endAngle } = useGauge()
+  const gauge = useGauge()
+  const { radius, min, max, startAngle, endAngle } = gauge
+  const value = end === "from" ? gauge.from : gauge.value
 
   const angle = valueToTurnedAngle(value, min, max, startAngle, endAngle, turns)
 

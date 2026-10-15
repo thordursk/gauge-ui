@@ -84,6 +84,9 @@ export type NeedleSpec = {
 export type GaugeSpec = {
   /** How the gauge settles on a new value. Absent means instant. */
   transition?: GaugeTransition
+  /** Where a range starts, making the value `[rangeFrom, value]`. Absent
+      means a single value. */
+  rangeFrom?: number
   /** Set by hand through `GaugeControl`: dragged round the ring, and with
       `knob`, turned by the face as well. Absent means it only shows a value. */
   control?: { knob: boolean; step: number }
@@ -143,6 +146,19 @@ export type GaugeSpec = {
   }
   majorTicks: TickSpec
   minorTicks: TickSpec
+  /** Ticks that are the fill. See `GaugeTickFill`. */
+  tickFill: {
+    show: boolean
+    mode: "fill" | "nearest"
+    count: number
+    length: number
+    litLength: number
+    width: number
+    color: string
+    dimColor: string
+    offset: number
+    cap: StrokeCap
+  }
   tickLabels: {
     show: boolean
     count: number
@@ -168,6 +184,8 @@ export type GaugeSpec = {
     opacity: number
     offset: number
     turns: number
+    /** A second dot on the start of a range, so each end has one. */
+    both: boolean
   }
   /** An HTML tooltip shown on hover. See `GaugeTooltip`. */
   tooltip: {
@@ -203,7 +221,8 @@ export type GaugeInsetSpec = {
   y: number
   /** Size relative to the host gauge. */
   scale: number
-  /** The value on show. The studio's own controls drive the host gauge only. */
+  /** The value on show, or a range's far end when the spec has `rangeFrom`.
+      The studio's own controls drive the host gauge only. */
   value: number
   spec: GaugeSpec
 }
