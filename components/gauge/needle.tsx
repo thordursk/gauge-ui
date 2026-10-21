@@ -5,7 +5,7 @@ import { useId } from "react"
 import { polar, valueToTurnedAngle } from "./math"
 import type { GaugeEnd, NeedleStyle } from "./utils"
 
-import { useGauge } from "./context"
+import { useRoundGauge } from "./context"
 
 export type GaugeNeedleProps = {
   /**
@@ -90,7 +90,7 @@ const NeedleShape = ({
   turns = 1,
   end = "to",
 }: Omit<GaugeNeedleProps, "gap">) => {
-  const gauge = useGauge()
+  const gauge = useRoundGauge("GaugeNeedle")
   const { radius, min, max, startAngle, endAngle } = gauge
   const value = end === "from" ? gauge.from : gauge.value
 

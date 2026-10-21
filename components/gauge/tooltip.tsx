@@ -13,15 +13,15 @@ import {
 import { createPortal } from "react-dom"
 
 import { cn } from "@/lib/utils"
-import { arcBox, foldValue, polar } from "./math"
+import { foldValue } from "./math"
 
 import { useGauge } from "./context"
 
 /**
  * What the tooltip is pinned to. `pointer` follows the cursor round the
- * gauge, `value` sits on the arc at the value, and the rest are fixed points
- * of the dial: its centre, or the middle of an edge or a corner of the box
- * its sweep fills.
+ * gauge, `value` sits on the scale at the value, and the rest are fixed
+ * points of the gauge: its centre, or the middle of an edge or a corner of
+ * the box its scale fills.
  */
 export type GaugeTooltipPosition =
   | "pointer"
@@ -38,7 +38,7 @@ export type GaugeTooltipPosition =
 
 /**
  * Which way the bubble stands off its point. `auto` picks for the position:
- * outward along the radius at the value, so the bubble swings round with it,
+ * outward from the scale at the value, so the bubble swings round a dial with it,
  * above the pointer, centred on the centre, and away from the dial at an
  * edge or corner.
  */
@@ -55,9 +55,9 @@ export type GaugeTooltipProps = {
    */
   at?: number
   /**
-   * How far out from the reference radius the point sits, in SVG units: the
-   * spot on the arc for `value`, and the box round the sweep for the edges
-   * and corners.
+   * How far out from the scale's reference line the point sits, in SVG
+   * units: the spot on the scale for `value`, and the box round the scale
+   * for the edges and corners.
    */
   offset?: number
   /** Room between the point and the bubble, in CSS pixels. */
@@ -201,7 +201,8 @@ export const GaugeTooltip = ({
           gauge.max
         )
       : (gauge.from + gauge.value) / 2
-  const angle = gauge.angleOf(middle)
+  /* Where the value sits on the scale. */
+  const along = gauge.positionOf(middle)
 
   /** The point the bubble is pinned to, in client pixels. */
   const pinned = (): Point | null => {
@@ -209,9 +210,9 @@ export const GaugeTooltip = ({
     const ctm = anchor.current?.getScreenCTM()
     if (!ctm) return null
     let p: Point = { x: 0, y: 0 }
-    if (position === "value") p = polar(gauge.radius + offset, angle)
+    if (position === "value") p = gauge.scale.point(along, offset)
     else if (position !== "center") {
-      const b = arcBox(gauge.radius + offset, gauge.startAngle, gauge.endAngle)
+      const b = gauge.scale.box(offset)
       const spot = boxPoints[position]
       p = { x: b.x + b.width * spot.x, y: b.y + b.height * spot.y }
     }
@@ -227,9 +228,9 @@ export const GaugeTooltip = ({
       const spot = boxPoints[position]
       return { x: spot.x * 2 - 1, y: spot.y * 2 - 1 }
     }
-    /* Outward along the radius, stretched onto the square so the bubble's
+    /* Outward from the scale, stretched onto the square so the bubble's
        nearest edge or corner meets the point at any angle. */
-    const r = polar(1, angle)
+    const r = gauge.scale.normal(along)
     const m = Math.max(Math.abs(r.x), Math.abs(r.y)) || 1
     return { x: r.x / m, y: r.y / m }
   }

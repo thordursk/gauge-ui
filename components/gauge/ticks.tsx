@@ -1,7 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { cutValues, foldValue, polar, stepValues } from "./math"
+import { cutValues, foldValue, stepValues } from "./math"
 import type { GaugeContextValue } from "./context"
 import {
   fadeColor,
@@ -10,6 +10,7 @@ import {
   type FontFamily,
   type FontWeight,
   type StrokeCap,
+  type TextAnchor,
   type ValueColor,
 } from "./utils"
 
@@ -19,17 +20,14 @@ import { useGauge } from "./context"
  * Evenly spaced domain values for ticks. On a closed ring the last step lands
  * on the first, so it is dropped rather than drawn twice.
  */
-const tickValues = (
-  { min, max, startAngle, endAngle }: GaugeContextValue,
-  count: number
-) => {
+const tickValues = ({ min, max, scale }: GaugeContextValue, count: number) => {
   const values = stepValues(min, max, count)
-  if (endAngle - startAngle >= 360) values.pop()
+  if (scale.closed) values.pop()
   return values
 }
 
-type RadialLineProps = {
-  /** Length of each line along the radius. */
+type CrossLineProps = {
+  /** Length of each line across the scale: along the radius of a dial. */
   length?: number
   width?: number
   /** One colour, or a function of each line's value to colour some apart:
@@ -37,11 +35,12 @@ type RadialLineProps = {
   color?: ValueColor
   opacity?: number
   cap?: StrokeCap
-  /** Radial offset of the line's midpoint from the reference radius. */
+  /** Offset of the line's midpoint from the scale's reference line. */
   offset?: number
 }
 
-const RadialLines = ({
+/** Lines standing across the scale at domain values, as ticks do. */
+const CrossLines = ({
   values,
   length = 12,
   lengthOf,
@@ -50,12 +49,12 @@ const RadialLines = ({
   opacity = 1,
   cap = "round",
   offset = 0,
-}: RadialLineProps & {
+}: CrossLineProps & {
   values: number[]
   /** A length per line, in place of `length`. */
   lengthOf?: (value: number) => number
 }) => {
-  const { radius, angleOf } = useGauge()
+  const { scale, positionOf } = useGauge()
   const each = typeof color === "function" ? color : undefined
 
   return (
@@ -67,8 +66,8 @@ const RadialLines = ({
     >
       {values.map((value, i) => {
         const half = (lengthOf?.(value) ?? length) / 2
-        const a = polar(radius + offset - half, angleOf(value))
-        const b = polar(radius + offset + half, angleOf(value))
+        const a = scale.point(positionOf(value), offset - half)
+        const b = scale.point(positionOf(value), offset + half)
         return (
           <line
             key={i}
@@ -84,18 +83,18 @@ const RadialLines = ({
   )
 }
 
-export type GaugeTicksProps = RadialLineProps & {
+export type GaugeTicksProps = CrossLineProps & {
   /** Number of intervals across the domain; renders `count + 1` ticks. */
   count?: number
 }
 
-/** Evenly spaced tick marks across the whole arc. */
+/** Evenly spaced tick marks along the whole scale. */
 export const GaugeTicks = ({ count = 10, ...props }: GaugeTicksProps) => {
   const gauge = useGauge()
-  return <RadialLines values={tickValues(gauge, count)} {...props} />
+  return <CrossLines values={tickValues(gauge, count)} {...props} />
 }
 
-export type GaugeTickFillProps = Omit<RadialLineProps, "color"> & {
+export type GaugeTickFillProps = Omit<CrossLineProps, "color"> & {
   /** Number of intervals across the domain; renders `count + 1` ticks. */
   count?: number
   /** Where the lit stretch starts. Defaults to the start of the gauge's
@@ -180,7 +179,7 @@ export const GaugeTickFill = ({
     typeof c === "function" ? c(v) : c
 
   return (
-    <RadialLines
+    <CrossLines
       values={values}
       length={length}
       lengthOf={(v) => (lit.get(v) ? litLength : length)}
@@ -190,7 +189,7 @@ export const GaugeTickFill = ({
   )
 }
 
-export type GaugeMarksProps = RadialLineProps & {
+export type GaugeMarksProps = CrossLineProps & {
   /** Domain values to mark, for example the cutoffs between zones. */
   values?: number[]
   /**
@@ -203,24 +202,25 @@ export type GaugeMarksProps = RadialLineProps & {
   count?: number
 }
 
-/** Radial marks at arbitrary domain values, or at equal cuts of the domain. */
+/** Marks across the scale at arbitrary domain values, or at equal cuts of
+    the domain. */
 export const GaugeMarks = ({ values, count, ...props }: GaugeMarksProps) => {
-  const { min, max, startAngle, endAngle } = useGauge()
+  const { min, max, scale } = useGauge()
   const marks =
     values ??
     (count && count > 1
-      ? [
-          ...(endAngle - startAngle >= 360 ? [min] : []),
-          ...cutValues(min, max, count),
-        ]
+      ? [...(scale.closed ? [min] : []), ...cutValues(min, max, count)]
       : [])
-  return <RadialLines values={marks} {...props} />
+  return <CrossLines values={marks} {...props} />
 }
 
 export type GaugeTickLabelsProps = {
   count?: number
-  /** Radial offset of the label centre from the reference radius. */
+  /** Offset of the label from the scale's reference line. */
   offset?: number
+  /** Which edge of each label sits at its point: `end` lines labels up
+      against the left of a vertical bar. */
+  anchor?: TextAnchor
   fontSize?: number
   /** One colour, or a function of each label's value. */
   color?: ValueColor
@@ -230,10 +230,11 @@ export type GaugeTickLabelsProps = {
   format?: (value: number) => string
 }
 
-/** Numeric labels at evenly spaced values across the arc. */
+/** Numeric labels at evenly spaced values along the scale. */
 export const GaugeTickLabels = ({
   count = 10,
   offset = -48,
+  anchor = "middle",
   fontSize = 16,
   color = "currentColor",
   font = "sans",
@@ -242,7 +243,7 @@ export const GaugeTickLabels = ({
   format,
 }: GaugeTickLabelsProps) => {
   const gauge = useGauge()
-  const { radius, angleOf } = gauge
+  const { scale, positionOf } = gauge
   const values = tickValues(gauge, count)
   const each = typeof color === "function" ? color : undefined
 
@@ -250,12 +251,12 @@ export const GaugeTickLabels = ({
     <g
       fill={typeof color === "string" ? color : undefined}
       fontSize={fontSize}
-      textAnchor="middle"
+      textAnchor={anchor}
       dominantBaseline="central"
       className={cn(fontClass[font], weightClass[weight], "tabular-nums")}
     >
       {values.map((value, i) => {
-        const p = polar(radius + offset, angleOf(value))
+        const p = scale.point(positionOf(value), offset)
         return (
           <text key={i} x={p.x} y={p.y} fill={each?.(value)}>
             {format ? format(value) : value.toFixed(decimals)}

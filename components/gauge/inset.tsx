@@ -2,8 +2,12 @@
 
 import type { SVGProps } from "react"
 
-import { GaugeContext, useGaugeContextValue } from "./context"
-import type { GaugeDomainProps } from "./context"
+import {
+  GaugeContext,
+  useGaugeContextValue,
+  useLinearGaugeContextValue,
+} from "./context"
+import type { GaugeDomainProps, LinearGaugeDomainProps } from "./context"
 
 export type GaugeInsetProps = Omit<SVGProps<SVGGElement>, "transform"> &
   GaugeDomainProps & {
@@ -52,6 +56,56 @@ export const GaugeInset = ({
     initialValue,
     wrap,
     rotate,
+  })
+
+  return (
+    <GaugeContext.Provider value={gauge}>
+      <g transform={`translate(${x} ${y}) scale(${scale})`} {...props}>
+        {children}
+      </g>
+    </GaugeContext.Provider>
+  )
+}
+
+export type LinearGaugeInsetProps = Omit<SVGProps<SVGGElement>, "transform"> &
+  LinearGaugeDomainProps & {
+    /** Centre of the bar in the host gauge's SVG units. Positive y is down. */
+    x?: number
+    y?: number
+    /** Size relative to the host gauge: 0.5 draws it at half the size. */
+    scale?: number
+  }
+
+/**
+ * A bar drawn inside another gauge, as `GaugeInset` draws a dial: a fuel
+ * bar under a speedometer, a battery level across the foot of a ring. It
+ * takes its own value and domain and sets up the same context
+ * `LinearGauge` does, placed by `x`, `y` and `scale`.
+ */
+export const LinearGaugeInset = ({
+  value,
+  min,
+  max,
+  transition,
+  initialValue,
+  wrap,
+  orientation,
+  length,
+  x = 0,
+  y = 0,
+  scale = 1,
+  children,
+  ...props
+}: LinearGaugeInsetProps) => {
+  const gauge = useLinearGaugeContextValue({
+    value,
+    min,
+    max,
+    transition,
+    initialValue,
+    wrap,
+    orientation,
+    length,
   })
 
   return (
