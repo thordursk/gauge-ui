@@ -4,6 +4,7 @@ import { CarDashboard } from "./car-dashboard"
 import { Cockpit } from "./cockpit"
 import { HealthDashboard } from "./health-dashboard"
 import { MonitorDashboard } from "./monitor-dashboard"
+import { MusicStudio } from "./music-studio"
 import { SmartHomeDashboard } from "./smart-home-dashboard"
 import { TimeDashboard } from "./time-dashboard"
 import { WeatherDashboard } from "./weather-dashboard"
@@ -51,6 +52,13 @@ export const examples: Example[] = [
     description:
       "A smart home you can turn: a thermostat per room, dimmers for the lights, a volume knob beside what is playing, the car charging to its limit, the grid leaning between export and import, and tiles for air, water and the washer.",
     Component: SmartHomeDashboard,
+  },
+  {
+    id: "music-studio",
+    name: "Studio",
+    description:
+      "A music studio session: a mixer of channel faders with pan knobs and meters, a graphic EQ over a live analyser, a bus compressor's knobs and gain reduction, and the transport with its tempo knob and step lights, all played by a toy sequencer.",
+    Component: MusicStudio,
   },
   {
     id: "car-dashboard",
