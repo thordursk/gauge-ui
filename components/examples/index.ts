@@ -1,10 +1,10 @@
 import type { ComponentType } from "react"
 
-import { CarDashboard } from "./car-dashboard"
 import { Cockpit } from "./cockpit"
 import { HealthDashboard } from "./health-dashboard"
 import { MonitorDashboard } from "./monitor-dashboard"
 import { MusicStudio } from "./music-studio"
+import { RaceTelemetry } from "./race-telemetry"
 import { SmartHomeDashboard } from "./smart-home-dashboard"
 import { TimeDashboard } from "./time-dashboard"
 import { WeatherDashboard } from "./weather-dashboard"
@@ -61,11 +61,11 @@ export const examples: Example[] = [
     Component: MusicStudio,
   },
   {
-    id: "car-dashboard",
-    name: "Dashboard",
+    id: "race-telemetry",
+    name: "Telemetry",
     description:
-      "A twin-dial cluster: a tachometer with its redline band, and a speedometer with fuel closing its ring.",
-    Component: CarDashboard,
+      "A race car on a flying lap: shift lights, pedals, gear, revs and steering, the lap timed against the best one, tyre temperatures against their window, the hybrid and fuel, and the car's place on the circuit sector by sector.",
+    Component: RaceTelemetry,
   },
   {
     id: "cockpit",
