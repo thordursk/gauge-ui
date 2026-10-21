@@ -5,6 +5,7 @@ import { HealthDashboard } from "./health-dashboard"
 import { MonitorDashboard } from "./monitor-dashboard"
 import { MusicStudio } from "./music-studio"
 import { RaceTelemetry } from "./race-telemetry"
+import { RocketLaunch } from "./rocket-launch"
 import { SmartHomeDashboard } from "./smart-home-dashboard"
 import { TimeDashboard } from "./time-dashboard"
 import { WeatherDashboard } from "./weather-dashboard"
@@ -66,6 +67,13 @@ export const examples: Example[] = [
     description:
       "A race car on a flying lap: shift lights, pedals, gear, revs and steering, the lap timed against the best one, tyre temperatures against their window, the hybrid and fuel, and the car's place on the circuit sector by sector.",
     Component: RaceTelemetry,
+  },
+  {
+    id: "launch",
+    name: "Launch",
+    description:
+      "A rocket launch laid out like a webcast, from T−5 to orbit: the mission clock over its timeline of events, each stage's speed, altitude and g-force on thin rings beside its engines from below, the booster turning back and landing once the stages part, and the throttles, the air on the stack and the tanks on bars.",
+    Component: RocketLaunch,
   },
   {
     id: "cockpit",
