@@ -1,6 +1,12 @@
 "use client"
 
-import { useEffect, useRef, useState, type ReactNode } from "react"
+import {
+  useEffect,
+  useRef,
+  useState,
+  type PointerEvent,
+  type ReactNode,
+} from "react"
 import { Area, AreaChart, YAxis } from "recharts"
 
 import {
@@ -18,6 +24,8 @@ import {
   GaugeTrack,
   GaugeValue,
   GaugeZones,
+  LinearGauge,
+  fadeColor,
   type GaugeTooltipProps,
   type GaugeTransition,
 } from "@/components/gauge"
@@ -66,6 +74,33 @@ const PROCESSES = [
   { name: "redis-server", pid: 1320 },
   { name: "dockerd", pid: 611 },
   { name: "prometheus", pid: 1755 },
+]
+
+/** Days of history on the uptime bars. */
+const UPTIME_DAYS = 90
+
+/**
+ * Ninety days of one service's uptime, as a percentage a day. Seeded rather
+ * than random so the server and the client render the same history: most
+ * days are clean, a few degraded and the odd one has an outage.
+ */
+const uptimeHistory = (seed: number) => {
+  let state = seed
+  const next = () => {
+    state = (state * 16807) % 2147483647
+    return state / 2147483647
+  }
+  return Array.from({ length: UPTIME_DAYS }, () => {
+    const roll = next()
+    if (roll > 0.985) return 92 + next() * 6
+    if (roll > 0.95) return 99 + next() * 0.85
+    return 100
+  })
+}
+
+const SERVICES = [
+  { name: "api", history: uptimeHistory(42) },
+  { name: "postgres", history: uptimeHistory(7) },
 ]
 
 /* ---------- live readings ---------- */
@@ -454,6 +489,76 @@ const ProcessRing = ({ cpu }: { cpu: number }) => (
   </Gauge>
 )
 
+/** A day's tone: clean days quiet, degraded ones stronger, and an outage in
+    the strongest tone on the face, as every alert here is. */
+const dayColor = (uptime: number) =>
+  uptime >= 99.9 ? fadeColor(MUTED, 40) : uptime >= 99 ? MUTED : ALERT
+
+const dayStatus = (uptime: number) =>
+  uptime >= 99.9 ? "No incidents" : uptime >= 99 ? "Degraded" : "Outage"
+
+/** Bar length in SVG units: long, so a wide row draws near its own size. */
+const UPTIME_LENGTH = 900
+
+/**
+ * A service's last ninety days, a tick a day as on a status page. The day
+ * under the pointer stays bright while the rest dim, and the tooltip pins
+ * to it with that day's status.
+ */
+const UptimeBar = ({ history }: { history: number[] }) => {
+  const [hover, setHover] = useState<number | null>(null)
+  const last = history.length - 1
+
+  /* The day under the pointer, read through the SVG's own transform so the
+     bar's padding and scaling need no knowing. */
+  const pick = (e: PointerEvent<SVGSVGElement>) => {
+    const ctm = e.currentTarget.getScreenCTM()
+    if (!ctm) return
+    const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(ctm.inverse())
+    const day = Math.round((p.x / UPTIME_LENGTH + 0.5) * last)
+    setHover(day >= 0 && day <= last ? day : null)
+  }
+
+  return (
+    <LinearGauge
+      value={last}
+      max={last}
+      length={UPTIME_LENGTH}
+      padding={{ top: 20, bottom: 20, left: 3, right: 3 }}
+      onPointerMove={pick}
+      onPointerLeave={() => setHover(null)}
+    >
+      <GaugeTicks
+        count={last}
+        length={34}
+        width={6}
+        color={(v) => {
+          const day = Math.round(v)
+          const color = dayColor(history[day])
+          return hover === null || hover === day ? color : fadeColor(color, 45)
+        }}
+      />
+      {hover !== null && (
+        <GaugeTooltip at={hover} offset={20} open>
+          {(day) => (
+            <div className="flex flex-col items-center leading-tight">
+              <span className="opacity-70">
+                {day === last ? "Today" : `${last - day} days ago`}
+              </span>
+              <span className="text-sm font-semibold">
+                {dayStatus(history[day])}
+              </span>
+              <span className="tabular-nums opacity-70">
+                {history[day].toFixed(2)}%
+              </span>
+            </div>
+          )}
+        </GaugeTooltip>
+      )}
+    </LinearGauge>
+  )
+}
+
 /* ---------- layout ---------- */
 
 const Caption = ({ children }: { children: ReactNode }) => (
@@ -621,6 +726,7 @@ export const MonitorDashboard = () => {
   const fan = Math.round((1200 + Math.max(0, temp - 45) * 110) / 10) * 10
   const used = live.wired + live.app + live.cached
   const [load1, load5, load15] = live.load
+  const uptime = mean(SERVICES.map(({ history }) => mean(history)))
 
   return (
     <div ref={frame} className="flex flex-col gap-4">
@@ -733,6 +839,43 @@ export const MonitorDashboard = () => {
                 className="h-16"
               />
             </div>
+          </div>
+        </Panel>
+
+        <Panel
+          title="Uptime"
+          description={`Services, last ${UPTIME_DAYS} days`}
+          action={`${uptime.toFixed(2)}% overall`}
+          className="col-span-2 sm:col-span-4"
+        >
+          <div className="flex flex-col gap-3">
+            {SERVICES.map(({ name, history }) => (
+              <div key={name} className="flex flex-col gap-1">
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="font-mono text-xs font-medium">{name}</span>
+                  <Caption>{`${mean(history).toFixed(2)}%`}</Caption>
+                </div>
+                <UptimeBar history={history} />
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+            <Caption>{UPTIME_DAYS} days ago</Caption>
+            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+              <span className="flex items-center gap-2">
+                <Swatch color={MUTED} opacity={0.4} />
+                No incidents
+              </span>
+              <span className="flex items-center gap-2">
+                <Swatch color={MUTED} />
+                Degraded
+              </span>
+              <span className="flex items-center gap-2">
+                <Swatch color={ALERT} />
+                Outage
+              </span>
+            </div>
+            <Caption>Today</Caption>
           </div>
         </Panel>
 

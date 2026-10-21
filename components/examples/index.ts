@@ -22,7 +22,7 @@ export const examples: Example[] = [
     id: "monitor",
     name: "Monitor",
     description:
-      "A server monitor: load, temperature and fan on needle tiles, a CPU dial with a ring per core, memory and swap on one ring, network on a twin half dial, disk volumes and a top-style process list.",
+      "A server monitor: load, temperature and fan on needle tiles, a CPU dial with a ring per core, memory and swap on one ring, network on a twin half dial, disk volumes, a top-style process list, and ninety days of uptime per service.",
     Component: MonitorDashboard,
   },
   {
