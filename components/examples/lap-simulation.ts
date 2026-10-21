@@ -97,6 +97,8 @@ export const CORNERS = TRACK.flatMap((s, i) => (s.corner ? [STARTS[i]] : []))
 const VMAX = 340 / 3.6
 /** The deceleration the driver plans braking points around, m/s². */
 const BRAKE_PLAN = 30
+/** What the brakes give at full pressure, m/s². */
+const MAX_BRAKE = 36
 /** Shift points, thousands of rpm. */
 const UPSHIFT = 11.9
 const DOWNSHIFT = 8
@@ -161,6 +163,8 @@ type Car = {
   bestSectors: number[]
   /** How hard the driver is pushing this lap: corner speeds scale by it. */
   pace: number
+  /** The corner the driver is on the brakes for, by segment, if any. */
+  braking: number | null
 }
 
 /** Seconds into the best lap at a distance, between its samples. */
@@ -178,18 +182,28 @@ const step = (car: Car, dt: number, random: () => number) => {
   const segment = TRACK[index]
   const progress = (car.distance - STARTS[index]) / segment.length
 
-  /* Brake when a corner ahead could not be made at the planned rate. */
-  let brakeFor = false
+  /* The deceleration each corner ahead asks for, to be down to its speed
+     by the time it starts. */
+  const needs = new Map<number, number>()
   let ahead = STARTS[index] + segment.length - car.distance
   for (let k = 1; k <= 4; k++) {
-    const next = TRACK[(index + k) % TRACK.length]
+    const j = (index + k) % TRACK.length
+    const next = TRACK[j]
     if (next.corner) {
       const vc = (next.corner.speed / 3.6) * car.pace
-      if (v > vc && (v * v - vc * vc) / (2 * ahead) > BRAKE_PLAN) {
-        brakeFor = true
-      }
+      needs.set(j, (v * v - vc * vc) / (2 * Math.max(ahead, 1)))
     }
     ahead += next.length
+  }
+  /* On the brakes once a corner needs more than the planned rate, and
+     committed to them until turning in. Deciding afresh every step would
+     have the driver stab between the pedals as the need dips under the
+     plan and back over it. */
+  if (car.braking !== null && !needs.has(car.braking)) car.braking = null
+  if (car.braking === null) {
+    for (const [j, need] of needs) {
+      if (need > BRAKE_PLAN) car.braking = j
+    }
   }
   const limit = segment.corner ? (segment.corner.speed / 3.6) * car.pace : VMAX
 
@@ -197,7 +211,12 @@ const step = (car: Car, dt: number, random: () => number) => {
      throttle through its apex, and building it back on the way out. */
   let throttleTo = 1
   let brakeTo = 0
-  if (brakeFor || v > limit + 1) {
+  if (car.braking !== null) {
+    /* Pressure in proportion to what is still needed, so the brake eases
+       off as the speed comes down to the corner's. */
+    throttleTo = 0
+    brakeTo = clamp((needs.get(car.braking) ?? 0) / MAX_BRAKE, 0, 1)
+  } else if (v > limit + 1) {
     throttleTo = 0
     brakeTo = 1
   } else if (segment.corner) {
@@ -206,7 +225,8 @@ const step = (car: Car, dt: number, random: () => number) => {
   car.throttle = approach(car.throttle, clamp(throttleTo, 0, 1), 6, dt)
   car.brake = approach(car.brake, brakeTo, brakeTo > car.brake ? 10 : 6, dt)
 
-  const accel = car.throttle * 13 * (1 - (v / VMAX) ** 2) - car.brake * 36 - 0.5
+  const accel =
+    car.throttle * 13 * (1 - (v / VMAX) ** 2) - car.brake * MAX_BRAKE - 0.5
   car.speed = Math.max(12, v + accel * dt)
   /* Grip holds the car to the corner's speed. */
   if (segment.corner && car.speed > limit) {
@@ -351,6 +371,7 @@ const startSession = () => {
     reference: [],
     bestSectors: [],
     pace: 1,
+    braking: null,
   }
   while (car.lap === 6) step(car, TICK, random)
   for (let t = 0; t < 14; t += TICK) step(car, TICK, random)
