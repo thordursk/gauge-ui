@@ -48,7 +48,7 @@ export const examples: Example[] = [
   },
   {
     id: "smart-home",
-    name: "Smart Home",
+    name: "Home",
     description:
       "A smart home you can turn: a thermostat per room, dimmers for the lights, a volume knob beside what is playing, the car charging to its limit, the grid leaning between export and import, and tiles for air, water and the washer.",
     Component: SmartHomeDashboard,
