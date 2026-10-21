@@ -1,11 +1,12 @@
 "use client"
 
-import { useRef, type ReactNode } from "react"
+import { useRef, useState, type PointerEvent, type ReactNode } from "react"
 
 import {
   Gauge,
   GaugeArc,
   GaugeDot,
+  GaugeInset,
   GaugeMarks,
   GaugeText,
   GaugeTickLabels,
@@ -48,15 +49,17 @@ const FOLLOW: GaugeTransition = {
 }
 
 const MUTED = "var(--muted-foreground)"
-/** Drawn in the card's own colour, to cut a band into segments. */
-const CUT = "var(--card)"
+/** Drawn in the colour the cards are painted in, the page background, to
+    cut a band into segments. */
+const CUT = "var(--background)"
 /** The one ink every mark is drawn in, thinned for the quieter tones. */
 const INK = "var(--foreground)"
 const fade = (percent: number) => fadeColor(INK, percent)
 
-/** Bar lengths in SVG units, near the width each column draws them at. */
+/** Bar lengths in SVG units. A bar with a scale under it is drawn near the
+    width its half of the grid gives it, so its labels keep their size. */
 const SHORT = 240
-const FULL = 900
+const HALF = 380
 
 /** The dials' full scales, shared by both stages so they compare. */
 const SPEED_MAX = 30000
@@ -127,15 +130,17 @@ type EngineLayout = (ring: number) => boolean
 
 /**
  * A stage's engines from below, as a flower: the centre engine and a ring
- * of others round it, in a ring for the stage's base. Each glows in
- * proportion to its throttle while it burns. Drawn on a full-circle gauge,
- * the ring is its ticks with no length, so each is a round dot.
+ * of others round it, each glowing in proportion to its throttle while it
+ * burns. Round them runs the stage's fuel on a ring like the other dials.
+ * The engines sit on a full-circle gauge inset in the fuel's, where the
+ * ring is its ticks with no length, so each is a round dot.
  */
 const EngineFlower = ({
   ring,
   lit,
   centreLit,
   throttle,
+  fuel,
   centreSize = ENGINE,
 }: {
   /** Engines in the ring round the centre one. */
@@ -143,33 +148,38 @@ const EngineFlower = ({
   lit: EngineLayout
   centreLit: boolean
   throttle: number
+  /** Fuel left, 0–1. */
+  fuel: number
   centreSize?: number
 }) => {
   const glow = fade(35 + 65 * throttle)
   const dark = fade(12)
   return (
-    <Gauge
-      value={0}
-      max={Math.max(ring, 1)}
-      startAngle={180}
-      endAngle={540}
-      padding={12}
-    >
-      <GaugeTrack width={4} offset={-30} color={INK} opacity={0.25} />
-      {ring > 0 && (
-        <GaugeTicks
-          count={ring}
-          offset={-82}
-          length={0}
-          width={ENGINE * 2}
-          color={(v) => (lit(Math.round(v)) ? glow : dark)}
+    <Gauge value={fuel * 100} transition={FOLLOW} padding={12}>
+      <GaugeTrack width={10} color={INK} opacity={0.12} />
+      <GaugeArc width={10} color={INK} />
+      <GaugeInset
+        value={0}
+        max={Math.max(ring, 1)}
+        startAngle={180}
+        endAngle={540}
+        scale={0.85}
+      >
+        {ring > 0 && (
+          <GaugeTicks
+            count={ring}
+            offset={-82}
+            length={0}
+            width={ENGINE * 2}
+            color={(v) => (lit(Math.round(v)) ? glow : dark)}
+          />
+        )}
+        <GaugeDot
+          offset={-200}
+          radius={centreSize}
+          color={centreLit ? glow : dark}
         />
-      )}
-      <GaugeDot
-        offset={-200}
-        radius={centreSize}
-        color={centreLit ? glow : dark}
-      />
+      </GaugeInset>
     </Gauge>
   )
 }
@@ -187,40 +197,128 @@ const boosterLayout =
 
 /* ---------- bars ---------- */
 
+/** The timeline's length in SVG units, about as wide as the page draws it. */
+const FULL = 900
+
+const eventTime = (name: string) => EVENTS.find((e) => e.name === name)?.t ?? 0
+
+/** The timeline bar's thickness, and the space between its sections, in
+    SVG units. */
+const BAR = 8
+const SECTION_GAP = 3
+
+/** The flight cut into its sections, which the timeline is drawn in. */
+const SECTIONS = [
+  { name: "Count", from: COUNT, to: 0 },
+  { name: "Stage 1 burn", from: 0, to: eventTime("MECO") },
+  { name: "Staging", from: eventTime("MECO"), to: eventTime("SES") },
+  { name: "Stage 2 burn", from: eventTime("SES"), to: SECO },
+  { name: "Orbit", from: SECO, to: END },
+]
+
+/** The tone of an event still to come: faint until the flight reaches it. */
+const AHEAD = fade(20)
+
+/** Which edge of an event's name sits at its mark, where names crowd. */
+const ALIGN: Record<string, "start" | "end"> = {
+  Liftoff: "start",
+  MECO: "end",
+  SES: "start",
+  Fairing: "start",
+  Boostback: "start",
+}
+
 /**
- * The mission from the count to orbit, filling as it flies. Marks above the
- * line are the second stage's events and those below the booster's on its
- * way home; each darkens once it has happened.
+ * The mission from the count to orbit, cut into its sections and filling as
+ * it flies. Marks above the bar are the second stage's events and those
+ * below the booster's on its way home; each darkens once it has happened.
+ * The pointer picks a section and the tooltip pins to it.
  */
-const Timeline = ({ t }: { t: number }) => (
-  <LinearGauge
-    value={t}
-    min={COUNT}
-    max={END}
-    length={FULL}
-    transition={FOLLOW}
-    padding={{ top: 18, bottom: 18, left: 10, right: 10 }}
-  >
-    <GaugeTrack width={6} color={INK} opacity={0.12} />
-    <GaugeArc width={6} color={INK} />
-    <GaugeMarks
-      values={EVENTS.filter((e) => !e.booster).map((e) => e.t)}
-      offset={9}
-      length={14}
-      width={2}
-      color={(v) => (v <= t ? INK : MUTED)}
-    />
-    <GaugeMarks
-      values={EVENTS.filter((e) => e.booster).map((e) => e.t)}
-      offset={-9}
-      length={14}
-      width={2}
-      color={(v) => (v <= t ? INK : MUTED)}
-    />
-    <GaugeDot radius={8} halo={3} haloColor={CUT} color={INK} />
-    <GaugeTooltip label={phaseOf(t)} format={missionClock} />
-  </LinearGauge>
-)
+const Timeline = ({ t }: { t: number }) => {
+  const [hover, setHover] = useState<number | null>(null)
+  /* The time under the pointer, read through the SVG's own transform so
+     the bar's padding and scaling need no knowing. */
+  const pick = (e: PointerEvent<SVGSVGElement>) => {
+    const ctm = e.currentTarget.getScreenCTM()
+    if (!ctm) return
+    const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(ctm.inverse())
+    const at = COUNT + (p.x / FULL + 0.5) * (END - COUNT)
+    setHover(at >= COUNT && at <= END ? at : null)
+  }
+  const section =
+    hover === null
+      ? null
+      : (SECTIONS.find((s) => hover >= s.from && hover < s.to) ?? null)
+
+  return (
+    <LinearGauge
+      value={t}
+      min={COUNT}
+      max={END}
+      length={FULL}
+      transition={FOLLOW}
+      padding={{ top: 20, bottom: 20, left: 4, right: 4 }}
+      onPointerMove={pick}
+      onPointerDown={pick}
+      onPointerLeave={() => setHover(null)}
+    >
+      <GaugeTrack width={BAR} cap="butt" color={INK} opacity={0.12} />
+      <GaugeArc width={BAR} cap="butt" color={INK} />
+      {section && (
+        <GaugeArc
+          from={section.from}
+          to={section.to}
+          width={BAR}
+          cap="butt"
+          color={INK}
+          opacity={0.15}
+        />
+      )}
+      <GaugeMarks
+        values={SECTIONS.slice(1).map((s) => s.from)}
+        length={BAR}
+        width={SECTION_GAP}
+        cap="butt"
+        color={CUT}
+      />
+      <GaugeMarks
+        values={EVENTS.filter((e) => !e.booster).map((e) => e.t)}
+        offset={BAR / 2 + 8}
+        length={10}
+        width={2}
+        color={(v) => (v <= t ? INK : AHEAD)}
+      />
+      <GaugeMarks
+        values={EVENTS.filter((e) => e.booster).map((e) => e.t)}
+        offset={-(BAR / 2 + 8)}
+        length={10}
+        width={2}
+        color={(v) => (v <= t ? INK : AHEAD)}
+      />
+      {section && (
+        <GaugeTooltip
+          at={(section.from + section.to) / 2}
+          offset={BAR / 2}
+          open
+        >
+          <div className="flex flex-col items-center leading-tight">
+            <span className="opacity-70">
+              {section.to <= t
+                ? "Done"
+                : section.from <= t
+                  ? "Under way"
+                  : "To come"}
+            </span>
+            <span className="text-sm font-semibold">{section.name}</span>
+            <span className="tabular-nums opacity-70">
+              {missionClock(section.from)} – {missionClock(section.to)}
+            </span>
+          </div>
+        </GaugeTooltip>
+      )}
+    </LinearGauge>
+  )
+}
 
 /** A throttle, cut into quarters. */
 const ThrottleBar = ({ value }: { value: number }) => (
@@ -237,21 +335,21 @@ const ThrottleBar = ({ value }: { value: number }) => (
 )
 
 /** The air pushing on the stack, with its scale under it and the highest
-    it has reached marked over it. */
+    it has reached marked over it. The fill follows the readings without
+    easing, so it never trails behind the peak mark on the way up. */
 const PressureBar = ({ q, peak }: { q: number; peak: number }) => (
   <LinearGauge
     value={q}
     max={Q_MAX}
-    length={SHORT}
-    transition={FOLLOW}
-    padding={{ top: 14, bottom: 30, left: 10, right: 10 }}
+    length={HALF}
+    padding={{ top: 20, bottom: 34, left: 10, right: 10 }}
   >
-    <GaugeTrack width={12} cap="butt" color={INK} opacity={0.1} />
-    <GaugeArc width={12} cap="butt" color={INK} />
+    <GaugeTrack width={18} cap="butt" color={INK} opacity={0.1} />
+    <GaugeArc width={18} cap="butt" color={INK} />
     {peak > 0 && (
-      <GaugeMarks values={[peak]} length={28} width={2} color={MUTED} />
+      <GaugeMarks values={[peak]} length={26} width={2} color={MUTED} />
     )}
-    <GaugeTickLabels count={5} offset={-24} fontSize={12} color={MUTED} />
+    <GaugeTickLabels count={5} offset={-28} fontSize={12} color={MUTED} />
   </LinearGauge>
 )
 
@@ -283,7 +381,7 @@ const Tank = ({
           width={44}
           cap="butt"
           color={INK}
-          opacity={0.08}
+          opacity={0.2}
         />
       )}
       <GaugeTrack width={26} cap="butt" color={INK} opacity={0.1} />
@@ -293,7 +391,7 @@ const Tank = ({
         <GaugeMarks
           values={[reserve * 100]}
           length={44}
-          width={2}
+          width={3}
           color={MUTED}
         />
       )}
@@ -398,19 +496,12 @@ const Labelled = ({
 /** Text placed along the timeline by percentage, so it lines up with the
     SVG however wide the card draws it. */
 const along = (t: number) => {
-  const pad = 10
+  const pad = 4
   return `${((pad + ((t - COUNT) / (END - COUNT)) * FULL) / (FULL + pad * 2)) * 100}%`
 }
 
-/** Which edge of an event's name sits at its mark, where names crowd. */
-const ALIGN: Record<string, "start" | "end"> = {
-  Liftoff: "start",
-  MECO: "end",
-  SES: "start",
-  Fairing: "start",
-  Boostback: "start",
-}
-
+/** The events' names over or under their marks. Too crowded for a phone,
+    where the clock names the next one. */
 const EventLabels = ({ t, booster }: { t: number; booster: boolean }) => (
   <div className="relative hidden h-4 sm:block">
     {EVENTS.filter((e) => Boolean(e.booster) === booster).map((e) => (
@@ -423,7 +514,7 @@ const EventLabels = ({ t, booster }: { t: number; booster: boolean }) => (
             : ALIGN[e.name] === "end"
               ? "-translate-x-full"
               : "-translate-x-1/2",
-          e.t <= t ? "font-medium" : "text-muted-foreground"
+          e.t <= t ? "font-medium" : "text-muted-foreground/50"
         )}
         style={{ left: along(e.t) }}
       >
@@ -451,20 +542,15 @@ const Mission = ({ launch }: { launch: Launch }) => {
           <Caption>{phaseOf(t)}</Caption>
         </div>
         <div className="flex flex-col items-end">
-          {next ? (
-            <>
-              <Figure value={span(next.t - t)} className="text-lg" />
-              <Caption>
-                to {next.name}
-                {next.booster && " (booster)"}
-              </Caption>
-            </>
-          ) : (
-            <>
-              <Figure value="Nominal" className="text-lg" />
-              <Caption>Next launch shortly</Caption>
-            </>
-          )}
+          <Figure
+            value={next ? span(next.t - t) : "Nominal"}
+            className="text-lg"
+          />
+          <Caption>
+            {next
+              ? `to ${next.name}${next.booster ? " (booster)" : ""}`
+              : "Next launch shortly"}
+          </Caption>
         </div>
       </div>
       <div className="flex flex-col gap-0.5">
@@ -478,7 +564,7 @@ const Mission = ({ launch }: { launch: Launch }) => {
 
 /**
  * One stage's telemetry as the webcast lays it out: speed, altitude and
- * g-force on rings, and its engines from below.
+ * g-force on rings, and its engines from below inside its fuel.
  */
 const Stage = ({
   title,
@@ -517,7 +603,7 @@ const Stage = ({
           format={(v) => v.toFixed(1)}
         />
       </Labelled>
-      <Labelled label={`Engines ${stage.engines}`}>{engines}</Labelled>
+      <Labelled label="Fuel">{engines}</Labelled>
     </div>
   </Panel>
 )
@@ -580,10 +666,6 @@ const Propellant = ({ launch }: { launch: Launch }) => (
         <span className="text-xs font-medium">Stage 2</span>
       </div>
     </div>
-    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-      <span className="h-0.5 w-3 shrink-0 rounded-full bg-muted-foreground" />
-      Landing reserve
-    </div>
   </Panel>
 )
 
@@ -614,6 +696,7 @@ export const RocketLaunch = () => {
             lit={boosterLayout(booster.engines, t)}
             centreLit={booster.engines > 0}
             throttle={booster.throttle}
+            fuel={booster.fuel}
           />
         }
       />
@@ -635,7 +718,8 @@ export const RocketLaunch = () => {
             lit={() => false}
             centreLit={stageTwo.engines > 0}
             throttle={stageTwo.throttle}
-            centreSize={120}
+            fuel={stageTwo.fuel}
+            centreSize={110}
           />
         }
       />
