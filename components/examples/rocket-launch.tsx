@@ -22,7 +22,6 @@ import {
   Card,
   CardAction,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -34,7 +33,6 @@ import {
   EVENTS,
   LANDING_RESERVE,
   SEPARATION,
-  WARP,
   phaseOf,
   useLaunchSimulation,
   type Launch,
@@ -133,7 +131,8 @@ type EngineLayout = (ring: number) => boolean
  * of others round it, each glowing in proportion to its throttle while it
  * burns. Round them runs the stage's fuel on a ring like the other dials.
  * The engines sit on a full-circle gauge inset in the fuel's, where the
- * ring is its ticks with no length, so each is a round dot.
+ * ring is its ticks with no length, so each is a round dot. The ring is
+ * turned half an engine's spacing so a pair sits at the top and the bottom.
  */
 const EngineFlower = ({
   ring,
@@ -154,6 +153,7 @@ const EngineFlower = ({
 }) => {
   const glow = fade(35 + 65 * throttle)
   const dark = fade(12)
+  const turn = 180 / Math.max(ring, 1)
   return (
     <Gauge value={fuel * 100} transition={FOLLOW} padding={12}>
       <GaugeTrack width={10} color={INK} opacity={0.12} />
@@ -161,8 +161,8 @@ const EngineFlower = ({
       <GaugeInset
         value={0}
         max={Math.max(ring, 1)}
-        startAngle={180}
-        endAngle={540}
+        startAngle={180 + turn}
+        endAngle={540 + turn}
         scale={0.85}
       >
         {ring > 0 && (
@@ -429,13 +429,11 @@ const Figure = ({
 
 const Panel = ({
   title,
-  description,
   action,
   className,
   children,
 }: {
   title: string
-  description?: ReactNode
   action?: ReactNode
   className?: string
   children: ReactNode
@@ -443,9 +441,6 @@ const Panel = ({
   <Card size="sm" className={cn("shadow-none", className)}>
     <CardHeader>
       <CardTitle className="text-sm">{title}</CardTitle>
-      {description && (
-        <CardDescription className="text-xs">{description}</CardDescription>
-      )}
       {action && (
         <CardAction className="text-xs text-muted-foreground tabular-nums">
           {action}
@@ -530,12 +525,7 @@ const Mission = ({ launch }: { launch: Launch }) => {
   const { t } = launch
   const next = EVENTS.find((e) => e.t > t)
   return (
-    <Panel
-      title="Mission"
-      description="Two stages to a 200 km orbit, the booster flying home"
-      action={t < 0 ? "Real time" : `×${WARP}`}
-      className="sm:col-span-2"
-    >
+    <Panel title="Mission" className="sm:col-span-2">
       <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
         <div className="flex flex-col">
           <Figure value={missionClock(t)} className="text-4xl" />
@@ -611,7 +601,7 @@ const Stage = ({
 const Propulsion = ({ launch }: { launch: Launch }) => {
   const { booster, stageTwo } = launch
   return (
-    <Panel title="Propulsion" description="Throttles and the air on the stack">
+    <Panel title="Propulsion">
       <Row
         label="Booster throttle"
         value={`${Math.round(booster.throttle * 100)}%`}
@@ -641,7 +631,7 @@ const Propulsion = ({ launch }: { launch: Launch }) => {
 }
 
 const Propellant = ({ launch }: { launch: Launch }) => (
-  <Panel title="Propellant" description="Left in each tank">
+  <Panel title="Propellant">
     <div className="grid grid-cols-2 gap-4">
       <div className="flex flex-col items-center gap-2">
         <div className="flex gap-1">

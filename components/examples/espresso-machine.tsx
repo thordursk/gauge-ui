@@ -132,7 +132,7 @@ const PressureDial = ({
       <GaugeArc
         from={WINDOW[0]}
         to={WINDOW[1]}
-        width={30}
+        width={22}
         color={INK}
         opacity={0.15}
       />
@@ -302,14 +302,14 @@ const YieldBar = ({ grams, target }: { grams: number; target: number }) => {
       max={max}
       length={LONG}
       transition={FOLLOW}
-      padding={{ top: 16, bottom: 30, left: 10, right: 14 }}
+      padding={{ top: 10, bottom: 24, left: 10, right: 14 }}
     >
-      <GaugeTrack width={16} color={INK} opacity={0.1} />
-      <GaugeArc width={16} color={INK} />
-      <GaugeMarks values={[target]} length={30} width={3} color={MUTED} />
+      <GaugeTrack width={8} color={INK} opacity={0.1} />
+      <GaugeArc width={8} color={INK} />
+      <GaugeMarks values={[target]} length={16} width={2} color={MUTED} />
       <GaugeTickLabels
         count={max / 10}
-        offset={-26}
+        offset={-20}
         fontSize={12}
         color={MUTED}
       />
@@ -324,7 +324,7 @@ const FlowBar = ({ flow }: { flow: number }) => (
     max={4}
     length={LONG}
     transition={FOLLOW}
-    padding={{ top: 8, bottom: 8, left: 10, right: 14 }}
+    padding={{ top: 16, bottom: 8, left: 10, right: 14 }}
   >
     <GaugeTickFill
       count={32}
@@ -547,7 +547,7 @@ const Labelled = ({
   label: string
   children: ReactNode
 }) => (
-  <div className="flex min-w-0 flex-col items-center gap-1">
+  <div className="flex w-fit flex-col items-center gap-1 justify-self-center">
     {children}
     <span className="text-[10px] font-semibold tracking-widest whitespace-nowrap text-muted-foreground uppercase">
       {label}
@@ -569,20 +569,15 @@ const shotStatus = ({ phase, time, yield: grams }: Espresso) => {
   return `${pulled}: in the window`
 }
 
-const Shot = ({ espresso, recipe }: { espresso: Espresso; recipe: Recipe }) => (
-  <Panel
-    title="Shot"
-    description={`${recipe.dose.toFixed(1)} g in, ${espresso.target.toFixed(1)} g out, in ${WINDOW[0]}–${WINDOW[1]} s`}
-    action={`Shot ${espresso.shots}`}
-    className="sm:col-span-2"
-  >
+const Shot = ({ espresso }: { espresso: Espresso }) => (
+  <Panel title="Shot" className="sm:col-span-2">
     <div className="grid items-center gap-6 sm:grid-cols-[15rem_1fr]">
       <div className="mx-auto w-full max-w-60">
         <PressureDial pressure={espresso.pressure} time={espresso.time} />
       </div>
       <div className="flex min-w-0 flex-col gap-4">
-        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
-          <div className="flex items-center gap-6">
+        <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
+          <div className="flex items-end gap-6">
             <div className="w-16 shrink-0">
               <Cup
                 grams={espresso.yield}
@@ -603,14 +598,11 @@ const Shot = ({ espresso, recipe }: { espresso: Espresso; recipe: Recipe }) => (
               <Caption>{shotStatus(espresso)}</Caption>
             </div>
           </div>
-          <div className="flex flex-col items-end">
-            <Figure
-              value={espresso.pressure.toFixed(1)}
-              unit="bar"
-              className="text-lg"
-            />
-            <Caption>at the group</Caption>
-          </div>
+          <Figure
+            value={espresso.pressure.toFixed(1)}
+            unit="bar"
+            className="text-lg"
+          />
         </div>
         <Row
           label="Yield"
@@ -635,17 +627,16 @@ const Boilers = ({
 }) => (
   <Panel
     title="Boilers"
-    description="Brew and steam, and the water tank"
     action={espresso.heating ? "Steam heating" : "Steam holding"}
   >
-    <div className="grid grid-cols-[1fr_1fr_auto] items-end gap-4">
+    <div className="grid grid-cols-3 items-end gap-4">
       <Labelled label="Brew">
-        <div className="w-full max-w-28">
+        <div className="w-28">
           <BrewDial temp={espresso.brewTemp} set={recipe.temp} />
         </div>
       </Labelled>
       <Labelled label="Steam">
-        <div className="flex w-full max-w-28 flex-col items-center gap-1">
+        <div className="flex w-28 flex-col items-center gap-1">
           <SteamDial steam={espresso.steam} />
           <span className="text-xs font-semibold tabular-nums">
             {espresso.steam.toFixed(2)} bar
@@ -671,7 +662,7 @@ const RecipePanel = ({
   recipe: Recipe
   onChange: (change: Partial<Recipe>) => void
 }) => (
-  <Panel title="Recipe" description="Turn the grinder to land in the window">
+  <Panel title="Recipe">
     <Row label="Grind" value={`${recipe.grind} of ${GRIND_MAX}`}>
       <GrindSlider
         value={recipe.grind}
@@ -731,7 +722,7 @@ export const EspressoMachine = () => {
 
   return (
     <div ref={frame} className="grid gap-3 sm:grid-cols-2">
-      <Shot espresso={espresso} recipe={recipe} />
+      <Shot espresso={espresso} />
       <Boilers espresso={espresso} recipe={recipe} />
       <RecipePanel recipe={recipe} onChange={change} />
     </div>
