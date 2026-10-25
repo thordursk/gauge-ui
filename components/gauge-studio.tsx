@@ -87,17 +87,30 @@ export const GaugeStudio = () => {
     />
   )
 
-  /* What the stage's control takes whether it sets a value or a range. */
+  /* What the stage's control takes whether it sets a value or a range. A
+     dial is the largest square the stage holds; a bar fills its length of
+     it and lets its ratio settle the rest. */
   const controlProps = (control: NonNullable<typeof spec.control>) => ({
     min: spec.domain.min,
     max: spec.domain.max,
     step: control.step,
-    startAngle: spec.domain.startAngle,
-    endAngle: spec.domain.endAngle,
+    ...(spec.domain.shape === "linear"
+      ? {
+          orientation: spec.domain.orientation,
+          length: spec.domain.length,
+          className:
+            spec.domain.orientation === "vertical"
+              ? "h-full max-w-full"
+              : "w-full max-h-full",
+        }
+      : {
+          startAngle: spec.domain.startAngle,
+          endAngle: spec.domain.endAngle,
+          className: "size-[min(100cqw,100cqh)]",
+        }),
     label: spec.title.show ? spec.title.text : "Value",
     knob: control.knob,
     disabled: selected !== 0,
-    className: "size-[min(100cqw,100cqh)]",
   })
 
   return (

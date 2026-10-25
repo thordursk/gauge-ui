@@ -1,4 +1,8 @@
-import type { GaugeInsetSpec, GaugeSpec } from "@/lib/gauge-spec"
+import {
+  barPadding,
+  type GaugeInsetSpec,
+  type GaugeSpec,
+} from "@/lib/gauge-spec"
 
 /** A prop value emitted verbatim as a JSX expression. */
 class Raw {
@@ -171,6 +175,7 @@ const parts = (
           cap: spec.arc.cap,
           offset: spec.arc.offset,
           reverse: spec.arc.reverse ? true : undefined,
+          from: spec.arc.from,
         },
         indent
       )
@@ -381,16 +386,39 @@ const parts = (
   return body
 }
 
+/** A bar's padding: one number when every side takes the same. */
+const paddingProp = (domain: GaugeSpec["domain"]) =>
+  domain.padding === domain.ends
+    ? domain.padding
+    : new Raw(literal(barPadding(domain)))
+
+/**
+ * What places a gauge's scale: a dial's sweep, or a bar's direction and
+ * length. A horizontal bar is the default, so it says nothing of it.
+ */
+const geometry = (domain: GaugeSpec["domain"]) =>
+  domain.shape === "linear"
+    ? {
+        orientation:
+          domain.orientation === "vertical" ? domain.orientation : undefined,
+        length: domain.length,
+      }
+    : {
+        startAngle: domain.startAngle,
+        endAngle: domain.endAngle,
+      }
+
 /** The nested gauge for one inset, with all of its own parts inside it. */
 const insetElement = (
   inset: GaugeInsetSpec,
   indent: string,
   used: Set<string>
 ) => {
-  used.add("GaugeInset")
   const { domain } = inset.spec
+  const tag = domain.shape === "linear" ? "LinearGaugeInset" : "GaugeInset"
+  used.add(tag)
   return container(
-    "GaugeInset",
+    tag,
     {
       x: inset.x,
       y: inset.y,
@@ -398,11 +426,13 @@ const insetElement = (
       value: new Raw(inset.name),
       min: domain.min,
       max: domain.max,
-      startAngle: domain.startAngle,
-      endAngle: domain.endAngle,
+      ...geometry(domain),
       /* The inset keeps the host's reference radius and takes its size from
          `scale`, so the radius is only worth printing when it differs. */
-      radius: domain.radius === 200 ? undefined : domain.radius,
+      radius:
+        domain.shape === "linear" || domain.radius === 200
+          ? undefined
+          : domain.radius,
       transition: inset.spec.transition
         ? new Raw(literal(inset.spec.transition))
         : undefined,
@@ -418,7 +448,9 @@ const insetElement = (
 /** JSX for a component that renders `spec` with the gauge primitives. */
 export const gaugeToCode = (spec: GaugeSpec) => {
   const { domain, control } = spec
-  const used = new Set<string>(["Gauge"])
+  const linear = domain.shape === "linear"
+  const root = linear ? "LinearGauge" : "Gauge"
+  const used = new Set<string>([root])
   const insets = spec.insets ?? []
   /* A gauge that can be set by hand sits one level down, inside its control. */
   const outer = control ? "      " : "    "
@@ -456,34 +488,51 @@ export const gaugeToCode = (spec: GaugeSpec) => {
         ].join("\n")
 
   const gauge = [
-    `${outer}<Gauge`,
-    `${pad}value={value}`,
-    `${pad}min={${num(domain.min)}}`,
-    `${pad}max={${num(domain.max)}}`,
-    `${pad}startAngle={${num(domain.startAngle)}}`,
-    `${pad}endAngle={${num(domain.endAngle)}}`,
-    `${pad}radius={${num(domain.radius)}}`,
-    `${pad}padding={${num(domain.padding)}}`,
-    domain.fit === "content" ? `${pad}fit="content"` : null,
-    spec.transition ? `${pad}transition={${literal(spec.transition)}}` : null,
+    `${outer}<${root}`,
+    attributes(
+      {
+        value: new Raw("value"),
+        min: domain.min,
+        max: domain.max,
+        ...geometry(domain),
+        ...(linear
+          ? { padding: paddingProp(domain) }
+          : {
+              radius: domain.radius,
+              padding: domain.padding,
+              fit: domain.fit === "content" ? domain.fit : undefined,
+            }),
+        transition: spec.transition
+          ? new Raw(literal(spec.transition))
+          : undefined,
+      },
+      outer
+    ),
     `${outer}>`,
     ...body,
-    `${outer}</Gauge>`,
+    `${outer}</${root}>`,
   ]
 
-  /* The control takes the same domain and sweep as the gauge it turns. */
+  /* The control takes the same domain and sweep as the gauge it turns, or
+     the bar's direction and length, which are what make it drag along. */
   const wrapped = control
     ? [
         `    <GaugeControl`,
-        `      value={value}`,
-        `      onChange={onChange}`,
-        `      min={${num(domain.min)}}`,
-        `      max={${num(domain.max)}}`,
-        `      step={${num(control.step)}}`,
-        `      startAngle={${num(domain.startAngle)}}`,
-        `      endAngle={${num(domain.endAngle)}}`,
-        `      label=${JSON.stringify(spec.title.show ? spec.title.text : "Value")}`,
-        control.knob ? `      knob` : null,
+        attributes(
+          {
+            value: new Raw("value"),
+            onChange: new Raw("onChange"),
+            min: domain.min,
+            max: domain.max,
+            step: control.step,
+            ...(linear
+              ? { orientation: domain.orientation, length: domain.length }
+              : { startAngle: domain.startAngle, endAngle: domain.endAngle }),
+            label: spec.title.show ? spec.title.text : "Value",
+            knob: control.knob || undefined,
+          },
+          "    "
+        ),
         `    >`,
         ...gauge,
         `    </GaugeControl>`,

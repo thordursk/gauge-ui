@@ -17,6 +17,8 @@ import type {
   FontFamily,
   FontWeight,
   GaugeFit,
+  GaugeOrientation,
+  GaugeShape,
   GaugeSpec,
   GaugeTooltipPosition,
   GaugeTooltipSide,
@@ -148,8 +150,12 @@ export type PlayMode = (typeof playModes)[number]
 export type LayerKind = "host" | "inset"
 
 /** Controls only the host has, and the one only an inset has. */
-const HOST_ONLY = ["padding", "fit", "stage", "control"] as const
+const HOST_ONLY = ["padding", "ends", "fit", "stage", "control"] as const
 const INSET_ONLY = ["placement"] as const
+
+/** Controls only a dial has, and the ones only a bar has. */
+const ROUND_ONLY = ["startAngle", "endAngle", "fit"] as const
+const LINEAR_ONLY = ["orientation", "length", "ends"] as const
 
 const without = <T extends object>(config: T, keys: readonly string[]): T =>
   Object.fromEntries(
@@ -164,22 +170,37 @@ const without = <T extends object>(config: T, keys: readonly string[]): T =>
  */
 const fullGaugeConfig = (flat: Flat = {}) =>
   ({
+    /* A dial bends the scale round an arc; a bar lays it out straight. */
+    shape: select(["round", "linear"], "round"),
     min: [0, -100, 100, 1],
-    max: [100, 1, 1000, 1],
+    /* Down to just above min's floor, for a domain below zero: dB up to
+       full scale. */
+    max: [100, -99, 1000, 1],
     /* Runs the whole way round so a dial can start anywhere, including in
        the opening another gauge leaves at the bottom. */
     startAngle: [40, 0, 360, 1],
     /* Runs past 360 so a ring can start at twelve o'clock and close on itself. */
     endAngle: [320, 180, 540, 1],
+    orientation: select(["horizontal", "vertical"], "horizontal"),
+    length: [400, 100, 800, 10],
+    /* Round a dial; either side of a bar, with `ends` past its two ends. */
     padding: [56, 0, 200, 1],
+    ends: [24, 0, 200, 1],
     /* `content` trims the box to the arc's sweep, which only buys anything
        back on gauges that stop well short of a full turn. */
     fit: select(["square", "content"], "square"),
     stage: color(flat, "stage", "background"),
     /* Makes the gauge a slider: drag round the ring, or with `knob` turn the
        face as well. Only a square gauge can be turned, since the drag is
-       measured round the middle of its box. */
-    control: select(["off", "ring", "knob"], "off"),
+       measured round the middle of its box. A bar is dragged along. */
+    control: select(
+      [
+        "off",
+        { value: "ring", label: flat.shape === "linear" ? "Bar" : "Ring" },
+        "knob",
+      ],
+      "off"
+    ),
     placement: {
       /** Centre in the host gauge, as a fraction of its radius. */
       position: position(0, 0),
@@ -191,14 +212,18 @@ const fullGaugeConfig = (flat: Flat = {}) =>
 /**
  * The domain and geometry panel. An inset sits inside another gauge rather
  * than in a box of its own, so it trades `padding`, `fit` and the stage
- * colour for where it is placed and how big it is drawn.
+ * colour for where it is placed and how big it is drawn. A bar trades a
+ * dial's sweep for which way it runs and how long it is.
  *
  * Both kinds keep the same resolved type, and a layer's stored values fill in
  * whatever its own panel does not show, so the two shapes never have to be
  * told apart downstream.
  */
 export const gaugeConfig = (flat: Flat = {}, kind: LayerKind = "host") =>
-  without(fullGaugeConfig(flat), kind === "host" ? INSET_ONLY : HOST_ONLY)
+  without(fullGaugeConfig(flat), [
+    ...(kind === "host" ? INSET_ONLY : HOST_ONLY),
+    ...(flat.shape === "linear" ? ROUND_ONLY : LINEAR_ONLY),
+  ])
 
 /* Panels whose slider ranges follow the domain are built from functions so
    the store can reconcile them when min or max changes.
@@ -224,34 +249,42 @@ export const valueConfig = (min: number, max: number, flat?: Flat) =>
     motion: { type: "spring", visualDuration: 0.5, bounce: 0.1 },
   }) satisfies ControlConfig
 
-export const arcsConfig = (flat: Flat = {}) =>
-  ({
-    track: {
-      show: toggle(true),
-      width: [24, 1, 80, 1],
-      color: color(flat, "track.color", "muted"),
-      opacity: [1, 0, 1, 0.01],
-      cap: cap("round"),
-      offset: [0, -120, 120, 1],
-    },
-    arc: {
-      show: toggle(true),
-      width: [24, 1, 80, 1],
-      color: color(flat, "arc.color", "primary"),
-      colorByZone: toggle(false),
-      /* Anchors the fill to the end of the sweep, for a dial that fills
+/* A bar has no middle to fill, so it goes without the face. Whether the
+   gauge is one is the gauge panel's to say, which this one cannot see. */
+export const arcsConfig = (flat: Flat = {}, linear = false) =>
+  without(
+    {
+      track: {
+        show: toggle(true),
+        width: [24, 1, 80, 1],
+        color: color(flat, "track.color", "muted"),
+        opacity: [1, 0, 1, 0.01],
+        cap: cap("round"),
+        offset: [0, -120, 120, 1],
+      },
+      arc: {
+        show: toggle(true),
+        width: [24, 1, 80, 1],
+        color: color(flat, "arc.color", "primary"),
+        colorByZone: toggle(false),
+        /* Anchors the fill to the end of the sweep, for a dial that fills
          towards where it starts. */
-      reverse: toggle(false),
-      opacity: [1, 0, 1, 0.01],
-      cap: cap("round"),
-      offset: [0, -120, 120, 1],
-    },
-    face: {
-      show: toggle(false),
-      radius: [150, 1, 260, 1],
-      color: color(flat, "face.color", "muted"),
-    },
-  }) satisfies ControlConfig
+        reverse: toggle(false),
+        /* Anchors it at zero, so on a domain either side of it the fill grows
+         left or right of centre as the value goes. */
+        fromZero: toggle(false),
+        opacity: [1, 0, 1, 0.01],
+        cap: cap("round"),
+        offset: [0, -120, 120, 1],
+      },
+      face: {
+        show: toggle(false),
+        radius: [150, 1, 260, 1],
+        color: color(flat, "face.color", "muted"),
+      },
+    } satisfies ControlConfig,
+    linear ? ["face"] : []
+  )
 
 export const cutoffsConfig = (min: number, max: number, flat: Flat = {}) => {
   const step = stepFor(max - min)
@@ -637,6 +670,9 @@ export const toGaugeTransition = (t: TransitionConfig): GaugeTransition => {
 export const buildSpec = (v: PanelValues): GaugeSpec => {
   const { gauge, value, arcs, cutoffs, ticks, text, needle, dot, tooltip } = v
   const { min, max } = domainOf(gauge)
+  /* A bar has no centre for a needle to pivot on or a face to fill, so
+     whatever the panels it hides still hold is left out. */
+  const linear = gauge.shape === "linear"
 
   /* Zones keep their panel order. The last zone always runs to `max`, so its
      own cutoff is ignored, and each earlier cutoff is held at or above the
@@ -694,10 +730,11 @@ export const buildSpec = (v: PanelValues): GaugeSpec => {
     transition: value.animate ? toGaugeTransition(value.motion) : undefined,
     rangeFrom: value.range ? clamp(value.from, min, max) : undefined,
     control:
-      gauge.control === "off" || gauge.fit === "content"
+      gauge.control === "off" || (!linear && gauge.fit === "content")
         ? undefined
         : { knob: gauge.control === "knob", step: stepFor(max - min) },
     domain: {
+      shape: gauge.shape as GaugeShape,
       min,
       max,
       startAngle: gauge.startAngle,
@@ -705,18 +742,30 @@ export const buildSpec = (v: PanelValues): GaugeSpec => {
       radius: RADIUS,
       padding: gauge.padding,
       fit: gauge.fit as GaugeFit,
+      orientation: gauge.orientation as GaugeOrientation,
+      length: gauge.length,
+      ends: gauge.ends,
     },
-    face: { ...arcs.face, color: css(arcs.face.color) },
+    face: {
+      ...arcs.face,
+      show: !linear && arcs.face.show,
+      color: css(arcs.face.color),
+    },
     track: {
       ...arcs.track,
       color: css(arcs.track.color),
       cap: arcs.track.cap as StrokeCap,
     },
     arc: {
-      ...arcs.arc,
+      show: arcs.arc.show,
+      width: arcs.arc.width,
       color: css(arcs.arc.color),
+      opacity: arcs.arc.opacity,
       cap: arcs.arc.cap as StrokeCap,
+      offset: arcs.arc.offset,
       colorByZone: cutoffs.show && arcs.arc.colorByZone,
+      reverse: arcs.arc.reverse,
+      from: arcs.arc.fromZero ? clamp(0, min, max) : undefined,
     },
     zones: {
       show: cutoffs.show,
@@ -756,7 +805,7 @@ export const buildSpec = (v: PanelValues): GaugeSpec => {
       format: ticks.labels.format as LabelFormat,
     },
     needles: {
-      show: needle.show,
+      show: !linear && needle.show,
       list: [needle.needle1, needle.needle2, needle.needle3]
         .slice(0, needle.count)
         .map(needleSpec),

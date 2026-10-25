@@ -136,6 +136,8 @@ export type PanelConfig = {
   name: string
   controls: ControlMeta[]
   defaultCollapsed: boolean
+  /** Left out of the sidebar while its values stay registered. */
+  hidden: boolean
 }
 
 /* ---------- helpers ---------- */
@@ -398,7 +400,7 @@ type Listener = () => void
 
 const EMPTY_VALUES: FlatValues = {}
 
-export type PanelOptions = { defaultCollapsed?: boolean }
+export type PanelOptions = { defaultCollapsed?: boolean; hidden?: boolean }
 
 class ControlsStoreClass {
   private panels = new Map<string, PanelConfig>()
@@ -465,6 +467,7 @@ class ControlsStoreClass {
       name,
       controls,
       defaultCollapsed: options.defaultCollapsed ?? false,
+      hidden: options.hidden ?? false,
     })
     this.values.set(id, values)
     this.byPanel.set(id, byPath)

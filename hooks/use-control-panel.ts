@@ -21,6 +21,12 @@ export type ControlPanelOptions = {
   id: string
   /** Whether the panel's section in `ControlsRoot` starts closed. */
   defaultCollapsed?: boolean
+  /**
+   * Keeps the panel out of `ControlsRoot` without unregistering it, for a
+   * panel that means nothing to the gauge as it stands. Its values stay in
+   * the store, so it comes back as it was left.
+   */
+  hidden?: boolean
 }
 
 export type ControlPanelController<T extends ControlConfig> = {
@@ -43,6 +49,7 @@ export const useControlPanel = <T extends ControlConfig>(
 ): ControlPanelController<T> => {
   const panelId = options.id
   const defaultCollapsed = options.defaultCollapsed
+  const hidden = options.hidden
 
   /* The config is rebuilt every render, so it is compared by content: only a
      real change — a slider range following the domain, a control appearing —
@@ -59,8 +66,11 @@ export const useControlPanel = <T extends ControlConfig>(
   useEffect(() => {
     ControlsStore.registerPanel(panelId, name, configRef.current, {
       defaultCollapsed,
+      hidden,
     })
     return () => ControlsStore.unregisterPanel(panelId)
+    /* Hiding goes through the update below, not a fresh registration. */
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [panelId, name, defaultCollapsed])
 
   /* The register effect above already carried the mount's config into the
@@ -73,8 +83,9 @@ export const useControlPanel = <T extends ControlConfig>(
     }
     ControlsStore.updatePanel(panelId, name, configRef.current, {
       defaultCollapsed,
+      hidden,
     })
-  }, [panelId, name, serializedConfig, defaultCollapsed])
+  }, [panelId, name, serializedConfig, defaultCollapsed, hidden])
 
   const subscribe = useCallback(
     (listener: () => void) => ControlsStore.subscribe(panelId, listener),

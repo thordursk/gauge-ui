@@ -96,7 +96,9 @@ const TemplateCard = ({ template, selected, onSelect }: TemplateCardProps) => {
           "border-foreground/40 bg-accent ring ring-foreground/10 hover:bg-accent"
       )}
     >
-      <div className="flex aspect-square w-full items-center justify-center rounded-xl border border-foreground/10 bg-background p-3">
+      {/* No content minimum, or a standing bar, which takes the height it
+          is given, would stretch the square to its own. */}
+      <div className="flex aspect-square min-h-0 w-full items-center justify-center rounded-xl border border-foreground/10 bg-background p-3">
         <GaugePreview spec={spec} value={value} tooltips={false} />
       </div>
       <div className="px-1 pb-0.5 text-center text-xs font-medium">

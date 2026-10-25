@@ -11,6 +11,10 @@
  * A template can also carry `insets`: further gauges, described the same way,
  * drawn inside the first one. They are placed in the host gauge's coordinate
  * space and scaled as a whole, so an inset is simply a smaller dial.
+ *
+ * The bars at the end are `LinearGauge`s, each taken from one of the
+ * examples. A bar has no face and no needle, so they draw with the track,
+ * arc, cutoffs, ticks, dot and text alone.
  */
 
 import {
@@ -168,6 +172,87 @@ const planetOrbit = (
   },
   dot: { show: true, radius: size, color: token("foreground"), offset },
   text: { value: { show: false }, unit: { show: false } },
+})
+
+/**
+ * Marks in the stage's own colour across a bar, cutting it into quarters as
+ * the tanks and throttles in the examples are. They are the cutoffs between
+ * four zones whose band is left undrawn, so only the marks show.
+ */
+const quarterCuts = (
+  min: number,
+  max: number,
+  /** As long as the bar is wide, so each cut goes right across it. */
+  length: number
+): PanelUpdates["cutoffs"] => {
+  const at = (t: number) => min + (max - min) * t
+  return {
+    show: true,
+    count: 4,
+    zone1: { to: at(0.25) },
+    zone2: { to: at(0.5) },
+    zone3: { to: at(0.75) },
+    band: { opacity: 0 },
+    marks: {
+      show: true,
+      length,
+      width: 4,
+      offset: 0,
+      cap: "butt",
+      color: token("background"),
+    },
+  }
+}
+
+/** A single mark across a bar at `at`: the cutoff between two zones whose
+    band is left undrawn, as the Battery template's charge limit is. */
+const markAt = (
+  at: number,
+  length: number,
+  color: ReturnType<typeof token>
+): PanelUpdates["cutoffs"] => ({
+  show: true,
+  count: 2,
+  zone1: { to: at },
+  band: { opacity: 0 },
+  marks: { show: true, length, width: 3, offset: 0, cap: "butt", color },
+})
+
+/**
+ * One band of the Equaliser's analyser: an upright column of segments, lit
+ * up to the band's level in dB. A band other than the middle one is an
+ * inset, placed `x` along the row at full size.
+ */
+const spectrumBand = (db: number, x?: number): PanelUpdates => ({
+  gauge: {
+    shape: "linear",
+    orientation: "vertical",
+    min: -60,
+    max: 0,
+    length: 200,
+    ...(x === undefined
+      ? {}
+      : { placement: { position: { x, y: 0 }, scale: 1 } }),
+  },
+  value: { value: db },
+  arcs: { track: { show: false }, arc: { show: false } },
+  ticks: {
+    fill: {
+      show: true,
+      count: 20,
+      length: 36,
+      litLength: 36,
+      width: 6,
+      cap: "butt",
+      color: token("foreground"),
+      dimColor: token("muted"),
+    },
+  },
+  text: {
+    value: { show: false },
+    unit: { show: false },
+    title: { show: false },
+  },
 })
 
 export const gaugeTemplates: GaugeTemplate[] = [
@@ -1816,6 +1901,306 @@ export const gaugeTemplates: GaugeTemplate[] = [
       { name: "venus", values: planetOrbit(-80, 300, 8.5, true) },
       { name: "mercury", values: planetOrbit(-120, 130, 6, true) },
     ],
+  },
+  {
+    id: "throttle",
+    name: "Throttle",
+    /* The rocket's throttle and the race car's level bars: a flat bar cut
+       into quarters, with its name and reading over it and a scale under. */
+    values: {
+      gauge: { shape: "linear", min: 0, max: 100, padding: 64, ends: 28 },
+      value: { value: 72 },
+      arcs: {
+        track: { width: 28, cap: "butt" },
+        arc: { width: 28, cap: "butt", color: token("foreground") },
+      },
+      cutoffs: quarterCuts(0, 100, 28),
+      ticks: {
+        labels: { show: true, count: 4, offset: -36, fontSize: 16 },
+      },
+      text: {
+        value: {
+          fontSize: 32,
+          font: "sans",
+          anchor: "end",
+          position: { x: 0.89, y: 0.22 },
+        },
+        unit: {
+          show: true,
+          text: "%",
+          fontSize: 22,
+          anchor: "end",
+          position: { x: 1, y: 0.205 },
+        },
+        title: {
+          show: true,
+          text: "Throttle",
+          fontSize: 22,
+          anchor: "start",
+          position: { x: -1, y: 0.22 },
+        },
+      },
+    },
+  },
+  {
+    id: "tank",
+    name: "Tank",
+    /* A propellant tank or a water tank, as in the rocket and the espresso
+       machine: an upright column cut into quarters, draining from the top.
+       Its name stands over it and its level under it. */
+    values: {
+      gauge: {
+        shape: "linear",
+        orientation: "vertical",
+        min: 0,
+        max: 100,
+        length: 320,
+        padding: 44,
+        ends: 60,
+      },
+      value: { value: 64 },
+      arcs: {
+        track: { width: 64, cap: "butt" },
+        arc: { width: 64, cap: "butt", color: token("foreground") },
+      },
+      cutoffs: quarterCuts(0, 100, 64),
+      text: {
+        value: {
+          fontSize: 36,
+          font: "sans",
+          position: { x: -0.06, y: -0.98 },
+        },
+        unit: {
+          show: true,
+          text: "%",
+          fontSize: 22,
+          anchor: "start",
+          position: { x: 0.08, y: -0.99 },
+        },
+        title: {
+          show: true,
+          text: "Water",
+          fontSize: 22,
+          position: { x: 0, y: 0.98 },
+        },
+      },
+    },
+  },
+  {
+    id: "rev-tape",
+    name: "Rev tape",
+    /* The race car's revs on a tape, in thousands, with a scale under it and
+       the band past the shift point marked over it. That band is the second
+       of two zones; the first is drawn in the stage's colour, so it never
+       shows. */
+    values: {
+      gauge: { shape: "linear", min: 4, max: 12, padding: 72, ends: 16 },
+      value: { value: 9.4 },
+      arcs: {
+        track: { width: 16, cap: "butt" },
+        arc: { width: 16, cap: "butt", color: token("foreground") },
+      },
+      cutoffs: {
+        show: true,
+        count: 2,
+        zone1: { to: 11, color: token("background") },
+        zone2: { color: token("foreground") },
+        band: { width: 5, offset: 18, gap: 0, cap: "butt", endCap: "butt" },
+      },
+      ticks: {
+        major: {
+          show: true,
+          count: 8,
+          length: 10,
+          width: 2,
+          offset: -18,
+          cap: "butt",
+        },
+        minor: {
+          show: true,
+          count: 32,
+          length: 5,
+          width: 1.5,
+          offset: -15.5,
+          cap: "butt",
+        },
+        labels: { show: true, count: 4, offset: -42, fontSize: 16 },
+      },
+      text: {
+        value: {
+          fontSize: 40,
+          font: "mono",
+          decimals: 1,
+          anchor: "start",
+          position: { x: -1, y: 0.27 },
+        },
+        unit: { show: false },
+        title: {
+          show: true,
+          text: "RPM ×1000",
+          fontSize: 18,
+          anchor: "end",
+          position: { x: 1, y: 0.24 },
+        },
+      },
+    },
+  },
+  {
+    id: "shift-lights",
+    name: "Shift lights",
+    /* The strip across the top of the race car's wheel: a row of lights
+       through the last three thousand revs, lit up to the revs. They are
+       ticks with no length, so each round cap is a light. */
+    values: {
+      gauge: { shape: "linear", min: 9, max: 12, padding: 24, ends: 16 },
+      value: { value: 11.1 },
+      arcs: { track: { show: false }, arc: { show: false } },
+      ticks: {
+        fill: {
+          show: true,
+          count: 14,
+          length: 0,
+          litLength: 0,
+          width: 22,
+          color: token("foreground"),
+          dimColor: token("muted"),
+        },
+      },
+      text: {
+        value: { show: false },
+        unit: { show: false },
+        title: { show: false },
+      },
+    },
+  },
+  {
+    id: "delta",
+    name: "Delta",
+    /* Time against the best lap, from the race car: the fill grows left of
+       the centre line when ahead and right of it when behind. */
+    values: {
+      gauge: { shape: "linear", min: -1, max: 1, padding: 64, ends: 28 },
+      value: { value: -0.32 },
+      arcs: {
+        track: { width: 20, cap: "butt" },
+        arc: {
+          width: 20,
+          cap: "butt",
+          color: token("foreground"),
+          fromZero: true,
+        },
+      },
+      cutoffs: markAt(0, 36, token("foreground")),
+      ticks: {
+        labels: {
+          show: true,
+          count: 2,
+          offset: -38,
+          fontSize: 16,
+          decimals: 1,
+        },
+      },
+      text: {
+        value: {
+          fontSize: 36,
+          font: "mono",
+          decimals: 2,
+          position: { x: 0, y: 0.24 },
+        },
+        unit: { show: false },
+        title: {
+          show: true,
+          text: "Delta",
+          fontSize: 18,
+          anchor: "start",
+          position: { x: -1, y: 0.22 },
+        },
+      },
+    },
+  },
+  {
+    id: "equaliser",
+    name: "Equaliser",
+    /* The music studio's analyser: a row of columns, each a stack of
+       segments lit up to its band's level. The middle band is the gauge and
+       the rest are insets beside it, so wander or jump moves every band on
+       its own, as a live analyser does. */
+    values: {
+      ...spectrumBand(-26),
+      /* Wide enough either side to take the outermost band. */
+      gauge: { ...spectrumBand(-26).gauge, padding: 176, ends: 8 },
+    },
+    insets: [
+      { name: "sub", values: spectrumBand(-22, -0.75) },
+      { name: "bass", values: spectrumBand(-14, -0.5) },
+      { name: "lowMid", values: spectrumBand(-20, -0.25) },
+      { name: "highMid", values: spectrumBand(-31, 0.25) },
+      { name: "presence", values: spectrumBand(-38, 0.5) },
+      { name: "air", values: spectrumBand(-46, 0.75) },
+    ],
+  },
+  {
+    id: "eq-fader",
+    name: "EQ fader",
+    /* One band of the music studio's graphic EQ: an upright fader that cuts
+       or boosts from 0 dB, the fill growing either way from the line across
+       it, with its scale down the left. */
+    values: {
+      gauge: {
+        shape: "linear",
+        orientation: "vertical",
+        min: -12,
+        max: 12,
+        length: 320,
+        padding: 84,
+        ends: 60,
+        control: "ring",
+      },
+      value: { value: 4 },
+      arcs: {
+        track: { width: 6 },
+        arc: {
+          width: 6,
+          cap: "butt",
+          color: token("foreground"),
+          fromZero: true,
+        },
+      },
+      cutoffs: markAt(0, 28, token("muted-foreground")),
+      ticks: {
+        major: {
+          show: true,
+          count: 8,
+          length: 8,
+          width: 2,
+          offset: 30,
+          opacity: 0.5,
+        },
+        labels: { show: true, count: 4, offset: 60, fontSize: 16 },
+      },
+      dot: { show: true, radius: 14, color: token("foreground") },
+      text: {
+        value: {
+          fontSize: 32,
+          font: "sans",
+          decimals: 1,
+          position: { x: -0.08, y: -0.98 },
+        },
+        unit: {
+          show: true,
+          text: "dB",
+          fontSize: 20,
+          anchor: "start",
+          position: { x: 0.1, y: -0.99 },
+        },
+        title: {
+          show: true,
+          text: "1 kHz",
+          fontSize: 20,
+          position: { x: 0, y: 0.98 },
+        },
+      },
+    },
   },
 ]
 
