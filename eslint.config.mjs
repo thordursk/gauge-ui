@@ -17,6 +17,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Hairline's engine, vendored unchanged.
+    "components/examples/hairline/kernel.js",
   ]),
 ])
 

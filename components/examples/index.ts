@@ -1,6 +1,7 @@
 import type { ComponentType } from "react"
 
 import { Cockpit } from "./cockpit"
+import { EspressoMachine } from "./espresso-machine"
 import { HealthDashboard } from "./health-dashboard"
 import { MonitorDashboard } from "./monitor-dashboard"
 import { MusicStudio } from "./music-studio"
@@ -74,6 +75,13 @@ export const examples: Example[] = [
     description:
       "A rocket launch laid out like a webcast, from T−5 to orbit: the mission clock over its timeline of events, each stage's speed, altitude and g-force on thin rings beside its engines from below, the booster turning back and landing once the stages part, and the throttles, the air on the stack and the tanks on bars.",
     Component: RocketLaunch,
+  },
+  {
+    id: "espresso",
+    name: "Espresso",
+    description:
+      "An espresso machine pulling shots on a loop: the group's pressure on a manometer with the shot timer set into its foot, the cup filling to its target and the flow on bars, the boilers and the water tank, and a grinder slider and knobs for the recipe that speed the next shot up or slow it down.",
+    Component: EspressoMachine,
   },
   {
     id: "cockpit",
