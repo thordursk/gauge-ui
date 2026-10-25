@@ -1,6 +1,6 @@
 "use client"
 
-import { arcPath, foldValue, polar } from "./math"
+import { foldValue } from "./math"
 import type { StrokeCap, Zone } from "./utils"
 
 import { useGauge } from "./context"
@@ -10,11 +10,12 @@ type ArcStyleProps = {
   color?: string
   opacity?: number
   cap?: StrokeCap
-  /** Radial offset from the reference radius. Positive moves outward. */
+  /** Offset from the scale's reference line: radial on a dial, across a
+      bar. Positive moves outward, away from the centre or up from a bar. */
   offset?: number
 }
 
-/** The full background arc from `startAngle` to `endAngle`. */
+/** The whole scale as a background: a dial's full sweep, a bar's length. */
 export const GaugeTrack = ({
   width = 24,
   color = "currentColor",
@@ -22,10 +23,10 @@ export const GaugeTrack = ({
   cap = "round",
   offset = 0,
 }: ArcStyleProps) => {
-  const { radius, startAngle, endAngle } = useGauge()
+  const { scale } = useGauge()
   return (
     <path
-      d={arcPath(radius + offset, startAngle, endAngle)}
+      d={scale.path(scale.start, scale.end, offset)}
       fill="none"
       stroke={color}
       strokeOpacity={opacity}
@@ -75,7 +76,7 @@ export const GaugeArc = ({
   wrap = false,
 }: GaugeArcProps) => {
   const gauge = useGauge()
-  const { radius, min, max, value, startAngle, endAngle, angleOf } = gauge
+  const { min, max, value, scale, positionOf } = gauge
   const tail = from ?? gauge.from
   let head = to ?? value
   /* A range on a closed ring is read forward from its start, so the far end
@@ -91,19 +92,22 @@ export const GaugeArc = ({
   if (wrap || forward) {
     const span = max - min
     if (span <= 0) return null
-    const perUnit = (endAngle - startAngle) / span
-    a0 = startAngle + ((((lo - min) % span) + span) % span) * perUnit
-    a1 = a0 + Math.min((hi - lo) * perUnit, 360)
+    /* Positions past the end carry on round a ring, and come back in at
+       the start of a bar. */
+    const sweep = scale.end - scale.start
+    const perUnit = sweep / span
+    a0 = scale.start + ((((lo - min) % span) + span) % span) * perUnit
+    a1 = a0 + Math.min((hi - lo) * perUnit, sweep)
   } else {
     ;[a0, a1] = reverse
-      ? [angleOf(max - (hi - lo)), angleOf(max)]
-      : [angleOf(lo), angleOf(hi)]
+      ? [positionOf(max - (hi - lo)), positionOf(max)]
+      : [positionOf(lo), positionOf(hi)]
   }
   if (a1 <= a0) return null
 
   return (
     <path
-      d={arcPath(radius + offset, a0, a1)}
+      d={scale.path(a0, a1, offset)}
       fill="none"
       stroke={color}
       strokeOpacity={opacity}
@@ -147,13 +151,12 @@ export const GaugeStack = ({
   from,
 }: GaugeStackProps) => {
   const gauge = useGauge()
-  const { radius, value, angleOf } = gauge
+  const { value, scale, positionOf } = gauge
   if (parts.length === 0) return null
 
   const total = parts.reduce((sum, p) => sum + (p.weight ?? 0), 0)
   const start = from ?? gauge.from
   const fill = value - start
-  const r = radius + offset
 
   /* Each part runs from the end of the one before: its own cutoff, or its
      share of the fill. */
@@ -170,13 +173,13 @@ export const GaugeStack = ({
   return (
     <g opacity={opacity}>
       {parts.map((p, i) => {
-        const a0 = angleOf(i === 0 ? start : ends[i - 1])
-        const a1 = angleOf(Math.min(ends[i], value))
+        const a0 = positionOf(i === 0 ? start : ends[i - 1])
+        const a1 = positionOf(Math.min(ends[i], value))
         if (a1 <= a0) return null
         return (
           <path
             key={i}
-            d={arcPath(r, a0, a1)}
+            d={scale.path(a0, a1, offset)}
             fill="none"
             stroke={p.color}
             strokeOpacity={p.opacity}
@@ -195,7 +198,8 @@ export type GaugeZonesProps = Omit<ArcStyleProps, "color"> & {
    * up to its own `to`; the last zone always extends to `max`.
    */
   zones: Zone[]
-  /** Gap between neighbouring zones, in degrees. */
+  /** Gap between neighbouring zones, in the scale's units: degrees round a
+      dial, SVG units along a bar. */
   gap?: number
   /**
    * Cap on the two outer ends of the whole band (the start of the first zone
@@ -215,15 +219,14 @@ export const GaugeZones = ({
   offset = 0,
   gap = 0,
 }: GaugeZonesProps) => {
-  const { radius, min, max, angleOf } = useGauge()
+  const { min, max, scale, positionOf } = useGauge()
   if (zones.length === 0) return null
 
-  const r = radius + offset
   /* Segments are drawn with butt caps and rounded where asked with a disc of
      the stroke width, which is exactly the shape a round cap adds. Drawing
      the discs separately lets the joints and the outer ends differ. */
-  const dot = (angle: number, color: string, key: string) => {
-    const { x, y } = polar(r, angle)
+  const dot = (position: number, color: string, key: string) => {
+    const { x, y } = scale.point(position, offset)
     return <circle key={key} cx={x} cy={y} r={width / 2} fill={color} />
   }
 
@@ -245,15 +248,15 @@ export const GaugeZones = ({
         const isFirst = i === 0
         const isLast = i === zones.length - 1
         const { from, to } = segments[i]
-        const a0 = angleOf(from) + (isFirst ? 0 : gap / 2)
-        const a1 = angleOf(to) - (isLast ? 0 : gap / 2)
+        const a0 = positionOf(from) + (isFirst ? 0 : gap / 2)
+        const a1 = positionOf(to) - (isLast ? 0 : gap / 2)
         if (a1 <= a0) return null
         const startCap = isFirst ? endCap : cap
         const finishCap = isLast ? endCap : cap
         return (
           <g key={i}>
             <path
-              d={arcPath(r, a0, a1)}
+              d={scale.path(a0, a1, offset)}
               fill="none"
               stroke={zone.color}
               strokeWidth={width}

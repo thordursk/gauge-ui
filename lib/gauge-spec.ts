@@ -9,6 +9,7 @@ import type {
   FontFamily,
   FontWeight,
   GaugeFit,
+  GaugeOrientation,
   GaugeTooltipPosition,
   GaugeTooltipSide,
   GaugeTransition,
@@ -30,6 +31,7 @@ export {
   type FontFamily,
   type FontWeight,
   type GaugeFit,
+  type GaugeOrientation,
   type GaugeTooltipPosition,
   type GaugeTooltipSide,
   type NeedleStyle,
@@ -37,6 +39,9 @@ export {
   type TextAnchor,
   type Zone,
 } from "@/components/gauge"
+
+/** A dial, drawn by `Gauge`, or a straight bar, drawn by `LinearGauge`. */
+export type GaugeShape = "round" | "linear"
 
 /** How tick labels print a value: as a number, a compass point, or an hour. */
 export type LabelFormat = "number" | "compass" | "clock"
@@ -93,14 +98,22 @@ export type GaugeSpec = {
   /** Whole gauges drawn inside this one, such as a fuel dial under a speedo. */
   insets?: GaugeInsetSpec[]
   domain: {
+    shape: GaugeShape
     min: number
     max: number
+    /* A dial's sweep and reference circle. */
     startAngle: number
     endAngle: number
     radius: number
+    /** Room round a dial; on a bar, the room either side of it. */
     padding: number
     /** Square box, or one fitted to the arc's sweep. See `GaugeProps.fit`. */
     fit: GaugeFit
+    /* A bar's direction and length, in SVG units end to end. */
+    orientation: GaugeOrientation
+    length: number
+    /** Room past a bar's two ends, for its caps, a dot or an end label. */
+    ends: number
   }
   /** A disc filling the middle, under everything else: a knob's face. */
   face: { show: boolean; radius: number; color: string }
@@ -123,6 +136,9 @@ export type GaugeSpec = {
     colorByZone: boolean
     /** Fill back from the end of the sweep rather than forward from the start. */
     reverse: boolean
+    /** Where the fill is anchored when not at the start: 0, on a domain
+        either side of it, so the arc grows whichever way the value goes. */
+    from?: number
   }
   zones: {
     show: boolean
@@ -207,6 +223,19 @@ export type GaugeSpec = {
   unit: TextSpec & { text: string }
   title: TextSpec & { text: string }
 }
+
+/**
+ * A bar's padding as `LinearGauge` takes it: `padding` either side of the
+ * bar, `ends` past its two ends.
+ */
+export const barPadding = ({
+  orientation,
+  padding,
+  ends,
+}: GaugeSpec["domain"]) =>
+  orientation === "vertical"
+    ? { top: ends, right: padding, bottom: ends, left: padding }
+    : { top: padding, right: ends, bottom: padding, left: ends }
 
 /**
  * A second gauge placed inside the first. The nested spec is a whole gauge in

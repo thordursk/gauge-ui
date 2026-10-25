@@ -16,13 +16,15 @@ import {
   GaugeTrack,
   GaugeValue,
   GaugeZones,
+  LinearGauge,
+  LinearGaugeInset,
   clockLabel,
   compassLabel,
   zoneColor,
   zoneCutoffs,
   type GaugeTransition,
 } from "@/components/gauge"
-import type { GaugeSpec } from "@/lib/gauge-spec"
+import { barPadding, type GaugeSpec } from "@/lib/gauge-spec"
 
 type GaugePreviewProps = {
   spec: GaugeSpec
@@ -91,45 +93,85 @@ export const GaugePreview = ({
   tooltips = true,
 }: GaugePreviewProps) => {
   const { domain } = spec
-
-  return (
-    <Gauge
-      value={valueOf(spec, value)}
-      min={domain.min}
-      max={domain.max}
-      startAngle={domain.startAngle}
-      endAngle={domain.endAngle}
-      radius={domain.radius}
-      padding={domain.padding}
-      fit={domain.fit}
-      transition={transition}
-      initialValue={sweepIn ? sweepFrom(spec, value) : undefined}
-    >
+  const root = {
+    value: valueOf(spec, value),
+    min: domain.min,
+    max: domain.max,
+    transition,
+    initialValue: sweepIn ? sweepFrom(spec, value) : undefined,
+  }
+  const children = (
+    <>
       <GaugeParts spec={spec} value={value} tooltips={tooltips} />
-      {spec.insets?.map((inset) => (
-        <GaugeInset
-          key={inset.name}
-          x={inset.x}
-          y={inset.y}
-          scale={inset.scale}
-          value={valueOf(inset.spec, inset.value)}
-          min={inset.spec.domain.min}
-          max={inset.spec.domain.max}
-          startAngle={inset.spec.domain.startAngle}
-          endAngle={inset.spec.domain.endAngle}
-          radius={inset.spec.domain.radius}
-          transition={inset.spec.transition}
-          initialValue={
-            sweepIn ? sweepFrom(inset.spec, inset.value) : undefined
-          }
-        >
+      {spec.insets?.map((inset) => {
+        const { domain } = inset.spec
+        const props = {
+          x: inset.x,
+          y: inset.y,
+          scale: inset.scale,
+          value: valueOf(inset.spec, inset.value),
+          min: domain.min,
+          max: domain.max,
+          transition: inset.spec.transition,
+          initialValue: sweepIn
+            ? sweepFrom(inset.spec, inset.value)
+            : undefined,
+        }
+        const parts = (
           <GaugeParts
             spec={inset.spec}
             value={inset.value}
             tooltips={tooltips}
           />
-        </GaugeInset>
-      ))}
+        )
+        return domain.shape === "linear" ? (
+          <LinearGaugeInset
+            {...props}
+            key={inset.name}
+            orientation={domain.orientation}
+            length={domain.length}
+          >
+            {parts}
+          </LinearGaugeInset>
+        ) : (
+          <GaugeInset
+            {...props}
+            key={inset.name}
+            startAngle={domain.startAngle}
+            endAngle={domain.endAngle}
+            radius={domain.radius}
+          >
+            {parts}
+          </GaugeInset>
+        )
+      })}
+    </>
+  )
+
+  /* A bar fills the width it is given, or the height when it stands up,
+     and never more of the other than its ratio asks. */
+  return domain.shape === "linear" ? (
+    <LinearGauge
+      {...root}
+      orientation={domain.orientation}
+      length={domain.length}
+      padding={barPadding(domain)}
+      className={
+        domain.orientation === "vertical" ? "max-w-full" : "max-h-full"
+      }
+    >
+      {children}
+    </LinearGauge>
+  ) : (
+    <Gauge
+      {...root}
+      startAngle={domain.startAngle}
+      endAngle={domain.endAngle}
+      radius={domain.radius}
+      padding={domain.padding}
+      fit={domain.fit}
+    >
+      {children}
     </Gauge>
   )
 }
@@ -190,6 +232,7 @@ const GaugeParts = ({
           cap={arc.cap}
           offset={arc.offset}
           reverse={arc.reverse}
+          from={arc.from}
         />
       )}
       {marks.show && (

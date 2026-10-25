@@ -1,11 +1,35 @@
 export { Gauge, type GaugeFit, type GaugeProps } from "./gauge"
-export { GaugeInset, type GaugeInsetProps } from "./inset"
+export {
+  LinearGauge,
+  type LinearGaugePadding,
+  type LinearGaugeProps,
+} from "./linear"
+export {
+  GaugeInset,
+  LinearGaugeInset,
+  type GaugeInsetProps,
+  type LinearGaugeInsetProps,
+} from "./inset"
 export {
   useGauge,
+  useRoundGauge,
   type GaugeContextValue,
   type GaugeDomainProps,
+  type GaugeLinearShape,
   type GaugeRange,
+  type GaugeReading,
+  type GaugeReadingProps,
+  type GaugeRoundShape,
+  type LinearGaugeDomainProps,
 } from "./context"
+export {
+  arcScale,
+  lineScale,
+  type GaugeBox,
+  type GaugeOrientation,
+  type GaugePoint,
+  type GaugeScale,
+} from "./scale"
 export {
   GaugeTrack,
   GaugeArc,

@@ -10,6 +10,7 @@ import {
 import { cn } from "@/lib/utils"
 import { angleToValue, clamp, foldValue, valueToAngle } from "./math"
 import type { GaugeRange } from "./context"
+import type { GaugeOrientation } from "./scale"
 
 /** How far out from the centre a press starts counting as the ring, as a
     share of the half width. Inside it is the face, left for `onPress`. */
@@ -30,6 +31,24 @@ const angleAt = (el: HTMLElement, x: number, y: number) => {
     /** How far out from the centre, as a share of the half width. */
     reach: Math.hypot(dx, dy) / (box.width / 2),
   }
+}
+
+/**
+ * The position along a bar under a point, in the SVG units of the
+ * `LinearGauge` inside, read through the SVG's own screen transform so its
+ * padding and scaling need no knowing.
+ */
+const positionAt = (
+  el: HTMLElement,
+  x: number,
+  y: number,
+  orientation: GaugeOrientation
+) => {
+  const ctm = el.querySelector("svg")?.getScreenCTM()
+  if (!ctm) return 0
+  const p = new DOMPoint(x, y).matrixTransform(ctm.inverse())
+  /* A vertical bar runs bottom to top, against the SVG's y. */
+  return orientation === "vertical" ? -p.y : p.x
 }
 
 /** Degrees between two angles the short way round. */
@@ -54,6 +73,14 @@ export type GaugeControlProps<V extends number | GaugeRange = number> = {
   startAngle?: number
   endAngle?: number
   /**
+   * Make the `LinearGauge` inside a slider instead of a round gauge: a
+   * press anywhere along the bar sets the value under it, and a drag
+   * follows the pointer along the bar. Match it to the gauge's own.
+   */
+  orientation?: GaugeOrientation
+  /** Length of the bar in SVG units, matching the `LinearGauge` inside. */
+  length?: number
+  /**
    * The domain is a closed ring, as the gauge's own `wrap`: values carry on
    * round past either end instead of holding there, and a range may run
    * across the seam, its ends in either order.
@@ -70,7 +97,8 @@ export type GaugeControlProps<V extends number | GaugeRange = number> = {
   valueText?: V extends number ? string : readonly [string, string]
   /** The face turns like a knob: a drag anywhere on it moves the value by as
       far as the pointer goes round, rather than jumping to where it is. A
-      range turns as a whole, keeping its width. */
+      range turns as a whole, keeping its width. A bar has no face, so on one
+      every drag moves the value by as far as the pointer goes along it. */
   knob?: boolean
   disabled?: boolean
   className?: string
@@ -79,7 +107,8 @@ export type GaugeControlProps<V extends number | GaugeRange = number> = {
 
 /**
  * Makes the square gauge inside it a slider: drag round the ring to set it,
- * or use the arrow keys, Page Up and Down, Home and End. A drag past either
+ * or use the arrow keys, Page Up and Down, Home and End. With an
+ * `orientation` it makes a `LinearGauge` one instead, dragged along the bar. A drag past either
  * end of the sweep holds there rather than jumping to the other. A press in
  * the middle of the face, or Enter, is left for `onPress`, which a dimmer
  * uses to switch on and off, or, with `knob`, turns the face from where it
@@ -98,6 +127,8 @@ export const GaugeControl = <V extends number | GaugeRange = number>({
   step = 1,
   startAngle = 40,
   endAngle = 320,
+  orientation,
+  length = 400,
   wrap = false,
   label,
   thumbLabels,
@@ -120,11 +151,9 @@ export const GaugeControl = <V extends number | GaugeRange = number>({
   const pressed = useRef(false)
   /* The end a drag on the ring is moving. */
   const active = useRef(0)
-  /* A knob turn under way: the angle last seen, the ends when it began, and
+  /* A knob turn under way: the spot last seen, the ends when it began, and
      how far it has moved them before rounding to a step. */
-  const turn = useRef<{ angle: number; base: number[]; by: number } | null>(
-    null
-  )
+  const turn = useRef<{ at: number; base: number[]; by: number } | null>(null)
   const thumbs = useRef<(HTMLDivElement | null)[]>([])
 
   const lo = Math.min(min, max)
@@ -144,15 +173,40 @@ export const GaugeControl = <V extends number | GaugeRange = number>({
     emit(ends.map((e, j) => (j === i ? v : e)))
   }
 
-  const valueUnder = (el: HTMLElement, x: number, y: number) =>
-    snap(angleToValue(angleAt(el, x, y).angle, min, max, startAngle, endAngle))
+  /* The scale is worked on in its own units, degrees round a ring or SVG
+     units along a bar, as the gauge inside lays it out. */
+  const linear = orientation !== undefined
+  const sweep = linear ? length : endAngle - startAngle
+  const positionOf = (v: number) =>
+    linear
+      ? valueToAngle(v, min, max, -length / 2, length / 2)
+      : valueToAngle(v, min, max, startAngle, endAngle)
+
+  /** Where a point falls on the scale, and for a ring how far out from the
+      centre it is. A bar has no face, so all of it is the scale. */
+  const locate = (el: HTMLElement, x: number, y: number) => {
+    if (orientation) {
+      return { at: positionAt(el, x, y, orientation), reach: Infinity }
+    }
+    const { angle, reach } = angleAt(el, x, y)
+    return { at: angle, reach }
+  }
+
+  /* A press past either end of a bar holds there, as one in a ring's
+     opening does. */
+  const valueAt = (at: number) =>
+    snap(
+      linear
+        ? min + clamp((at + length / 2) / length, 0, 1) * (max - min)
+        : angleToValue(at, min, max, startAngle, endAngle)
+    )
 
   /* The end nearer the pointer, by angle so a ring measures across its seam.
      Two ends on top of each other part the way the press lies. */
-  const nearest = (angle: number, under: number) => {
+  const nearest = (at: number, under: number) => {
     if (!range) return 0
     const [a, b] = ends.map((e) =>
-      turnBetween(angle, valueToAngle(e, min, max, startAngle, endAngle))
+      linear ? Math.abs(at - positionOf(e)) : turnBetween(at, positionOf(e))
     )
     if (a !== b) return a < b ? 0 : 1
     return under > ends[1] ? 1 : 0
@@ -161,19 +215,21 @@ export const GaugeControl = <V extends number | GaugeRange = number>({
   const onPointerDown = (e: PointerEvent<HTMLDivElement>) => {
     if (disabled) return
     const el = e.currentTarget
-    const { angle, reach } = angleAt(el, e.clientX, e.clientY)
-    if (reach < FACE && knob) {
+    const { at, reach } = locate(el, e.clientX, e.clientY)
+    /* A whole bar turns as a knob does, there being no face to hold it. */
+    const face = linear ? knob : reach < FACE
+    if (face && knob) {
       el.setPointerCapture(e.pointerId)
-      turn.current = { angle, base: ends, by: 0 }
+      turn.current = { at, base: ends, by: 0 }
       return
     }
-    if (reach < FACE) {
+    if (face) {
       pressed.current = true
       return
     }
     el.setPointerCapture(e.pointerId)
-    const under = valueUnder(el, e.clientX, e.clientY)
-    active.current = nearest(angle, under)
+    const under = valueAt(at)
+    active.current = nearest(at, under)
     if (range) {
       /* Focus the thumb being dragged, as a native slider does, and keep
          the press from moving focus off it again. Browsers count focus from
@@ -194,22 +250,23 @@ export const GaugeControl = <V extends number | GaugeRange = number>({
     if (!e.currentTarget.hasPointerCapture(e.pointerId)) return
     const t = turn.current
     if (t) {
-      const { angle, reach } = angleAt(e.currentTarget, e.clientX, e.clientY)
+      const { at, reach } = locate(e.currentTarget, e.clientX, e.clientY)
       if (reach < HUB) return
-      /* The shortest way round from the last angle, so crossing six o'clock
+      /* Round a ring, the shortest way from the last angle, so crossing six o'clock
          is a small step and not a whole turn back. */
-      const delta = ((angle - t.angle + 540) % 360) - 180
-      let by = t.by + (delta / (endAngle - startAngle)) * (max - min)
+      const delta = linear ? at - t.at : ((at - t.at + 540) % 360) - 180
+      let by = t.by + (delta / sweep) * (max - min)
       /* Held so every end stays inside an open domain, which keeps a
          range's width as it turns. */
       if (!wrap) {
         by = clamp(by, lo - Math.min(...t.base), hi - Math.max(...t.base))
       }
-      turn.current = { ...t, angle, by }
+      turn.current = { ...t, at, by }
       emit(t.base.map((v) => settle(v + snap(by))))
       return
     }
-    setEnd(active.current, valueUnder(e.currentTarget, e.clientX, e.clientY))
+    const { at } = locate(e.currentTarget, e.clientX, e.clientY)
+    setEnd(active.current, valueAt(at))
   }
 
   const onPointerUp = () => {
@@ -256,6 +313,7 @@ export const GaugeControl = <V extends number | GaugeRange = number>({
       "aria-valuemax": range && !wrap && i === 0 ? ends[1] : max,
       "aria-valuenow": ends[i],
       "aria-valuetext": typeof texts === "string" ? texts : texts?.[i],
+      "aria-orientation": orientation,
       "aria-disabled": disabled,
       onKeyDown: keyDown(i),
     }
@@ -273,7 +331,8 @@ export const GaugeControl = <V extends number | GaugeRange = number>({
         turn.current = null
       }}
       className={cn(
-        "relative aspect-square touch-none rounded-full outline-none select-none focus-visible:ring-2 focus-visible:ring-ring has-[:focus-visible:not([data-pointer])]:ring-2 has-[:focus-visible:not([data-pointer])]:ring-ring",
+        "relative touch-none outline-none select-none focus-visible:ring-2 focus-visible:ring-ring has-[:focus-visible:not([data-pointer])]:ring-2 has-[:focus-visible:not([data-pointer])]:ring-ring",
+        linear ? "rounded-lg" : "aspect-square rounded-full",
         disabled ? "cursor-default" : "cursor-grab active:cursor-grabbing",
         className
       )}

@@ -66,6 +66,8 @@ export const useGaugeControllers = () => {
   )
   const gauge = gaugeCtl.values
   const { min, max } = domainOf(gauge)
+  /* A bar has neither a face nor a centre for a needle to turn on. */
+  const linear = gauge.shape === "linear"
 
   const valCtl = useControlPanel(
     "Value",
@@ -78,7 +80,7 @@ export const useGaugeControllers = () => {
 
   const arcsCtl = useControlPanel(
     "Track & arc",
-    arcsConfig(flatValues("arcs")),
+    arcsConfig(flatValues("arcs"), linear),
     { id: "arcs" }
   )
   const arcs = arcsCtl.values
@@ -104,7 +106,7 @@ export const useGaugeControllers = () => {
   const needleCtl = useControlPanel(
     "Needle",
     needleConfig(flatValues("needle")),
-    { id: "needle", defaultCollapsed: true }
+    { id: "needle", defaultCollapsed: true, hidden: linear }
   )
   const needle = needleCtl.values
 

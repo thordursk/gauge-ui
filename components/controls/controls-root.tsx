@@ -38,9 +38,11 @@ export const ControlsRoot = () => {
   )
   return (
     <div className="flex flex-col">
-      {panels.map((panel) => (
-        <PanelSection key={panel.id} panel={panel} />
-      ))}
+      {panels
+        .filter((panel) => !panel.hidden)
+        .map((panel) => (
+          <PanelSection key={panel.id} panel={panel} />
+        ))}
     </div>
   )
 }

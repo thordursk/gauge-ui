@@ -1,6 +1,6 @@
 "use client"
 
-import { polar, valueToTurnedAngle } from "./math"
+import { valueToTurnedAngle } from "./math"
 import type { GaugeEnd } from "./utils"
 
 import { useGauge } from "./context"
@@ -10,11 +10,12 @@ export type GaugeDotProps = {
   radius?: number
   color?: string
   opacity?: number
-  /** Radial offset of the dot's centre from the reference radius. */
+  /** Offset of the dot's centre from the scale's reference line. */
   offset?: number
   /**
-   * Sweeps of the arc the dot makes across the domain, as `GaugeNeedle.turns`:
-   * two sends it round twice while the value crosses the domain once.
+   * Sweeps of the scale the dot makes across the domain, as
+   * `GaugeNeedle.turns`: two sends it round twice while the value crosses
+   * the domain once.
    */
   turns?: number
   /**
@@ -30,8 +31,8 @@ export type GaugeDotProps = {
 }
 
 /**
- * A disc riding the arc at the current value: the head of a progress ring, a
- * body on its orbit, the handle on a dial. `GaugeMarks` stands at fixed values
+ * A disc riding the scale at the current value: the head of a progress ring,
+ * a body on its orbit, the handle on a dial or a slider. `GaugeMarks` stands at fixed values
  * and points along the radius; this follows the value the way a needle does,
  * and is round at any size a stroke cap could not reach.
  */
@@ -46,15 +47,15 @@ export const GaugeDot = ({
   end = "to",
 }: GaugeDotProps) => {
   const gauge = useGauge()
-  const angle = valueToTurnedAngle(
+  const position = valueToTurnedAngle(
     end === "from" ? gauge.from : gauge.value,
     gauge.min,
     gauge.max,
-    gauge.startAngle,
-    gauge.endAngle,
+    gauge.scale.start,
+    gauge.scale.end,
     turns
   )
-  const { x, y } = polar(gauge.radius + offset, angle)
+  const { x, y } = gauge.scale.point(position, offset)
 
   return (
     <>

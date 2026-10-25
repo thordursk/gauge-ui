@@ -91,6 +91,26 @@ export function Speed({ value }: { value: number }) {
 
 `Gauge` and `GaugeInset` also take `wrap`, which treats the domain as circular so a heading animates the shortest way round, and `rotate`, which turns the whole scale under a fixed pointer the way a compass card turns.
 
+## Bars
+
+`LinearGauge` lays the scale out straight instead of round, as a horizontal or vertical bar. It publishes the same context as `Gauge`, so the same parts draw along it. The only exception is `GaugeNeedle`, which needs a centre to pivot on.
+
+```tsx
+<LinearGauge value={temp} min={-20} max={40} orientation="vertical" padding={{ left: 80, right: 32, top: 24, bottom: 48 }} className="h-80">
+  <GaugeTrack width={22} />
+  <GaugeArc width={22} color={zoneColor(zones, temp, "currentColor")} />
+  <GaugeDot end="from" radius={28} />
+  <GaugeTicks count={12} offset={22} length={8} />
+  <GaugeTickLabels count={6} offset={34} anchor="end" format={(v) => `${v}°`} />
+</LinearGauge>
+```
+
+- The bar is `length` SVG units long (default 400) and centred on the origin. A horizontal bar runs left to right. A vertical bar runs bottom to top.
+- `offset` moves a part outward, the same as on a dial: up from a horizontal bar, or left of a vertical one. Use a negative offset for labels below or to the right.
+- `padding` takes one number, or `{ top, right, bottom, left }` for a different amount on each side. The SVG gets a matching `aspect-ratio`, so a horizontal bar fills its width and a vertical bar fills its height.
+- `GaugeControl` takes `orientation` (and `length`, if it isn't 400) to work as a slider along the bar. `LinearGaugeInset` puts a bar inside another gauge.
+- On a `wrap` domain, a range that runs past the end of the bar continues from its start.
+
 ## Ranges
 
 Pass a `[from, to]` pair as `value` to show a span of the domain instead of a single reading: a forecast's low and high, a target band, a sleep window. Both ends animate with the gauge's `transition`.
