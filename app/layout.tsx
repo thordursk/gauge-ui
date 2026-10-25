@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next"
 import { Analytics } from "@vercel/analytics/next"
+import { Agentation } from "agentation"
 import { Geist, Geist_Mono, Inter, Nunito } from "next/font/google"
 
 import "./globals.css"
@@ -89,6 +90,9 @@ export default function RootLayout({
       <body>
         <ThemeProvider>{children}</ThemeProvider>
         <Analytics />
+        {/* Click-to-annotate feedback for coding agents, under `next dev`
+            only: the toolbar sits in the bottom-right corner. */}
+        {process.env.NODE_ENV === "development" && <Agentation />}
       </body>
     </html>
   )
