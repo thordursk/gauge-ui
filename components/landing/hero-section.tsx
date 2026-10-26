@@ -11,8 +11,20 @@ export const HeroSection = () => (
     <HeroBackdrop />
     <div className="mx-auto flex min-h-144 max-w-4xl flex-col items-center justify-center px-4 pt-16 pb-32 text-center sm:min-h-[44rem] sm:px-6 sm:pt-20 sm:pb-44">
       <div className="flex flex-col items-center gap-6">
-        <Badge variant="outline" className="bg-background">
-          A shadcn registry
+        <Badge
+          variant="outline"
+          className="bg-background [a]:hover:text-foreground"
+          render={<a href="#music-studio" />}
+        >
+          <span className="font-semibold">New</span>
+          <span className="text-muted-foreground transition-colors group-hover/badge:text-foreground">
+            Linear gauges
+          </span>
+          <HugeiconsIcon
+            icon={ArrowRight02Icon}
+            strokeWidth={2}
+            data-icon="inline-end"
+          />
         </Badge>
         <h1 className="max-w-2xl text-5xl font-semibold tracking-tighter text-balance sm:text-6xl">
           Build any gauge you can imagine
