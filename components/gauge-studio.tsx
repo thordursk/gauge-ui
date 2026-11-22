@@ -25,14 +25,14 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useGaugeControllers } from "@/hooks/use-gauge-controllers"
-import { useMediaQuery } from "@/hooks/use-media-query"
+import { themeMinWidth, useMediaQuery } from "@/hooks/use-media-query"
 import { useStoredValue } from "@/hooks/use-stored-value"
 import { gaugeToCode } from "@/lib/gauge-code"
 import { GaugeControl, clamp } from "@/components/gauge"
 import { css, stepFor, type PlayMode } from "@/lib/gauge-panels"
 import { storageKeys, writeStored } from "@/lib/storage"
 
-const SIDEBAR_QUERY = "(min-width: 48rem)"
+const sidebarQuery = () => themeMinWidth("--breakpoint-md")
 
 export const GaugeStudio = () => {
   const {
@@ -57,7 +57,7 @@ export const GaugeStudio = () => {
 
   const code = useMemo(() => gaugeToCode(spec), [spec])
   const [showCode, setShowCode] = useState(false)
-  const hasSidebar = useMediaQuery(SIDEBAR_QUERY)
+  const hasSidebar = useMediaQuery(sidebarQuery)
   const showControls =
     useStoredValue(storageKeys.controls, "shown") !== "hidden"
 

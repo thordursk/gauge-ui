@@ -49,6 +49,10 @@
   }
 }
 
+@theme static {
+  --breakpoint-md: 48rem;
+}
+
 @theme inline {
   --font-heading: var(--font-heading-face);
   --font-sans: var(--font-sans);
