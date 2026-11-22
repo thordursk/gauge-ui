@@ -8,7 +8,15 @@ import {
 } from "react"
 
 import { cn } from "@/lib/utils"
-import { angleToValue, clamp, foldValue, valueToAngle } from "./math"
+import {
+  angleToValue,
+  clamp,
+  foldValue,
+  screenToGaugeDegrees,
+  signedTurn,
+  turnBetween,
+  valueToAngle,
+} from "./math"
 import type { GaugeRange } from "./context"
 import type { GaugeOrientation } from "./scale"
 
@@ -20,9 +28,8 @@ const angleAt = (el: HTMLElement, x: number, y: number) => {
   const box = el.getBoundingClientRect()
   const dx = x - (box.left + box.width / 2)
   const dy = y - (box.top + box.height / 2)
-  const theta = (Math.atan2(dy, dx) * 180) / Math.PI
   return {
-    angle: (((theta - 90) % 360) + 360) % 360,
+    angle: screenToGaugeDegrees(dx, dy),
     reach: Math.hypot(dx, dy) / (box.width / 2),
   }
 }
@@ -38,9 +45,6 @@ const positionAt = (
   const p = new DOMPoint(x, y).matrixTransform(ctm.inverse())
   return orientation === "vertical" ? -p.y : p.x
 }
-
-const turnBetween = (a: number, b: number) =>
-  Math.abs(((((a - b) % 360) + 540) % 360) - 180)
 
 type Widen<V> = V extends number ? number : [number, number]
 
@@ -217,7 +221,7 @@ export const GaugeControl = <V extends number | GaugeRange = number>({
     if (t) {
       const { at, reach } = locate(e.currentTarget, e.clientX, e.clientY)
       if (reach < HUB) return
-      const delta = linear ? at - t.at : ((at - t.at + 540) % 360) - 180
+      const delta = linear ? at - t.at : signedTurn(t.at, at)
       let by = t.by + (delta / sweep) * (max - min)
       if (!wrap) {
         by = clamp(by, lo - Math.min(...t.base), hi - Math.max(...t.base))

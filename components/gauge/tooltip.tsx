@@ -102,10 +102,12 @@ type Axis = "x" | "y"
 const extent = { x: "width", y: "height" } as const
 
 const corner = (p: Point, d: Point, size: Size, gap: number): Point => {
-  const len = Math.hypot(d.x, d.y) || 1
+  const m = Math.max(Math.abs(d.x), Math.abs(d.y)) || 1
+  const u = { x: d.x / m, y: d.y / m }
+  const len = Math.hypot(u.x, u.y) || 1
   return {
-    x: p.x + (d.x / len) * gap + ((d.x - 1) / 2) * size.width,
-    y: p.y + (d.y / len) * gap + ((d.y - 1) / 2) * size.height,
+    x: p.x + (u.x / len) * gap + ((u.x - 1) / 2) * size.width,
+    y: p.y + (u.y / len) * gap + ((u.y - 1) / 2) * size.height,
   }
 }
 
@@ -213,9 +215,7 @@ export const GaugeTooltip = ({
       const spot = boxPoints[position]
       return { x: spot.x * 2 - 1, y: spot.y * 2 - 1 }
     }
-    const r = gauge.scale.normal(along)
-    const m = Math.max(Math.abs(r.x), Math.abs(r.y)) || 1
-    return { x: r.x / m, y: r.y / m }
+    return gauge.scale.normal(along)
   }
 
   const place = useEffectEvent(() => {

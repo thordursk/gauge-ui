@@ -123,7 +123,7 @@ const HORIZON_RADIUS = 172
 
 const Horizon = ({ pitch }: { pitch: number }) => {
   const { value: roll } = useGauge()
-  const shown = useAnimatedValue(pitch, FOLLOW, 40)
+  const shown = useAnimatedValue(pitch, FOLLOW, { span: 40 })
   const clipId = `horizon${useId().replace(/\W/g, "")}`
 
   return (

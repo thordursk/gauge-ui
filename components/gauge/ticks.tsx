@@ -1,7 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { cutValues, foldValue, stepValues } from "./math"
+import { clamp, cutValues, foldValue, stepValues } from "./math"
 import type { GaugeContextValue } from "./context"
 import {
   fadeColor,
@@ -15,6 +15,8 @@ import {
 } from "./utils"
 
 import { useGauge } from "./context"
+
+const ON_TICK = 1e-9
 
 const tickValues = ({ min, max, scale }: GaugeContextValue, count: number) => {
   const values = stepValues(min, max, count)
@@ -136,23 +138,26 @@ export const GaugeTickFill = ({
 }: GaugeTickFillProps) => {
   const gauge = useGauge()
   const values = tickValues(gauge, count)
-  const tail = from ?? gauge.from
-  const head = to ?? gauge.value
-  const span = Math.abs(gauge.max - gauge.min)
-  const eps = span * 1e-6
+  const steps = Math.max(1, Math.round(count))
+  const span = gauge.max - gauge.min
+  const stepOf = (v: number) => {
+    const at = span === 0 ? 0 : ((v - gauge.min) / span) * steps
+    const tick = Math.round(at)
+    return Math.abs(at - tick) < ON_TICK ? tick : at
+  }
+  const tail = stepOf(from ?? gauge.from)
+  const head = stepOf(to ?? gauge.value)
 
-  const ahead = (v: number) => foldValue(v - tail + eps, 0, span)
-  const between = (v: number) =>
+  const ahead = (i: number) => foldValue(i - tail, 0, steps)
+  const between = (i: number) =>
     gauge.wrap
-      ? ahead(v) <= ahead(head) + eps
-      : v >= Math.min(tail, head) - eps && v <= Math.max(tail, head) + eps
+      ? ahead(i) <= ahead(head)
+      : i >= Math.min(tail, head) && i <= Math.max(tail, head)
 
-  const nearestTo = (target: number) => {
-    const gap = (v: number) => {
-      const d = Math.abs(v - target)
-      return gauge.wrap ? Math.min(d, span - d) : d
-    }
-    return values.reduce((best, v) => (gap(v) < gap(best) ? v : best))
+  const nearestTo = (at: number) => {
+    if (!gauge.wrap) return clamp(Math.ceil(at - 0.5), 0, values.length - 1)
+    const turn = foldValue(at, 0, steps)
+    return turn >= steps - 0.5 ? 0 : Math.ceil(turn - 0.5)
   }
   const ends =
     mode === "nearest"
@@ -164,7 +169,7 @@ export const GaugeTickFill = ({
       : null
 
   const lit = new Map(
-    values.map((v) => [v, ends ? ends.has(v) : between(v)] as const)
+    values.map((v, i) => [v, ends ? ends.has(i) : between(i)] as const)
   )
   const paint = (c: ValueColor, v: number) =>
     typeof c === "function" ? c(v) : c
