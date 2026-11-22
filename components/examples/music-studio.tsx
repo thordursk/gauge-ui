@@ -26,6 +26,7 @@ import {
   LinearGauge,
   LinearGaugeInset,
   fadeColor,
+  useGauge,
   type GaugeTransition,
 } from "@/components/gauge"
 import { Button } from "@/components/ui/button"
@@ -271,29 +272,26 @@ const Knob = ({
   </div>
 )
 
-const FaderCap = ({ stops, size }: { stops: number; size: number }) => (
-  <>
-    <GaugeTickFill
-      count={stops}
-      mode="nearest"
-      length={0}
-      litLength={size * 1.8}
-      width={size}
-      color={INK}
-      dimColor="transparent"
-    />
-    <GaugeTickFill
-      count={stops}
-      mode="nearest"
-      length={0}
-      litLength={size * 1.8}
-      width={2}
-      cap="butt"
-      color={CUT}
-      dimColor="transparent"
-    />
-  </>
-)
+const FaderCap = ({ size }: { size: number }) => {
+  const { value } = useGauge()
+  return (
+    <>
+      <GaugeMarks
+        values={[value]}
+        length={size * 1.8}
+        width={size}
+        color={INK}
+      />
+      <GaugeMarks
+        values={[value]}
+        length={size * 1.8}
+        width={2}
+        cap="butt"
+        color={CUT}
+      />
+    </>
+  )
+}
 
 const Meter = () => (
   <GaugeTickFill
@@ -366,7 +364,7 @@ const Fader = ({
           <Meter />
         </LinearGaugeInset>
       ))}
-      <FaderCap stops={(CEIL - FLOOR) / FADER_STEP} size={16} />
+      <FaderCap size={16} />
     </LinearGauge>
   </GaugeControl>
 )
@@ -410,7 +408,7 @@ const EqFader = ({
         />
         <GaugeTrack width={4} color={INK} opacity={0.12} />
         <GaugeArc from={0} width={4} color={INK} cap="butt" />
-        <FaderCap stops={(2 * EQ_RANGE) / FADER_STEP} size={12} />
+        <FaderCap size={12} />
       </LinearGauge>
     </GaugeControl>
     <span className="text-[10px] text-muted-foreground tabular-nums">
@@ -538,6 +536,8 @@ const Latch = ({
   </Button>
 )
 
+const KnobSpacer = () => <div className="aspect-square w-full" />
+
 const panText = (pan: number) =>
   pan === 0 ? "C" : pan < 0 ? `L${-pan}` : `R${pan}`
 
@@ -605,7 +605,7 @@ const Mixer = ({
       <div className="flex flex-col items-center gap-3 sm:border-l">
         <span className="text-xs font-semibold">Master</span>
         <div className="flex w-12 flex-col items-center gap-1.5">
-          <div className="aspect-square w-full" />
+          <KnobSpacer />
           <Caption>L · R</Caption>
         </div>
         <Fader
@@ -653,6 +653,30 @@ const Equaliser = ({
     </div>
   </Panel>
 )
+
+const GainReductionMeter = ({ reduction }: { reduction: number }) => {
+  const gain = -reduction
+  return (
+    <LinearGauge
+      value={gain}
+      min={-GR_RANGE}
+      max={0}
+      transition={METER}
+      padding={{ top: 12, bottom: 36, left: 10, right: 10 }}
+    >
+      <GaugeTrack width={12} color={INK} opacity={0.12} cap="butt" />
+      <GaugeArc from={0} width={12} color={INK} cap="butt" />
+      <GaugeTicks count={20} offset={-14} length={4} color={MUTED} />
+      <GaugeTickLabels
+        count={4}
+        offset={-30}
+        fontSize={14}
+        color={MUTED}
+        format={(v) => `${v}`}
+      />
+    </LinearGauge>
+  )
+}
 
 const DynamicsPanel = ({
   dynamics,
@@ -704,24 +728,7 @@ const DynamicsPanel = ({
           className="text-lg"
         />
       </div>
-      <LinearGauge
-        value={-reduction}
-        min={-GR_RANGE}
-        max={0}
-        transition={METER}
-        padding={{ top: 12, bottom: 36, left: 10, right: 10 }}
-      >
-        <GaugeTrack width={12} color={INK} opacity={0.12} cap="butt" />
-        <GaugeArc from={0} width={12} color={INK} cap="butt" />
-        <GaugeTicks count={20} offset={-14} length={4} color={MUTED} />
-        <GaugeTickLabels
-          count={4}
-          offset={-30}
-          fontSize={14}
-          color={MUTED}
-          format={(v) => `${v}`}
-        />
-      </LinearGauge>
+      <GainReductionMeter reduction={reduction} />
     </div>
   </Panel>
 )
