@@ -20,6 +20,8 @@ export type TextAnchor = "start" | "middle" | "end"
 export type Zone = {
   /** Upper cutoff of the zone in domain units. Ignored for the last zone. */
   to: number
+  /** Any SVG paint. `"none"` leaves the zone undrawn, so a band can cover
+      only part of the domain: a redline past the shift point alone. */
   color: string
 }
 

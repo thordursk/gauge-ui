@@ -57,7 +57,12 @@ export {
   type GaugeTextProps,
   type GaugeValueProps,
 } from "./text"
-export { GaugeDot, type GaugeDotProps } from "./dot"
+export {
+  GaugeDot,
+  GaugeDots,
+  type GaugeDotProps,
+  type GaugeDotsProps,
+} from "./dot"
 export {
   GaugeTooltip,
   type GaugeTooltipPosition,

@@ -205,7 +205,11 @@ export type GaugeHubProps = {
   color?: string
 }
 
-/** The pivot disc at the centre, drawn once however many needles there are. */
+/**
+ * A disc at the centre: the pivot under the needles, drawn once however many
+ * there are. It needs no needle, so alone it is a dial's centre cap or a sun
+ * for a `GaugeDot` to orbit.
+ */
 export const GaugeHub = ({
   radius = 12,
   color = "currentColor",

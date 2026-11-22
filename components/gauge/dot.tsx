@@ -1,7 +1,7 @@
 "use client"
 
-import { valueToTurnedAngle } from "./math"
-import type { GaugeEnd } from "./utils"
+import { stepValues, valueToTurnedAngle } from "./math"
+import type { GaugeEnd, ValueColor } from "./utils"
 
 import { useGauge } from "./context"
 
@@ -70,5 +70,56 @@ export const GaugeDot = ({
       )}
       <circle cx={x} cy={y} r={radius} fill={color} fillOpacity={opacity} />
     </>
+  )
+}
+
+export type GaugeDotsProps = {
+  /**
+   * Number of intervals across the domain; renders `count + 1` dots, both
+   * ends included, as `GaugeTicks` does. On a closed ring the dot at `max`
+   * is left out, since it would land on the one at `min`.
+   */
+  count?: number
+  /** Domain values to put a dot at, in place of `count`. */
+  values?: number[]
+  /** Radius of each dot, in SVG units. */
+  radius?: number
+  /** One colour, or a function of each dot's value to colour some apart:
+      the engines that are lit, or each in the colour of its zone. */
+  color?: ValueColor
+  opacity?: number
+  /** Offset of the dots' centres from the scale's reference line. */
+  offset?: number
+}
+
+/**
+ * Round dots standing at fixed values along the scale: evenly spaced, or at
+ * the `values` given. The dot indices of a watch face, a ring of LEDs, the
+ * engines round a rocket's centre one. `GaugeDot` follows the value; these
+ * stay put, as `GaugeTicks` and `GaugeMarks` do.
+ */
+export const GaugeDots = ({
+  count = 10,
+  values,
+  radius = 4,
+  color = "currentColor",
+  opacity = 1,
+  offset = 0,
+}: GaugeDotsProps) => {
+  const { min, max, scale, positionOf } = useGauge()
+  const each = typeof color === "function" ? color : undefined
+  const at = values ?? stepValues(min, max, count)
+  if (!values && scale.closed) at.pop()
+
+  return (
+    <g
+      fill={typeof color === "string" ? color : undefined}
+      fillOpacity={opacity}
+    >
+      {at.map((value, i) => {
+        const { x, y } = scale.point(positionOf(value), offset)
+        return <circle key={i} cx={x} cy={y} r={radius} fill={each?.(value)} />
+      })}
+    </g>
   )
 }
