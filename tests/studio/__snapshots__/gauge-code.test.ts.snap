@@ -2636,6 +2636,7 @@ export function CustomGauge({
           unit="%"
           decimals={0}
           position="value"
+          side="left"
           offset={24}
           gap={8}
         />
@@ -2680,6 +2681,7 @@ export function CustomGauge({
           unit="%"
           decimals={0}
           position="value"
+          side="right"
           offset={24}
           gap={8}
         />
@@ -2724,6 +2726,7 @@ export function CustomGauge({
           unit="%"
           decimals={0}
           position="value"
+          side="left"
           offset={24}
           gap={8}
         />
@@ -2768,6 +2771,7 @@ export function CustomGauge({
           unit="%"
           decimals={0}
           position="value"
+          side="right"
           offset={24}
           gap={8}
         />

@@ -100,6 +100,7 @@ const sprintRing = (
     label: `${done} of ${total} tasks`,
     unit: "%",
     position: "value",
+    side: x < 0 ? "left" : "right",
   },
   text: {
     value: { show: false },
