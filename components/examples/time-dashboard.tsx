@@ -451,16 +451,18 @@ const Stopwatch = ({ visible }: { visible: boolean }) => {
   )
 }
 
+type Weekday = 0 | 1 | 2 | 3 | 4 | 5 | 6
+
 type Alarm = {
   id: string
   at: number
   label: string
-  days: number[]
+  days: Weekday[]
   on: boolean
 }
 
-const WEEKDAYS = [1, 2, 3, 4, 5]
-const EVERY_DAY = [0, 1, 2, 3, 4, 5, 6]
+const WEEKDAYS: Weekday[] = [1, 2, 3, 4, 5]
+const EVERY_DAY: Weekday[] = [0, 1, 2, 3, 4, 5, 6]
 
 const ALARMS: Alarm[] = [
   { id: "wake", at: 6.5, label: "Wake up", days: WEEKDAYS, on: true },
@@ -469,7 +471,7 @@ const ALARMS: Alarm[] = [
   { id: "lights", at: 22.5, label: "Wind down", days: EVERY_DAY, on: true },
 ]
 
-const repeatLabel = (days: number[]) =>
+const repeatLabel = (days: Weekday[]) =>
   days.length === 7
     ? "Every day"
     : days.join() === WEEKDAYS.join()
@@ -481,7 +483,8 @@ const repeatLabel = (days: number[]) =>
 const minutesUntil = (alarm: Alarm, now: Date) => {
   const hour = now.getHours() + now.getMinutes() / 60 + now.getSeconds() / 3600
   for (let ahead = 0; ahead <= 7; ahead++) {
-    if (!alarm.days.includes((now.getDay() + ahead) % 7)) continue
+    const day = ((now.getDay() + ahead) % 7) as Weekday
+    if (!alarm.days.includes(day)) continue
     const minutes = (ahead * 24 + alarm.at - hour) * 60
     if (minutes > 0) return minutes
   }

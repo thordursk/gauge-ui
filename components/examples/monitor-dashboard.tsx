@@ -103,7 +103,7 @@ type Live = {
   demand: number
   cores: number[]
   kernel: number
-  load: [number, number, number]
+  load: [one: number, five: number, fifteen: number]
   wired: number
   app: number
   cached: number
@@ -639,13 +639,24 @@ const gb = (value: number) => `${value.toFixed(1)} GB`
 const pct = (value: number) => `${Math.round(value)}%`
 const mbps = (value: number) => `${Math.round(value)} Mb/s`
 
+const IDLE_TEMP = 34
+const WARMING = 0.55
+const FAN_FROM = 45
+const FAN_IDLE = 1200
+const FAN_RAMP = 110
+
+const sensors = (busy: number) => {
+  const temp = IDLE_TEMP + busy * WARMING
+  const fan = FAN_IDLE + Math.max(0, temp - FAN_FROM) * FAN_RAMP
+  return { temp, fan: Math.round(fan / 10) * 10 }
+}
+
 export const MonitorDashboard = () => {
   const frame = useRef<HTMLDivElement>(null)
   const live = useLiveReadings(useInView(frame))
 
   const busy = mean(live.cores)
-  const temp = 34 + busy * 0.55
-  const fan = Math.round((1200 + Math.max(0, temp - 45) * 110) / 10) * 10
+  const { temp, fan } = sensors(busy)
   const used = live.wired + live.app + live.cached
   const [load1, load5, load15] = live.load
   const uptime = mean(SERVICES.map(({ history }) => mean(history)))
