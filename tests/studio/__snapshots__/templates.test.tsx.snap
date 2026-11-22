@@ -941,11 +941,7 @@ export function CustomGauge({
     <GaugeControl
       value={value}
       onChange={onChange}
-      min={-12}
-      max={12}
       step={0.1}
-      orientation="vertical"
-      length={320}
       label="1 kHz"
     >
       <LinearGauge
@@ -2036,11 +2032,7 @@ export function CustomGauge({
     <GaugeControl
       value={value}
       onChange={onChange}
-      min={10}
-      max={30}
       step={0.1}
-      startAngle={40}
-      endAngle={320}
       label="Comfort"
     >
       <Gauge
@@ -3831,11 +3823,7 @@ export function CustomGauge({
     <GaugeControl
       value={value}
       onChange={onChange}
-      min={0}
-      max={100}
       step={1}
-      startAngle={40}
-      endAngle={320}
       label="Value"
       knob
     >

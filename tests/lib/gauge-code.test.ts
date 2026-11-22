@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest"
 
 import { gaugeToCode } from "@/lib/gauge-code"
-import { specFromLayers } from "@/lib/gauge-layers"
-import { gaugeTemplates, templateLayers } from "@/lib/gauge-templates"
+import { specOf } from "@/lib/gauge-layers"
+import { gaugeTemplates, templateComposition } from "@/lib/gauge-templates"
 
 const specs = gaugeTemplates.map((template) => ({
   name: template.name,
-  spec: specFromLayers(templateLayers(template)),
+  spec: specOf(templateComposition(template)),
 }))
 
 const controlProps = (code: string) => {
