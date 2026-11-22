@@ -2,18 +2,35 @@ import { arcBox, arcPath, polar } from "./math"
 
 export type GaugePoint = { x: number; y: number }
 export type GaugeBox = { x: number; y: number; width: number; height: number }
+/** Which way a bar runs. A vertical one fills upward. */
 export type GaugeOrientation = "horizontal" | "vertical"
 
 export type GaugeScale = {
+  /** Position of the start of the domain. */
   start: number
+  /** Position of the end of the domain. */
   end: number
+  /** The scale runs right round and meets itself, as a full ring does, so
+      its two ends land on the same spot. */
   closed: boolean
+  /** The point at a position, `offset` outward from the reference line. */
   point: (position: number, offset?: number) => GaugePoint
+  /**
+   * SVG path along the scale between two positions, `offset` outward. Empty
+   * when `to` is not past `from`. A span carried past the end of a bar, as a
+   * wrapped arc is, comes back in at its start.
+   */
   path: (from: number, to: number, offset?: number) => string
+  /** The outward direction at a position, as a unit vector. */
   normal: (position: number) => GaugePoint
+  /**
+   * Box round the whole scale with its reference line moved `offset`
+   * outward. A dial's takes in its centre too, where a needle pivots.
+   */
   box: (offset?: number) => GaugeBox
 }
 
+/** A dial's scale: a circle of `radius` swept from one gauge angle to another. */
 export const arcScale = (
   radius: number,
   startAngle: number,
@@ -28,6 +45,12 @@ export const arcScale = (
   box: (offset = 0) => arcBox(radius + offset, startAngle, endAngle),
 })
 
+/**
+ * A bar's scale: a straight line of `length` centred on the origin, so text
+ * placed at the gauge's centre sits at the middle of the bar. A vertical bar
+ * is a horizontal one turned a quarter turn anticlockwise: it starts at the
+ * bottom, and its outside is on the left.
+ */
 export const lineScale = (
   orientation: GaugeOrientation,
   length: number

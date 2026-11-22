@@ -45,26 +45,65 @@ const turnBetween = (a: number, b: number) =>
 type Widen<V> = V extends number ? number : [number, number]
 
 export type GaugeControlProps<V extends number | GaugeRange = number> = {
+  /** A number for one handle, or a `[from, to]` range for two. */
   value: V
   onChange: (value: Widen<V>) => void
+  /** A press on the middle of the face, or Enter, for a dial that is also a
+      switch. Left out, the middle does nothing. */
   onPress?: () => void
   min?: number
   max?: number
+  /** Granularity a drag lands on, and the size of an arrow-key step. */
   step?: number
+  /** Gauge degrees, matching the gauge drawn inside. */
   startAngle?: number
   endAngle?: number
+  /**
+   * Make the `LinearGauge` inside a slider instead of a round gauge: a
+   * press anywhere along the bar sets the value under it, and a drag
+   * follows the pointer along the bar. Match it to the gauge's own.
+   */
   orientation?: GaugeOrientation
+  /** Length of the bar in SVG units, matching the `LinearGauge` inside. */
   length?: number
+  /**
+   * The domain is a closed ring, as the gauge's own `wrap`: values carry on
+   * round past either end instead of holding there, and a range may run
+   * across the seam, its ends in either order.
+   */
   wrap?: boolean
+  /** Read to screen readers; every slider needs one. On a range it names the
+      pair, and each thumb gets its own from `thumbLabels`. */
   label: string
+  /** Names for a range's two thumbs. Defaults to the label with "start" and
+      "end" after it. */
   thumbLabels?: readonly [string, string]
+  /** The value as it would be spoken: "21.5 °C" rather than 21.5. A range
+      takes one for each end. */
   valueText?: V extends number ? string : readonly [string, string]
+  /** The face turns like a knob: a drag anywhere on it moves the value by as
+      far as the pointer goes round, rather than jumping to where it is. A
+      range turns as a whole, keeping its width. A bar has no face, so on one
+      every drag moves the value by as far as the pointer goes along it. */
   knob?: boolean
   disabled?: boolean
   className?: string
   children: ReactNode
 }
 
+/**
+ * Makes the square gauge inside it a slider: drag round the ring to set it,
+ * or use the arrow keys, Page Up and Down, Home and End. With an
+ * `orientation` it makes a `LinearGauge` one instead, dragged along the bar. A drag past either
+ * end of the sweep holds there rather than jumping to the other. A press in
+ * the middle of the face, or Enter, is left for `onPress`, which a dimmer
+ * uses to switch on and off, or, with `knob`, turns the face from where it
+ * is. The domain and angles default to `Gauge`'s own.
+ *
+ * Given a `[from, to]` range it has two thumbs: a press on the ring takes
+ * whichever is nearer, and each can be tabbed to and keyed on its own. On an
+ * open domain they hold short of passing each other.
+ */
 export const GaugeControl = <V extends number | GaugeRange = number>({
   value,
   onChange,

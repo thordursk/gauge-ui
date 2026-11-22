@@ -12,35 +12,58 @@ import {
 import type { GaugeTransition } from "./transition"
 import { useAnimatedValue } from "./use-animated-value"
 
+/**
+ * A span of the domain rather than a single reading: a forecast's low and
+ * high, a target band, a sleep window. Pass it as a gauge's `value` and the
+ * arc fills between the two ends.
+ */
 export type GaugeRange = readonly [from: number, to: number]
 
+/** The reading and domain, the same on every gauge whatever its shape. */
 export type GaugeReading = {
+  /** Value being drawn this frame, clamped to the domain. Animated when the
+      gauge has a transition. For a range, its far end. */
   value: number
+  /** Value the gauge is heading for; equals `value` once settled. */
   target: number
+  /** Where a range starts, animated alongside `value`. On a single value it
+      is `min`, so the stretch from here to `value` is the fill either way. */
   from: number
+  /** Where `from` is heading for. */
   targetFrom: number
+  /** Whether the gauge shows a range rather than a single value. */
   range: boolean
+  /** Whether the domain is a closed ring, as the root's `wrap` sets. A range
+      on one runs forward from `from` to `value`, across the seam if need be. */
   wrap: boolean
   min: number
   max: number
 }
 
+/** What a round `Gauge` adds: the angles and radius its scale is bent to. */
 export type GaugeRoundShape = {
   shape: "round"
   startAngle: number
   endAngle: number
+  /** Radius of the gauge's reference circle in SVG units. */
   radius: number
+  /** Maps a domain value onto a gauge angle. The same as `positionOf`. */
   angleOf: (value: number) => number
 }
 
+/** What a `LinearGauge` adds: which way its bar runs, and how long it is. */
 export type GaugeLinearShape = {
   shape: "linear"
   orientation: GaugeOrientation
+  /** Length of the bar in SVG units, end to end. */
   length: number
 }
 
 export type GaugeContextValue = GaugeReading & {
+  /** The line the domain is laid out along, which every part that draws
+      along it asks for its geometry. */
   scale: GaugeScale
+  /** Maps a domain value onto a position on the scale. */
   positionOf: (value: number) => number
 } & (GaugeRoundShape | GaugeLinearShape)
 
@@ -54,6 +77,10 @@ export const useGauge = () => {
   return ctx
 }
 
+/**
+ * The context of a round gauge, for the parts that only mean anything on
+ * one: a needle has to pivot about a centre, which a bar has none of.
+ */
 export const useRoundGauge = (part: string) => {
   const ctx = useGauge()
   if (ctx.shape !== "round") {
@@ -62,19 +89,46 @@ export const useRoundGauge = (part: string) => {
   return ctx
 }
 
+/** The reading, domain and animation every gauge root takes. */
 export type GaugeReadingProps = {
+  /**
+   * The reading, or a `[from, to]` range to fill between. On an open domain
+   * the two ends are put in order; on a wrapped one the range runs forward
+   * from `from`, so `[22, 6]` on a 24-hour ring is the night, not the day.
+   */
   value: number | GaugeRange
   min?: number
   max?: number
+  /**
+   * Animate towards new values. `true` uses a gentle spring; pass a
+   * `GaugeTransition` to tune it or switch to a timed tween. Omit for
+   * instant updates.
+   */
   transition?: GaugeTransition | boolean
+  /** Where the value starts on mount when animating, for a sweep-in effect.
+      A single number starts both ends of a range there, so it opens out. */
   initialValue?: number | GaugeRange
+  /**
+   * Treat the domain as circular, as a compass rose or clock face is: the
+   * value is mapped into the domain modulo its span and animates the
+   * shortest way round, so a heading crossing north never swings the long
+   * way back. Meant for closed rings, where `min` and `max` read the same.
+   */
   wrap?: boolean
 }
 
+/** The domain, geometry and animation a round gauge takes. */
 export type GaugeDomainProps = GaugeReadingProps & {
+  /** Gauge degrees, clockwise from six o'clock. */
   startAngle?: number
   endAngle?: number
+  /** Reference radius in SVG units. Every child positions itself against this. */
   radius?: number
+  /**
+   * Turn the whole scale this many degrees clockwise, the way a compass card
+   * turns under a fixed lubber line. Animated by `transition`, always the
+   * shortest way round.
+   */
   rotate?: number
 }
 
@@ -128,6 +182,12 @@ const useGaugeReading = ({
   }
 }
 
+/**
+ * The context a round gauge root publishes to its children. Shared by
+ * `Gauge` and `GaugeInset` so a gauge nested inside another animates and
+ * maps values exactly like a top-level one, and so the defaults live in one
+ * place.
+ */
 export const useGaugeContextValue = ({
   startAngle = 40,
   endAngle = 320,
@@ -160,11 +220,17 @@ export const useGaugeContextValue = ({
   }
 }
 
+/** The domain, geometry and animation a linear gauge takes. */
 export type LinearGaugeDomainProps = GaugeReadingProps & {
+  /** Which way the bar runs. A vertical bar fills upward. */
   orientation?: GaugeOrientation
+  /** Length of the bar in SVG units, end to end. Every child positions
+      itself along it, centred on the origin. */
   length?: number
 }
 
+/** The context a linear gauge root publishes, as `useGaugeContextValue`
+    does for a round one. */
 export const useLinearGaugeContextValue = ({
   orientation = "horizontal",
   length = 400,

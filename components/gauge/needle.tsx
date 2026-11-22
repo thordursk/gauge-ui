@@ -8,21 +8,48 @@ import type { GaugeEnd, NeedleStyle } from "./utils"
 import { useRoundGauge } from "./context"
 
 export type GaugeNeedleProps = {
+  /**
+   * `line` is a stroke with round ends, `pointer` a tapered blade that is
+   * widest at the centre and ends in a rounded tip, and `compass` a lozenge
+   * whose two halves can take different colours. `arrow` is a shaft ending in
+   * a triangular arrowhead, sized from the width, for wind or flow direction.
+   */
   style?: NeedleStyle
+  /** Length as a fraction of the reference radius. */
   length?: number
+  /** Stroke width for `line`; width at the centre for the filled styles. */
   width?: number
   color?: string
+  /** How far the needle extends behind the centre, in SVG units. */
   tail?: number
+  /** Colour of the tail half of a `pointer`, `compass` or `arrow`. Defaults to `color`. */
   tailColor?: string
+  /**
+   * Radius of a disc drawn at the end of the tail in `tailColor`, like the
+   * counterweight on a wind vane. 0 leaves the tail plain.
+   */
   tailDot?: number
+  /**
+   * Sweeps of the arc the needle makes across the domain. A clock's minute
+   * hand turns 12 times while the hour hand turns once.
+   */
   turns?: number
+  /**
+   * Radius of a clear circle around the centre, in SVG units, that splits the
+   * needle in two so a readout can sit between the halves. 0 draws it whole.
+   */
   gap?: number
+  /** Which end of a range the needle points at. */
   end?: GaugeEnd
 }
 
 const pts = (points: { x: number; y: number }[]) =>
   points.map((p) => `${p.x},${p.y}`).join(" ")
 
+/**
+ * A needle pointing at the current value. Add a `GaugeHub` for the pivot, or
+ * a `gap` to clear the centre for a readout instead.
+ */
 export const GaugeNeedle = ({ gap = 0, ...props }: GaugeNeedleProps) => {
   const maskId = `gauge-needle-gap${useId().replace(/\W/g, "")}`
   if (gap <= 0) return <NeedleShape {...props} />
@@ -178,6 +205,7 @@ export type GaugeHubProps = {
   color?: string
 }
 
+/** The pivot disc at the centre, drawn once however many needles there are. */
 export const GaugeHub = ({
   radius = 12,
   color = "currentColor",

@@ -17,6 +17,12 @@ import { foldValue } from "./math"
 
 import { useGauge } from "./context"
 
+/**
+ * What the tooltip is pinned to. `pointer` follows the cursor round the
+ * gauge, `value` sits on the scale at the value, and the rest are fixed
+ * points of the gauge: its centre, or the middle of an edge or a corner of
+ * the box its scale fills.
+ */
 export type GaugeTooltipPosition =
   | "pointer"
   | "value"
@@ -30,25 +36,62 @@ export type GaugeTooltipPosition =
   | "bottom-left"
   | "bottom-right"
 
+/**
+ * Which way the bubble stands off its point. `auto` picks for the position:
+ * outward from the scale at the value, so the bubble swings round a dial with it,
+ * above the pointer, centred on the centre, and away from the dial at an
+ * edge or corner.
+ */
 export type GaugeTooltipSide =
   "auto" | "center" | "top" | "right" | "bottom" | "left"
 
 export type GaugeTooltipProps = {
   position?: GaugeTooltipPosition
   side?: GaugeTooltipSide
+  /**
+   * Domain value a `value` tooltip points at and shows. Defaults to the
+   * current value, or for a range the middle of it, showing both ends; a
+   * fixed one marks a target or a cutoff.
+   */
   at?: number
+  /**
+   * How far out from the scale's reference line the point sits, in SVG
+   * units: the spot on the scale for `value`, and the box round the scale
+   * for the edges and corners.
+   */
   offset?: number
+  /** Room between the point and the bubble, in CSS pixels. */
   gap?: number
+  /**
+   * Keep the bubble on screen: flip it to the far side of its point when
+   * that side has more room, then slide it sideways in from the left or
+   * right edge while it still overlaps its point. On by default.
+   */
   avoidCollisions?: boolean
+  /** Room kept clear between the bubble and the viewport edge, in CSS pixels. */
   collisionPadding?: number
+  /**
+   * Hold the tooltip open, or shut, instead of showing it on hover, while
+   * a press that started on the gauge is held, and on keyboard focus.
+   */
   open?: boolean
+  /** Small line above the value. Leave out for the value on its own. */
   label?: ReactNode
+  /** Printed after the value, a size down. */
   unit?: ReactNode
   decimals?: number
+  /** Formats each number shown; a range formats its two ends apart. */
   format?: (value: number) => string
+  /** Placed between the two ends of a range. */
   separator?: string
+  /** Classes for the bubble, merged over its defaults. */
   className?: string
   style?: CSSProperties
+  /**
+   * Replaces the default label, value and unit with any HTML, or a function
+   * of the value being shown for content that has to follow it. On a range
+   * the function gets its start as well.
+   */
   children?: ReactNode | ((value: number, from?: number) => ReactNode)
 }
 
@@ -96,6 +139,16 @@ const useIsClient = () =>
     () => false
   )
 
+/**
+ * An HTML tooltip for the gauge, shown while the pointer is over it. It reads
+ * the value with an optional label and unit by default, or renders whatever
+ * its children are, and can be pinned to the value on the arc, follow the
+ * pointer, or hold a fixed spot on the dial.
+ *
+ * The bubble is portalled to the body and placed through the SVG's screen
+ * transform, so it is never clipped by the gauge and keeps its own CSS size
+ * however the gauge, or an inset it sits in, is scaled.
+ */
 export const GaugeTooltip = ({
   position = "value",
   side = "auto",

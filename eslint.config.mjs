@@ -23,6 +23,10 @@ const eslintConfig = defineConfig([
     plugins: { local: { rules: { "no-comments": noComments } } },
     rules: { "local/no-comments": "error" },
   },
+  {
+    files: ["components/gauge/**"],
+    rules: { "local/no-comments": ["error", { allowApiDocs: true }] },
+  },
   globalIgnores([
     ".next/**",
     "out/**",

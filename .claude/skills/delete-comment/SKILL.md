@@ -45,4 +45,5 @@ To break a tie, ask whether a competent maintainer would likely make a wrong cha
 - Only touch git-tracked files. Contributors keep untracked local files listed in `.git/info/exclude`, and git can't restore those. ESLint and both scripts already skip them.
 - `components/examples/hairline/kernel.js` is vendored byte-for-byte; see ADR 0013.
 - Tool directives (`eslint-disable*`, `@ts-*`, `/// <reference`, `prettier-ignore`, `#__PURE__`, webpack magic comments) and a license notice as a file's first comment are allowed. Leave them.
+- In `components/gauge/`, JSDoc directly on an export or on a type member is API documentation, and the rule allows it (`allowApiDocs`). Leave it, and don't file issues asking to move units or conventions into longer prop names: ADR 0001 explains why.
 - For a run large enough to split across subagents, give each one a disjoint set of files, this file as its rubric, and its own ledger file. Run the verify step yourself at the end.

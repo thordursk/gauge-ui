@@ -10,9 +10,12 @@ type ArcStyleProps = {
   color?: string
   opacity?: number
   cap?: StrokeCap
+  /** Offset from the scale's reference line: radial on a dial, across a
+      bar. Positive moves outward, away from the centre or up from a bar. */
   offset?: number
 }
 
+/** The whole scale as a background: a dial's full sweep, a bar's length. */
 export const GaugeTrack = ({
   width = 24,
   color = "currentColor",
@@ -34,12 +37,33 @@ export const GaugeTrack = ({
 }
 
 export type GaugeArcProps = ArcStyleProps & {
+  /** Domain value the arc is anchored at. Defaults to `min`, or to the start
+      of the gauge's range. */
   from?: number
+  /** Domain value the arc ends at. Defaults to the current value. */
   to?: number
+  /**
+   * Grow the arc back from the end of the sweep instead of forward from its
+   * start. The length is the same; only the end it is anchored to changes,
+   * which is what a dial filling towards its start needs.
+   */
   reverse?: boolean
+  /**
+   * Carry the arc on round a closed ring instead of clamping it at the
+   * domain: a span from eleven at night to two in the morning crosses the
+   * seam in one piece. The arc runs forward from `from` however far past
+   * `max` the `to` reaches.
+   */
   wrap?: boolean
 }
 
+/**
+ * The filled arc, from `min` (or `from`) up to the current value (or `to`).
+ * The ends may arrive either way round: an arc anchored above the value
+ * grows back towards it, which is what a dial centred on zero needs. On a
+ * gauge showing a range it fills between the two ends, and on a wrapped one
+ * runs forward from the start across the seam where the range does.
+ */
 export const GaugeArc = ({
   width = 24,
   color = "currentColor",
@@ -90,7 +114,10 @@ export const GaugeArc = ({
 }
 
 export type GaugeStackPart = {
+  /** Share of the fill. Weighted parts split the value between them. */
   weight?: number
+  /** Fixed upper cutoff in domain units, for parts that stand still while
+      the value sweeps across them. Runs from the end of the part before. */
   to?: number
   color: string
   opacity?: number
@@ -98,9 +125,19 @@ export type GaugeStackPart = {
 
 export type GaugeStackProps = Omit<ArcStyleProps, "color"> & {
   parts: GaugeStackPart[]
+  /** Domain value the stack starts at. Defaults to `min`, or to the start of
+      the gauge's range. */
   from?: number
 }
 
+/**
+ * The value arc split into parts that sweep as one. A part with a `weight`
+ * takes that share of the fill, so a memory ring keeps wired, app and cache
+ * in proportion frame by frame; a part with a fixed `to` runs from the end
+ * of the one before and is clipped to the value, so a night of sleep stages
+ * draws on in order as the dial sweeps in. Use one kind or the other in a
+ * single stack.
+ */
 export const GaugeStack = ({
   parts,
   width = 24,
@@ -150,11 +187,23 @@ export const GaugeStack = ({
 }
 
 export type GaugeZonesProps = Omit<ArcStyleProps, "color"> & {
+  /**
+   * Ordered cutoffs. Each zone runs from the previous zone's `to` (or `min`)
+   * up to its own `to`; the last zone always extends to `max`.
+   */
   zones: Zone[]
+  /** Gap between neighbouring zones, in the scale's units: degrees round a
+      dial, SVG units along a bar. */
   gap?: number
+  /**
+   * Cap on the two outer ends of the whole band (the start of the first zone
+   * and the end of the last). `cap` covers the joints between zones. Defaults
+   * to `cap`, so a single value still rounds or squares every end.
+   */
   endCap?: StrokeCap
 }
 
+/** Coloured bands marking the cutoffs of the domain. */
 export const GaugeZones = ({
   zones,
   width = 8,
