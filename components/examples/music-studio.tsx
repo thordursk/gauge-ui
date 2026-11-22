@@ -235,10 +235,7 @@ const Knob = ({
     <GaugeControl
       value={value}
       onChange={onChange}
-      min={min}
-      max={max}
       step={step}
-      {...SWEEP}
       knob
       label={label}
       valueText={format(value)}
@@ -320,10 +317,6 @@ const Fader = ({
   <GaugeControl
     value={value}
     onChange={onChange}
-    orientation="vertical"
-    length={FADER_LENGTH}
-    min={FLOOR}
-    max={CEIL}
     step={FADER_STEP}
     label={label}
     valueText={`${dbText(value)} dB`}
@@ -384,10 +377,6 @@ const EqFader = ({
     <GaugeControl
       value={gain}
       onChange={onChange}
-      orientation="vertical"
-      length={200}
-      min={-EQ_RANGE}
-      max={EQ_RANGE}
       step={FADER_STEP}
       label={`${band} Hz`}
       valueText={`${dbText(gain)} dB`}

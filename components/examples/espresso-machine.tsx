@@ -327,10 +327,7 @@ const Knob = ({
     <GaugeControl
       value={value}
       onChange={onChange}
-      min={min}
-      max={max}
       step={step}
-      {...SWEEP}
       knob
       label={label}
       valueText={format(value)}
@@ -371,10 +368,6 @@ const GrindSlider = ({
   <GaugeControl
     value={value}
     onChange={onChange}
-    orientation="horizontal"
-    length={SHORT}
-    min={GRIND_MIN}
-    max={GRIND_MAX}
     label="Grind"
     valueText={`Grind ${value} of ${GRIND_MAX}`}
     className="w-full"

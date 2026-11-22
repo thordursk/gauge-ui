@@ -9,8 +9,10 @@ import {
   GaugeArc,
   GaugeControl,
   GaugeDot,
+  GaugeInset,
   GaugeTrack,
   LinearGauge,
+  LinearGaugeInset,
   polar,
   type GaugeOrientation,
   type GaugeRange,
@@ -29,6 +31,8 @@ type Geometry = {
 }
 
 type Extra = {
+  min?: number
+  max?: number
   step?: number
   knob?: boolean
   disabled?: boolean
@@ -84,7 +88,6 @@ const Controlled = <V extends number | GaugeRange>({
         setValue(next)
       }}
       label={extra?.label ?? "Level"}
-      {...geometry}
       {...extra}
     >
       {face}
@@ -413,20 +416,114 @@ describe("GaugeControl on a linear gauge", () => {
   })
 })
 
-const markup = (node: ReactNode) => renderToStaticMarkup(node)
 const noop = () => {}
+
+describe("GaugeControl reads its geometry from the gauge", () => {
+  it("stops short of the gauge's domain at its own limits", async () => {
+    layout = square(200)
+    const { user, surface, last } = setup(50, {}, { min: 1, max: 90 })
+    const slider = screen.getByRole("slider")
+    expect(slider.getAttribute("aria-valuemin")).toBe("1")
+    expect(slider.getAttribute("aria-valuemax")).toBe("90")
+    await press(user, surface, at(180))
+    expect(last()).toBe(50)
+    await move(user, surface, at(41))
+    expect(last()).toBe(1)
+    await move(user, surface, at(319))
+    expect(last()).toBe(90)
+    await release(user, surface)
+    await user.keyboard("{Home}")
+    expect(last()).toBe(1)
+  })
+
+  it("follows a rotated gauge", async () => {
+    layout = square(200)
+    const onChange = vi.fn()
+    const user = userEvent.setup()
+    const { container } = render(
+      <GaugeControl value={0} onChange={onChange} label="Heading">
+        <Gauge value={0} rotate={90}>
+          <GaugeArc />
+        </Gauge>
+      </GaugeControl>
+    )
+    const surface = container.querySelector<HTMLElement>(
+      "[data-slot=gauge-control]"
+    )!
+    await press(user, surface, at(270))
+    expect(onChange).toHaveBeenLastCalledWith(50)
+  })
+
+  it("finds a gauge drawn by a component of your own", async () => {
+    layout = square(200)
+    const Dial = ({ value }: { value: number }) => (
+      <Gauge value={value} min={0} max={10}>
+        <GaugeArc />
+      </Gauge>
+    )
+    const onChange = vi.fn()
+    const user = userEvent.setup()
+    const { container } = render(
+      <GaugeControl value={2} onChange={onChange} label="Dial">
+        <Dial value={2} />
+      </GaugeControl>
+    )
+    const surface = container.querySelector<HTMLElement>(
+      "[data-slot=gauge-control]"
+    )!
+    expect(surface.firstElementChild?.tagName).toBe("svg")
+    await press(user, surface, at(180))
+    expect(onChange).toHaveBeenLastCalledWith(5)
+    expect(screen.getByRole("slider").getAttribute("aria-valuemax")).toBe("10")
+  })
+
+  it("controls only the outermost gauge, not its insets", () => {
+    layout = square(200)
+    const { container } = render(
+      <GaugeControl value={[20, 40] as const} onChange={noop} label="Band">
+        <Gauge value={[20, 40]}>
+          <GaugeInset value={3} max={10} scale={0.3}>
+            <GaugeArc />
+          </GaugeInset>
+          <LinearGaugeInset value={3} max={10} scale={0.3}>
+            <GaugeArc />
+          </LinearGaugeInset>
+        </Gauge>
+      </GaugeControl>
+    )
+    expect(
+      container.querySelectorAll("[data-slot=gauge-control]")
+    ).toHaveLength(1)
+    expect(screen.getAllByRole("slider")).toHaveLength(2)
+  })
+
+  it("leaves a gauge with no control round it alone", () => {
+    const { container } = render(
+      <Gauge value={3}>
+        <GaugeArc />
+      </Gauge>
+    )
+    expect(container.firstElementChild?.tagName).toBe("svg")
+    expect(screen.queryByRole("slider")).toBeNull()
+  })
+
+  it("draws nothing of its own round something that is not a gauge", () => {
+    const { container } = render(
+      <GaugeControl value={3} onChange={noop} label="Nothing">
+        <p>text</p>
+      </GaugeControl>
+    )
+    expect(container.innerHTML).toBe("<p>text</p>")
+  })
+})
+
+const markup = (node: ReactNode) => renderToStaticMarkup(node)
 
 describe("GaugeControl markup", () => {
   it("renders a round control unchanged", () => {
     expect(
       markup(
-        <GaugeControl
-          value={30}
-          onChange={noop}
-          label="Volume"
-          min={0}
-          max={100}
-        >
+        <GaugeControl value={30} onChange={noop} label="Volume">
           <Gauge value={30}>
             <GaugeArc />
           </Gauge>
@@ -442,11 +539,6 @@ describe("GaugeControl markup", () => {
           value={[22, 6] as const}
           onChange={noop}
           label="Sleep"
-          min={0}
-          max={24}
-          startAngle={180}
-          endAngle={540}
-          wrap
           valueText={["10 pm", "6 am"]}
         >
           <Gauge
@@ -471,10 +563,6 @@ describe("GaugeControl markup", () => {
           value={-6}
           onChange={noop}
           label="Gain"
-          min={-12}
-          max={12}
-          orientation="vertical"
-          length={200}
           disabled
           className="h-40"
         >

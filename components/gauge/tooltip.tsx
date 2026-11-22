@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils"
 import { foldValue } from "./math"
 
 import { useGauge } from "./context"
+import { useGaugeControlElement } from "./control"
 
 /**
  * What the tooltip is pinned to. `pointer` follows the cursor round the
@@ -131,7 +132,7 @@ const boxPoints: Record<string, Point> = {
 }
 
 const FOCUSABLE =
-  '[tabindex]:not([tabindex="-1"]), a[href], button, input, select, textarea, [data-slot="gauge-control"]'
+  '[tabindex]:not([tabindex="-1"]), a[href], button, input, select, textarea'
 
 const subscribe = () => () => {}
 const useIsClient = () =>
@@ -170,6 +171,7 @@ export const GaugeTooltip = ({
   children,
 }: GaugeTooltipProps) => {
   const gauge = useGauge()
+  const control = useGaugeControlElement()
   const isClient = useIsClient()
   const anchor = useRef<SVGGElement>(null)
   const box = useRef<HTMLDivElement>(null)
@@ -297,7 +299,8 @@ export const GaugeTooltip = ({
   }, [])
 
   useEffect(() => {
-    const owner = anchor.current?.ownerSVGElement?.closest(FOCUSABLE)
+    const owner =
+      control?.current ?? anchor.current?.ownerSVGElement?.closest(FOCUSABLE)
     if (!owner) return
     const within = () => owner.contains(document.activeElement)
     const check = () =>
@@ -323,7 +326,7 @@ export const GaugeTooltip = ({
       owner.removeEventListener("keydown", key)
       owner.removeEventListener("focusout", blur)
     }
-  }, [])
+  }, [control])
 
   useEffect(() => {
     if (!pressed) return

@@ -6,6 +6,7 @@ import {
   Gauge,
   GaugeArc,
   GaugeControl,
+  GaugeInset,
   GaugeTooltip,
   arcBox,
   polar,
@@ -146,6 +147,22 @@ describe("GaugeTooltip owner", () => {
     expect(screen.getByRole("tooltip")).toBeTruthy()
     await user.tab()
     expect(screen.queryByRole("tooltip")).toBeNull()
+  })
+
+  it("finds its control from inside an inset", async () => {
+    const user = userEvent.setup()
+    render(
+      <GaugeControl value={[20, 60] as const} onChange={noop} label="Band">
+        <Gauge value={[20, 60]}>
+          <GaugeInset value={4} max={10} scale={0.3}>
+            <GaugeTooltip />
+          </GaugeInset>
+        </Gauge>
+      </GaugeControl>
+    )
+    await user.tab()
+    await user.keyboard("{ArrowUp}")
+    expect(screen.getByRole("tooltip").textContent).toBe("4")
   })
 
   it("opens while a focusable element round the gauge has focus", async () => {
