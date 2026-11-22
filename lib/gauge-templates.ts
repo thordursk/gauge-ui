@@ -25,13 +25,30 @@ export const templateCategories = [
 
 export type TemplateCategory = (typeof templateCategories)[number]["id"]
 
-export type GaugeTemplate = {
+type DialCategory = Exclude<TemplateCategory, "composed" | "bars">
+
+type TemplateSource = {
   id: string
   name: string
-  category: TemplateCategory
+  category?: DialCategory
   values: PanelUpdates
   insets?: TemplateInset[]
 }
+
+export type GaugeTemplate = Omit<TemplateSource, "category"> & {
+  category: TemplateCategory
+}
+
+const categoryOf = ({
+  values,
+  insets,
+  category = "arcs",
+}: TemplateSource): TemplateCategory =>
+  values.gauge?.shape === "linear"
+    ? "bars"
+    : insets?.length
+      ? "composed"
+      : category
 
 const token = (name: string) => ({ token: name })
 
@@ -209,7 +226,7 @@ const spectrumBand = (db: number, x?: number): PanelUpdates => ({
   },
 })
 
-const templates: GaugeTemplate[] = [
+const templates: TemplateSource[] = [
   {
     id: "simple",
     name: "Simple",
@@ -1419,7 +1436,6 @@ const templates: GaugeTemplate[] = [
   {
     id: "chronograph",
     name: "Chronograph",
-    category: "composed",
     values: {
       gauge: { min: 0, max: 60, startAngle: 180, endAngle: 540 },
       value: { value: 42 },
@@ -1524,7 +1540,6 @@ const templates: GaugeTemplate[] = [
   {
     id: "speed-fuel",
     name: "Speed & fuel",
-    category: "composed",
     values: {
       gauge: { min: 0, max: 240, startAngle: 40, endAngle: 320 },
       value: { value: 128 },
@@ -1647,7 +1662,6 @@ const templates: GaugeTemplate[] = [
   {
     id: "nested-rings",
     name: "Nested rings",
-    category: "composed",
     values: {
       gauge: { min: 0, max: 100, startAngle: 180, endAngle: 540 },
       value: { value: 72 },
@@ -1715,7 +1729,6 @@ const templates: GaugeTemplate[] = [
   {
     id: "sprint",
     name: "Sprint",
-    category: "composed",
     values: {
       gauge: { min: 0, max: 100, startAngle: 180, endAngle: 540 },
       value: { value: 0 },
@@ -1738,7 +1751,6 @@ const templates: GaugeTemplate[] = [
   {
     id: "system",
     name: "System",
-    category: "composed",
     values: {
       gauge: { min: 0, max: 100, startAngle: 90, endAngle: 270 },
       value: { value: 64 },
@@ -1782,7 +1794,6 @@ const templates: GaugeTemplate[] = [
   {
     id: "orrery",
     name: "Orrery",
-    category: "composed",
     values: {
       ...planetOrbit(0, 65, 7),
       needle: {
@@ -1805,7 +1816,6 @@ const templates: GaugeTemplate[] = [
   {
     id: "throttle",
     name: "Throttle",
-    category: "bars",
     values: {
       gauge: { shape: "linear", min: 0, max: 100, padding: 64, ends: 28 },
       value: { value: 72 },
@@ -1844,7 +1854,6 @@ const templates: GaugeTemplate[] = [
   {
     id: "tank",
     name: "Tank",
-    category: "bars",
     values: {
       gauge: {
         shape: "linear",
@@ -1886,7 +1895,6 @@ const templates: GaugeTemplate[] = [
   {
     id: "rev-tape",
     name: "Rev tape",
-    category: "bars",
     values: {
       gauge: { shape: "linear", min: 4, max: 12, padding: 72, ends: 16 },
       value: { value: 9.4 },
@@ -1942,7 +1950,6 @@ const templates: GaugeTemplate[] = [
   {
     id: "shift-lights",
     name: "Shift lights",
-    category: "bars",
     values: {
       gauge: { shape: "linear", min: 9, max: 12, padding: 24, ends: 16 },
       value: { value: 11.1 },
@@ -1968,7 +1975,6 @@ const templates: GaugeTemplate[] = [
   {
     id: "delta",
     name: "Delta",
-    category: "bars",
     values: {
       gauge: { shape: "linear", min: -1, max: 1, padding: 64, ends: 28 },
       value: { value: -0.32 },
@@ -2012,7 +2018,6 @@ const templates: GaugeTemplate[] = [
   {
     id: "equaliser",
     name: "Equaliser",
-    category: "bars",
     values: {
       ...spectrumBand(-26),
       gauge: { ...spectrumBand(-26).gauge, padding: 176, ends: 8 },
@@ -2029,7 +2034,6 @@ const templates: GaugeTemplate[] = [
   {
     id: "eq-fader",
     name: "EQ fader",
-    category: "bars",
     values: {
       gauge: {
         shape: "linear",
@@ -2089,8 +2093,13 @@ const templates: GaugeTemplate[] = [
   },
 ]
 
+const shelved = templates.map((template) => ({
+  ...template,
+  category: categoryOf(template),
+}))
+
 export const gaugeTemplates: GaugeTemplate[] = templateCategories.flatMap(
-  ({ id }) => templates.filter((template) => template.category === id)
+  ({ id }) => shelved.filter((template) => template.category === id)
 )
 
 export const templateLayers = (
