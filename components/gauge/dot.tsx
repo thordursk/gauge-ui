@@ -84,8 +84,10 @@ export type GaugeDotsProps = {
   values?: number[]
   /** Radius of each dot, in SVG units. */
   radius?: number
-  /** One colour, or a function of each dot's value to colour some apart:
-      the engines that are lit, or each in the colour of its zone. */
+  /**
+   * One colour, or a function of each dot's value to colour some apart: the
+   * engines that are lit, or each in the colour of its zone.
+   */
   color?: ValueColor
   opacity?: number
   /** Offset of the dots' centres from the scale's reference line. */
