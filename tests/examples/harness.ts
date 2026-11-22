@@ -13,11 +13,14 @@ export const onScreen = ({ reducedMotion = false } = {}) => {
       observe() {
         this.callback([{ isIntersecting: true }])
       }
+      unobserve() {}
       disconnect() {}
     }
   )
   vi.stubGlobal("matchMedia", (query: string) => ({
     matches: reducedMotion && query.includes("reduce"),
+    addEventListener() {},
+    removeEventListener() {},
   }))
 }
 
