@@ -9,9 +9,6 @@ export const ExamplesSection = () => {
   const sectionRef = useRef<HTMLElement>(null)
   const [tab, setTab] = useState(examples[0].id)
 
-  /* A hash naming an example (#music-studio) opens its tab and scrolls here.
-     The hash is then swapped for #examples, so following the same link again
-     fires another hashchange. */
   useEffect(() => {
     const openFromHash = (smooth: boolean) => {
       const id = window.location.hash.slice(1)
