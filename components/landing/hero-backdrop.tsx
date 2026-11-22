@@ -1,8 +1,7 @@
 "use client"
 
-import type { CSSProperties } from "react"
-
 import { GaugePreview } from "@/components/gauge-preview"
+import { Marquee } from "@/components/marquee"
 import { gaugeTemplates, templatePreview } from "@/lib/gauge-templates"
 import { cn } from "@/lib/utils"
 
@@ -13,11 +12,12 @@ const previews = gaugeTemplates.map((template) => ({
 
 const ROWS = 5
 const PER_ROW = 7
+const ROW_OFFSET = 5
 
 const rows = Array.from({ length: ROWS }, (_, row) =>
   Array.from(
     { length: PER_ROW },
-    (_, i) => previews[(row * 5 + i) % previews.length]
+    (_, i) => previews[(row * ROW_OFFSET + i) % previews.length]
   )
 )
 
@@ -41,17 +41,8 @@ export const HeroBackdrop = ({ className }: { className?: string }) => (
       }}
     >
       {rows.map((row, i) => (
-        <div
-          key={i}
-          className="flex w-max animate-marquee will-change-transform motion-reduce:animate-none"
-          style={
-            {
-              "--marquee-duration": `${70 + i * 12}s`,
-              animationDirection: i % 2 === 1 ? "reverse" : undefined,
-            } as CSSProperties
-          }
-        >
-          {[...row, ...row].map((preview, j) => (
+        <Marquee key={i} duration={70 + i * 12} reverse={i % 2 === 1}>
+          {row.map((preview, j) => (
             <div key={j} className="size-52 shrink-0 p-5 sm:size-80">
               <GaugePreview
                 spec={preview.spec}
@@ -61,7 +52,7 @@ export const HeroBackdrop = ({ className }: { className?: string }) => (
               />
             </div>
           ))}
-        </div>
+        </Marquee>
       ))}
     </div>
   </div>
