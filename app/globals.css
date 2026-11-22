@@ -29,7 +29,7 @@
     0 1px 2px 0 rgb(0 0 0 / 0.6), 0 2px 6px -1px rgb(0 0 0 / 0.5);
   --shadow-button-pressed-dark: inset 0 1px 2px 0 rgb(0 0 0 / 0.3);
 
-  --animate-heartbeat: heartbeat var(--beat, 1s) ease-out infinite;
+  --animate-heartbeat: heartbeat calc(60s / var(--bpm, 60)) ease-out infinite;
 
   @keyframes heartbeat {
     0%,

@@ -715,7 +715,7 @@ const HeartRate = ({ bpm }: { bpm: number }) => (
     heading={
       <Category
         icon={FavouriteIcon}
-        iconStyle={{ "--beat": `${60 / bpm}s` } as CSSProperties}
+        iconStyle={{ "--bpm": bpm } as CSSProperties}
       >
         Heart rate
       </Category>
