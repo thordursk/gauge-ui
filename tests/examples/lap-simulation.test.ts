@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import {
   CORNERS,
+  KMH,
   LAP_LENGTH,
   useLapSimulation,
   type Telemetry,
@@ -11,7 +12,11 @@ import { onScreen, rounded, runHook, sample } from "./harness"
 
 const TICK = 50
 
-const published = (t: Telemetry) => ({ ...t })
+const published = (t: Telemetry) => ({
+  ...t,
+  speed: t.speed * KMH,
+  rpm: t.rpm / 1000,
+})
 
 beforeEach(() => {
   vi.useFakeTimers()
@@ -47,6 +52,10 @@ describe("useLapSimulation", () => {
       expect(t.gear).toBeGreaterThanOrEqual(1)
       expect(t.gear).toBeLessThanOrEqual(8)
       expect(Number.isInteger(t.gear)).toBe(true)
+      expect(t.rpm).toBeGreaterThanOrEqual(3500)
+      expect(t.rpm).toBeLessThanOrEqual(12200)
+      expect(t.speed).toBeGreaterThan(0)
+      expect(t.speed * KMH).toBeLessThanOrEqual(340)
       expect(t.throttle).toBeGreaterThanOrEqual(0)
       expect(t.throttle).toBeLessThanOrEqual(1)
       expect(t.brake).toBeGreaterThanOrEqual(0)
