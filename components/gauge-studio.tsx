@@ -30,7 +30,10 @@ import { useStoredValue } from "@/hooks/use-stored-value"
 import { gaugeToCode } from "@/lib/gauge-code"
 import { GaugeControl, clamp } from "@/components/gauge"
 import { css, stepFor, type PlayMode } from "@/lib/gauge-panels"
-import { storageKeys, writeStored } from "@/lib/storage"
+import {
+  readControlsVisibility,
+  writeControlsVisibility,
+} from "@/lib/storage"
 
 const SIDEBAR_QUERY = "(min-width: 48rem)"
 
@@ -59,10 +62,10 @@ export const GaugeStudio = () => {
   const [showCode, setShowCode] = useState(false)
   const hasSidebar = useMediaQuery(SIDEBAR_QUERY)
   const showControls =
-    useStoredValue(storageKeys.controls, "shown") !== "hidden"
+    useStoredValue(readControlsVisibility, "shown") === "shown"
 
   const toggleControls = () =>
-    writeStored(storageKeys.controls, showControls ? "hidden" : "shown")
+    writeControlsVisibility(showControls ? "hidden" : "shown")
 
   const current = clamp(val.value, min, max)
   const mode = val.mode as PlayMode
