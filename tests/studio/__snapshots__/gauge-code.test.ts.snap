@@ -1,0 +1,3802 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`gaugeToCode > prints the activity-ring template 1`] = `
+"import {
+  Gauge,
+  GaugeArc,
+  GaugeText,
+  GaugeTrack,
+  GaugeValue,
+} from "@/components/gauge"
+
+export function CustomGauge({ value }: { value: number }) {
+  return (
+    <Gauge
+      value={value}
+      min={0}
+      max={600}
+      startAngle={180}
+      endAngle={540}
+      radius={200}
+      padding={56}
+      transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+    >
+      <GaugeTrack
+        width={44}
+        color="var(--foreground)"
+        opacity={0.12}
+        cap="round"
+        offset={0}
+      />
+      <GaugeArc
+        width={44}
+        color="var(--foreground)"
+        opacity={1}
+        cap="round"
+        offset={0}
+      />
+      <GaugeValue
+        x={0}
+        y={-12}
+        fontSize={80}
+        color="var(--foreground)"
+        font="rounded"
+        weight="bold"
+        decimals={0}
+      />
+      <GaugeText
+        x={0}
+        y={60}
+        fontSize={24}
+        color="var(--muted-foreground)"
+        font="rounded"
+        weight="medium"
+      >
+        kcal
+      </GaugeText>
+      <GaugeText
+        x={0}
+        y={-80}
+        fontSize={22}
+        color="var(--foreground)"
+        font="rounded"
+        weight="semibold"
+      >
+        Move
+      </GaugeText>
+    </Gauge>
+  )
+}"
+`;
+
+exports[`gaugeToCode > prints the air-quality template 1`] = `
+"import {
+  Gauge,
+  GaugeArc,
+  GaugeMarks,
+  GaugeText,
+  GaugeTrack,
+  GaugeValue,
+  GaugeZones,
+  zoneCutoffs,
+} from "@/components/gauge"
+
+const zones = [
+  { to: 50, color: "var(--muted)" },
+  { to: 100, color: "var(--muted-foreground)" },
+  { to: 500, color: "var(--foreground)" },
+]
+
+export function CustomGauge({ value }: { value: number }) {
+  return (
+    <Gauge
+      value={value}
+      min={0}
+      max={500}
+      startAngle={90}
+      endAngle={270}
+      radius={200}
+      padding={56}
+      fit="content"
+      transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+    >
+      <GaugeTrack
+        width={20}
+        color="var(--muted)"
+        opacity={1}
+        cap="round"
+        offset={0}
+      />
+      <GaugeZones
+        zones={zones}
+        width={6}
+        offset={-22}
+        gap={2}
+        cap="butt"
+        endCap="round"
+        opacity={1}
+      />
+      <GaugeArc
+        width={20}
+        color="var(--foreground)"
+        opacity={1}
+        cap="round"
+        offset={0}
+      />
+      <GaugeMarks
+        values={zoneCutoffs(zones)}
+        length={10}
+        width={2}
+        color="var(--foreground)"
+        offset={-22}
+        cap="round"
+      />
+      <GaugeValue
+        x={0}
+        y={-44}
+        fontSize={84}
+        color="var(--foreground)"
+        font="rounded"
+        weight="bold"
+        decimals={0}
+      />
+      <GaugeText
+        x={0}
+        y={16}
+        fontSize={24}
+        color="var(--muted-foreground)"
+        font="sans"
+        weight="medium"
+      >
+        AQI
+      </GaugeText>
+      <GaugeText
+        x={0}
+        y={-124}
+        fontSize={20}
+        color="var(--muted-foreground)"
+        font="sans"
+        weight="medium"
+      >
+        Air quality
+      </GaugeText>
+    </Gauge>
+  )
+}"
+`;
+
+exports[`gaugeToCode > prints the analog-dial template 1`] = `
+"import {
+  Gauge,
+  GaugeHub,
+  GaugeNeedle,
+  GaugeText,
+  GaugeTickLabels,
+  GaugeTicks,
+  GaugeValue,
+} from "@/components/gauge"
+
+export function CustomGauge({ value }: { value: number }) {
+  return (
+    <Gauge
+      value={value}
+      min={0}
+      max={100}
+      startAngle={45}
+      endAngle={315}
+      radius={200}
+      padding={56}
+      transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+    >
+      <GaugeTicks
+        count={50}
+        length={10}
+        width={1.5}
+        color="var(--muted-foreground)"
+        offset={-5}
+        cap="butt"
+        opacity={0.6}
+      />
+      <GaugeTicks
+        count={10}
+        length={20}
+        width={2.5}
+        color="var(--foreground)"
+        offset={-10}
+        cap="butt"
+        opacity={1}
+      />
+      <GaugeTickLabels
+        count={10}
+        offset={-46}
+        fontSize={18}
+        color="var(--muted-foreground)"
+        font="mono"
+        weight="regular"
+        decimals={0}
+      />
+      <GaugeNeedle
+        style="line"
+        length={0.86}
+        width={4}
+        color="var(--foreground)"
+        tail={40}
+      />
+      <GaugeHub
+        radius={10}
+        color="var(--foreground)"
+      />
+      <GaugeValue
+        x={0}
+        y={96}
+        fontSize={40}
+        color="var(--foreground)"
+        font="mono"
+        weight="regular"
+        decimals={0}
+      />
+      <GaugeText
+        x={0}
+        y={132}
+        fontSize={18}
+        color="var(--muted-foreground)"
+        font="mono"
+        weight="medium"
+      >
+        psi
+      </GaugeText>
+    </Gauge>
+  )
+}"
+`;
+
+exports[`gaugeToCode > prints the battery template 1`] = `
+"import {
+  Gauge,
+  GaugeArc,
+  GaugeMarks,
+  GaugeText,
+  GaugeTrack,
+  GaugeValue,
+  GaugeZones,
+  zoneCutoffs,
+} from "@/components/gauge"
+
+const zones = [
+  { to: 80, color: "var(--muted)" },
+  { to: 100, color: "var(--muted)" },
+]
+
+export function CustomGauge({ value }: { value: number }) {
+  return (
+    <Gauge
+      value={value}
+      min={0}
+      max={100}
+      startAngle={180}
+      endAngle={540}
+      radius={200}
+      padding={56}
+      transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+    >
+      <GaugeTrack
+        width={30}
+        color="var(--muted)"
+        opacity={1}
+        cap="butt"
+        offset={0}
+      />
+      <GaugeZones
+        zones={zones}
+        width={30}
+        offset={0}
+        gap={0}
+        cap="butt"
+        opacity={0}
+      />
+      <GaugeArc
+        width={30}
+        color="var(--foreground)"
+        opacity={1}
+        cap="butt"
+        offset={0}
+      />
+      <GaugeMarks
+        values={zoneCutoffs(zones)}
+        length={46}
+        width={5}
+        color="var(--foreground)"
+        offset={0}
+        cap="butt"
+      />
+      <GaugeValue
+        x={-12}
+        y={-4}
+        fontSize={92}
+        color="var(--foreground)"
+        font="rounded"
+        weight="bold"
+        decimals={0}
+      />
+      <GaugeText
+        x={48}
+        y={-12}
+        fontSize={30}
+        color="var(--muted-foreground)"
+        font="sans"
+        weight="medium"
+        anchor="start"
+      >
+        %
+      </GaugeText>
+      <GaugeText
+        x={0}
+        y={72}
+        fontSize={22}
+        color="var(--muted-foreground)"
+        font="sans"
+        weight="medium"
+      >
+        307 km
+      </GaugeText>
+    </Gauge>
+  )
+}"
+`;
+
+exports[`gaugeToCode > prints the chronograph template 1`] = `
+"import {
+  Gauge,
+  GaugeHub,
+  GaugeInset,
+  GaugeNeedle,
+  GaugeText,
+  GaugeTickLabels,
+  GaugeTicks,
+  GaugeTrack,
+} from "@/components/gauge"
+
+export function CustomGauge({
+  value,
+  minutes,
+}: {
+  value: number
+  minutes: number
+}) {
+  return (
+    <Gauge
+      value={value}
+      min={0}
+      max={60}
+      startAngle={180}
+      endAngle={540}
+      radius={200}
+      padding={56}
+      transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+    >
+      <GaugeTicks
+        count={60}
+        length={14}
+        width={2.5}
+        color="var(--muted-foreground)"
+        offset={-7}
+        cap="butt"
+        opacity={0.6}
+      />
+      <GaugeTicks
+        count={12}
+        length={22}
+        width={4}
+        color="var(--foreground)"
+        offset={-11}
+        cap="butt"
+        opacity={1}
+      />
+      <GaugeTickLabels
+        count={12}
+        offset={-50}
+        fontSize={26}
+        color="var(--foreground)"
+        font="sans"
+        weight="semibold"
+        decimals={0}
+      />
+      <GaugeNeedle
+        style="line"
+        length={0.92}
+        width={4}
+        color="var(--foreground)"
+        tail={44}
+        tailDot={10}
+      />
+      <GaugeHub
+        radius={11}
+        color="var(--foreground)"
+      />
+      <GaugeText
+        x={0}
+        y={-72}
+        fontSize={30}
+        color="var(--muted-foreground)"
+        font="mono"
+        weight="medium"
+      >
+        05:42.1
+      </GaugeText>
+      <GaugeInset
+        x={0}
+        y={72}
+        scale={0.28}
+        value={minutes}
+        min={0}
+        max={30}
+        startAngle={180}
+        endAngle={540}
+        transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+      >
+        <GaugeTrack
+          width={6}
+          color="var(--muted)"
+          opacity={0.25}
+          cap="butt"
+          offset={-3}
+        />
+        <GaugeTicks
+          count={30}
+          length={18}
+          width={5}
+          color="var(--muted-foreground)"
+          offset={-18}
+          cap="butt"
+          opacity={0.5}
+        />
+        <GaugeTicks
+          count={6}
+          length={34}
+          width={9}
+          color="var(--foreground)"
+          offset={-26}
+          cap="butt"
+          opacity={1}
+        />
+        <GaugeNeedle
+          style="pointer"
+          length={0.78}
+          width={30}
+          color="var(--foreground)"
+          tail={0}
+        />
+        <GaugeHub
+          radius={22}
+          color="var(--foreground)"
+        />
+      </GaugeInset>
+    </Gauge>
+  )
+}"
+`;
+
+exports[`gaugeToCode > prints the clock template 1`] = `
+"import {
+  Gauge,
+  GaugeHub,
+  GaugeNeedle,
+  GaugeTickLabels,
+  GaugeTicks,
+  clockLabel,
+} from "@/components/gauge"
+
+export function CustomGauge({ value }: { value: number }) {
+  return (
+    <Gauge
+      value={value}
+      min={0}
+      max={12}
+      startAngle={180}
+      endAngle={540}
+      radius={200}
+      padding={56}
+      transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+    >
+      <GaugeTicks
+        count={60}
+        length={6}
+        width={1.5}
+        color="var(--muted-foreground)"
+        offset={-3}
+        cap="butt"
+        opacity={0.6}
+      />
+      <GaugeTicks
+        count={12}
+        length={16}
+        width={3}
+        color="var(--foreground)"
+        offset={-8}
+        cap="butt"
+        opacity={1}
+      />
+      <GaugeTickLabels
+        count={12}
+        offset={-48}
+        fontSize={26}
+        color="var(--foreground)"
+        font="sans"
+        weight="semibold"
+        format={clockLabel}
+      />
+      <GaugeNeedle
+        style="pointer"
+        length={0.5}
+        width={12}
+        color="var(--foreground)"
+        tail={0}
+      />
+      <GaugeNeedle
+        style="pointer"
+        length={0.74}
+        width={8}
+        color="var(--foreground)"
+        tail={0}
+        turns={12}
+      />
+      <GaugeHub
+        radius={7}
+        color="var(--foreground)"
+      />
+    </Gauge>
+  )
+}"
+`;
+
+exports[`gaugeToCode > prints the compass template 1`] = `
+"import {
+  Gauge,
+  GaugeHub,
+  GaugeNeedle,
+  GaugeTickLabels,
+  GaugeTicks,
+  GaugeTrack,
+  compassLabel,
+} from "@/components/gauge"
+
+export function CustomGauge({ value }: { value: number }) {
+  return (
+    <Gauge
+      value={value}
+      min={0}
+      max={360}
+      startAngle={180}
+      endAngle={540}
+      radius={200}
+      padding={56}
+      transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+    >
+      <GaugeTrack
+        width={2}
+        color="var(--muted-foreground)"
+        opacity={0.4}
+        cap="round"
+        offset={0}
+      />
+      <GaugeTicks
+        count={36}
+        length={8}
+        width={1.5}
+        color="var(--muted-foreground)"
+        offset={-4}
+        cap="butt"
+        opacity={0.8}
+      />
+      <GaugeTicks
+        count={8}
+        length={18}
+        width={3}
+        color="var(--foreground)"
+        offset={-9}
+        cap="butt"
+        opacity={1}
+      />
+      <GaugeTickLabels
+        count={8}
+        offset={-46}
+        fontSize={22}
+        color="var(--foreground)"
+        font="sans"
+        weight="bold"
+        format={compassLabel}
+      />
+      <GaugeNeedle
+        style="compass"
+        length={0.62}
+        width={22}
+        color="var(--foreground)"
+        tail={124}
+        tailColor="var(--muted-foreground)"
+      />
+      <GaugeHub
+        radius={5}
+        color="var(--background)"
+      />
+    </Gauge>
+  )
+}"
+`;
+
+exports[`gaugeToCode > prints the data-usage template 1`] = `
+"import {
+  Gauge,
+  GaugeArc,
+  GaugeDot,
+  GaugeText,
+  GaugeTooltip,
+  GaugeTrack,
+  GaugeValue,
+} from "@/components/gauge"
+
+export function CustomGauge({ value }: { value: number }) {
+  return (
+    <Gauge
+      value={value}
+      min={0}
+      max={50}
+      startAngle={60}
+      endAngle={300}
+      radius={200}
+      padding={56}
+      transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+    >
+      <GaugeTrack
+        width={28}
+        color="var(--muted)"
+        opacity={1}
+        cap="round"
+        offset={0}
+      />
+      <GaugeArc
+        width={28}
+        color="var(--foreground)"
+        opacity={1}
+        cap="round"
+        offset={0}
+      />
+      <GaugeDot
+        radius={7}
+        color="var(--background)"
+        opacity={1}
+        offset={0}
+      />
+      <GaugeTooltip
+        label="Used"
+        unit="GB"
+        decimals={1}
+        position="value"
+        offset={24}
+        gap={8}
+      />
+      <GaugeValue
+        x={-16}
+        y={-12}
+        fontSize={96}
+        color="var(--foreground)"
+        font="rounded"
+        weight="bold"
+        decimals={0}
+      />
+      <GaugeText
+        x={40}
+        y={-4}
+        fontSize={32}
+        color="var(--muted-foreground)"
+        font="rounded"
+        weight="bold"
+        anchor="start"
+      >
+        GB
+      </GaugeText>
+      <GaugeText
+        x={0}
+        y={52}
+        fontSize={26}
+        color="var(--muted-foreground)"
+        font="sans"
+        weight="medium"
+      >
+        of 50 GB
+      </GaugeText>
+    </Gauge>
+  )
+}"
+`;
+
+exports[`gaugeToCode > prints the delta template 1`] = `
+"import {
+  GaugeArc,
+  GaugeMarks,
+  GaugeText,
+  GaugeTickLabels,
+  GaugeTrack,
+  GaugeValue,
+  GaugeZones,
+  LinearGauge,
+  zoneCutoffs,
+} from "@/components/gauge"
+
+const zones = [
+  { to: 0, color: "var(--muted)" },
+  { to: 1, color: "var(--muted-foreground)" },
+]
+
+export function CustomGauge({ value }: { value: number }) {
+  return (
+    <LinearGauge
+      value={value}
+      min={-1}
+      max={1}
+      length={400}
+      padding={{ top: 64, right: 28, bottom: 64, left: 28 }}
+      transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+    >
+      <GaugeTrack
+        width={20}
+        color="var(--muted)"
+        opacity={1}
+        cap="butt"
+        offset={0}
+      />
+      <GaugeZones
+        zones={zones}
+        width={8}
+        offset={-24}
+        gap={1.5}
+        cap="butt"
+        opacity={0}
+      />
+      <GaugeArc
+        width={20}
+        color="var(--foreground)"
+        opacity={1}
+        cap="butt"
+        offset={0}
+        from={0}
+      />
+      <GaugeMarks
+        values={zoneCutoffs(zones)}
+        length={36}
+        width={3}
+        color="var(--foreground)"
+        offset={0}
+        cap="butt"
+      />
+      <GaugeTickLabels
+        count={2}
+        offset={-38}
+        fontSize={16}
+        color="var(--muted-foreground)"
+        font="sans"
+        weight="medium"
+        decimals={1}
+      />
+      <GaugeValue
+        x={0}
+        y={-48}
+        fontSize={36}
+        color="var(--foreground)"
+        font="mono"
+        weight="semibold"
+        decimals={2}
+      />
+      <GaugeText
+        x={-200}
+        y={-44}
+        fontSize={18}
+        color="var(--muted-foreground)"
+        font="sans"
+        weight="medium"
+        anchor="start"
+      >
+        Delta
+      </GaugeText>
+    </LinearGauge>
+  )
+}"
+`;
+
+exports[`gaugeToCode > prints the dimmer template 1`] = `
+"import {
+  Gauge,
+  GaugeArc,
+  GaugeDot,
+  GaugeText,
+  GaugeTrack,
+  GaugeValue,
+} from "@/components/gauge"
+
+export function CustomGauge({ value }: { value: number }) {
+  return (
+    <Gauge
+      value={value}
+      min={0}
+      max={100}
+      startAngle={40}
+      endAngle={320}
+      radius={200}
+      padding={56}
+      transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+    >
+      <GaugeTrack
+        width={40}
+        color="var(--foreground)"
+        opacity={0.1}
+        cap="round"
+        offset={0}
+      />
+      <GaugeArc
+        width={40}
+        color="var(--foreground)"
+        opacity={1}
+        cap="round"
+        offset={0}
+      />
+      <GaugeDot
+        radius={9}
+        color="var(--background)"
+        opacity={1}
+        offset={0}
+      />
+      <GaugeValue
+        x={-14}
+        y={0}
+        fontSize={84}
+        color="var(--foreground)"
+        font="rounded"
+        weight="bold"
+        decimals={0}
+      />
+      <GaugeText
+        x={44}
+        y={-8}
+        fontSize={30}
+        color="var(--muted-foreground)"
+        font="rounded"
+        weight="bold"
+        anchor="start"
+      >
+        %
+      </GaugeText>
+    </Gauge>
+  )
+}"
+`;
+
+exports[`gaugeToCode > prints the eq-fader template 1`] = `
+"import {
+  GaugeArc,
+  GaugeControl,
+  GaugeDot,
+  GaugeMarks,
+  GaugeText,
+  GaugeTickLabels,
+  GaugeTicks,
+  GaugeTrack,
+  GaugeValue,
+  GaugeZones,
+  LinearGauge,
+  zoneCutoffs,
+} from "@/components/gauge"
+
+const zones = [
+  { to: 0, color: "var(--muted)" },
+  { to: 12, color: "var(--muted-foreground)" },
+]
+
+export function CustomGauge({
+  value,
+  onChange,
+}: {
+  value: number
+  onChange: (value: number) => void
+}) {
+  return (
+    <GaugeControl
+      value={value}
+      onChange={onChange}
+      min={-12}
+      max={12}
+      step={0.1}
+      orientation="vertical"
+      length={320}
+      label="1 kHz"
+    >
+      <LinearGauge
+        value={value}
+        min={-12}
+        max={12}
+        orientation="vertical"
+        length={320}
+        padding={{ top: 60, right: 84, bottom: 60, left: 84 }}
+        transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+      >
+        <GaugeTrack
+          width={6}
+          color="var(--muted)"
+          opacity={1}
+          cap="round"
+          offset={0}
+        />
+        <GaugeZones
+          zones={zones}
+          width={8}
+          offset={-24}
+          gap={1.5}
+          cap="butt"
+          opacity={0}
+        />
+        <GaugeArc
+          width={6}
+          color="var(--foreground)"
+          opacity={1}
+          cap="butt"
+          offset={0}
+          from={0}
+        />
+        <GaugeMarks
+          values={zoneCutoffs(zones)}
+          length={28}
+          width={3}
+          color="var(--muted-foreground)"
+          offset={0}
+          cap="butt"
+        />
+        <GaugeTicks
+          count={8}
+          length={8}
+          width={2}
+          color="var(--muted-foreground)"
+          offset={30}
+          cap="round"
+          opacity={0.5}
+        />
+        <GaugeTickLabels
+          count={4}
+          offset={60}
+          fontSize={16}
+          color="var(--muted-foreground)"
+          font="sans"
+          weight="medium"
+          decimals={0}
+        />
+        <GaugeDot
+          radius={14}
+          color="var(--foreground)"
+          opacity={1}
+          offset={0}
+        />
+        <GaugeValue
+          x={-16}
+          y={196}
+          fontSize={32}
+          color="var(--foreground)"
+          font="sans"
+          weight="semibold"
+          decimals={1}
+        />
+        <GaugeText
+          x={20}
+          y={198}
+          fontSize={20}
+          color="var(--muted-foreground)"
+          font="sans"
+          weight="medium"
+          anchor="start"
+        >
+          dB
+        </GaugeText>
+        <GaugeText
+          x={0}
+          y={-196}
+          fontSize={20}
+          color="var(--muted-foreground)"
+          font="sans"
+          weight="medium"
+        >
+          1 kHz
+        </GaugeText>
+      </LinearGauge>
+    </GaugeControl>
+  )
+}"
+`;
+
+exports[`gaugeToCode > prints the equaliser template 1`] = `
+"import {
+  GaugeTickFill,
+  LinearGauge,
+  LinearGaugeInset,
+} from "@/components/gauge"
+
+export function CustomGauge({
+  value,
+  sub,
+  bass,
+  lowMid,
+  highMid,
+  presence,
+  air,
+}: {
+  value: number
+  sub: number
+  bass: number
+  lowMid: number
+  highMid: number
+  presence: number
+  air: number
+}) {
+  return (
+    <LinearGauge
+      value={value}
+      min={-60}
+      max={0}
+      orientation="vertical"
+      length={200}
+      padding={{ top: 8, right: 176, bottom: 8, left: 176 }}
+      transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+    >
+      <GaugeTickFill
+        count={20}
+        length={36}
+        width={6}
+        color="var(--foreground)"
+        dimColor="var(--muted)"
+        offset={0}
+        cap="butt"
+      />
+      <LinearGaugeInset
+        x={-150}
+        y={0}
+        scale={1}
+        value={sub}
+        min={-60}
+        max={0}
+        orientation="vertical"
+        length={200}
+        transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+      >
+        <GaugeTickFill
+          count={20}
+          length={36}
+          width={6}
+          color="var(--foreground)"
+          dimColor="var(--muted)"
+          offset={0}
+          cap="butt"
+        />
+      </LinearGaugeInset>
+      <LinearGaugeInset
+        x={-100}
+        y={0}
+        scale={1}
+        value={bass}
+        min={-60}
+        max={0}
+        orientation="vertical"
+        length={200}
+        transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+      >
+        <GaugeTickFill
+          count={20}
+          length={36}
+          width={6}
+          color="var(--foreground)"
+          dimColor="var(--muted)"
+          offset={0}
+          cap="butt"
+        />
+      </LinearGaugeInset>
+      <LinearGaugeInset
+        x={-50}
+        y={0}
+        scale={1}
+        value={lowMid}
+        min={-60}
+        max={0}
+        orientation="vertical"
+        length={200}
+        transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+      >
+        <GaugeTickFill
+          count={20}
+          length={36}
+          width={6}
+          color="var(--foreground)"
+          dimColor="var(--muted)"
+          offset={0}
+          cap="butt"
+        />
+      </LinearGaugeInset>
+      <LinearGaugeInset
+        x={50}
+        y={0}
+        scale={1}
+        value={highMid}
+        min={-60}
+        max={0}
+        orientation="vertical"
+        length={200}
+        transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+      >
+        <GaugeTickFill
+          count={20}
+          length={36}
+          width={6}
+          color="var(--foreground)"
+          dimColor="var(--muted)"
+          offset={0}
+          cap="butt"
+        />
+      </LinearGaugeInset>
+      <LinearGaugeInset
+        x={100}
+        y={0}
+        scale={1}
+        value={presence}
+        min={-60}
+        max={0}
+        orientation="vertical"
+        length={200}
+        transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+      >
+        <GaugeTickFill
+          count={20}
+          length={36}
+          width={6}
+          color="var(--foreground)"
+          dimColor="var(--muted)"
+          offset={0}
+          cap="butt"
+        />
+      </LinearGaugeInset>
+      <LinearGaugeInset
+        x={150}
+        y={0}
+        scale={1}
+        value={air}
+        min={-60}
+        max={0}
+        orientation="vertical"
+        length={200}
+        transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+      >
+        <GaugeTickFill
+          count={20}
+          length={36}
+          width={6}
+          color="var(--foreground)"
+          dimColor="var(--muted)"
+          offset={0}
+          cap="butt"
+        />
+      </LinearGaugeInset>
+    </LinearGauge>
+  )
+}"
+`;
+
+exports[`gaugeToCode > prints the fuel template 1`] = `
+"import {
+  Gauge,
+  GaugeHub,
+  GaugeNeedle,
+  GaugeText,
+  GaugeTicks,
+  GaugeValue,
+  GaugeZones,
+} from "@/components/gauge"
+
+const zones = [
+  { to: 12, color: "var(--foreground)" },
+  { to: 100, color: "var(--muted)" },
+]
+
+export function CustomGauge({ value }: { value: number }) {
+  return (
+    <Gauge
+      value={value}
+      min={0}
+      max={100}
+      startAngle={90}
+      endAngle={270}
+      radius={200}
+      padding={56}
+      transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+    >
+      <GaugeZones
+        zones={zones}
+        width={10}
+        offset={0}
+        gap={0}
+        cap="butt"
+        opacity={1}
+      />
+      <GaugeTicks
+        count={16}
+        length={8}
+        width={1.5}
+        color="var(--muted-foreground)"
+        offset={-15}
+        cap="butt"
+        opacity={0.5}
+      />
+      <GaugeTicks
+        count={4}
+        length={18}
+        width={3}
+        color="var(--foreground)"
+        offset={-20}
+        cap="butt"
+        opacity={1}
+      />
+      <GaugeNeedle
+        style="pointer"
+        length={0.85}
+        width={9}
+        color="var(--foreground)"
+        tail={24}
+      />
+      <GaugeHub
+        radius={10}
+        color="var(--foreground)"
+      />
+      <GaugeValue
+        x={0}
+        y={84}
+        fontSize={36}
+        color="var(--foreground)"
+        font="mono"
+        weight="semibold"
+        decimals={0}
+      />
+      <GaugeText
+        x={160}
+        y={32}
+        fontSize={28}
+        color="var(--foreground)"
+        font="sans"
+        weight="bold"
+      >
+        F
+      </GaugeText>
+      <GaugeText
+        x={-160}
+        y={32}
+        fontSize={28}
+        color="var(--foreground)"
+        font="sans"
+        weight="bold"
+      >
+        E
+      </GaugeText>
+    </Gauge>
+  )
+}"
+`;
+
+exports[`gaugeToCode > prints the heart-rate template 1`] = `
+"import {
+  Gauge,
+  GaugeArc,
+  GaugeText,
+  GaugeTrack,
+  GaugeValue,
+  GaugeZones,
+  zoneColor,
+} from "@/components/gauge"
+
+const zones = [
+  { to: 100, color: "var(--muted-foreground)" },
+  { to: 160, color: "var(--primary)" },
+  { to: 200, color: "var(--foreground)" },
+]
+
+export function CustomGauge({ value }: { value: number }) {
+  return (
+    <Gauge
+      value={value}
+      min={40}
+      max={200}
+      startAngle={60}
+      endAngle={300}
+      radius={200}
+      padding={56}
+      transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+    >
+      <GaugeTrack
+        width={14}
+        color="var(--muted)"
+        opacity={1}
+        cap="round"
+        offset={0}
+      />
+      <GaugeZones
+        zones={zones}
+        width={4}
+        offset={-18}
+        gap={1.5}
+        cap="butt"
+        endCap="round"
+        opacity={1}
+      />
+      <GaugeArc
+        width={14}
+        color={zoneColor(zones, value, "var(--primary)")}
+        opacity={1}
+        cap="round"
+        offset={0}
+      />
+      <GaugeValue
+        x={0}
+        y={0}
+        fontSize={96}
+        color="var(--foreground)"
+        font="rounded"
+        weight="bold"
+        decimals={0}
+      />
+      <GaugeText
+        x={0}
+        y={68}
+        fontSize={28}
+        color="var(--muted-foreground)"
+        font="sans"
+        weight="medium"
+      >
+        bpm
+      </GaugeText>
+      <GaugeText
+        x={0}
+        y={-72}
+        fontSize={22}
+        color="var(--muted-foreground)"
+        font="sans"
+        weight="medium"
+      >
+        Heart rate
+      </GaugeText>
+    </Gauge>
+  )
+}"
+`;
+
+exports[`gaugeToCode > prints the internet-speed template 1`] = `
+"import {
+  Gauge,
+  GaugeArc,
+  GaugeText,
+  GaugeTicks,
+  GaugeTrack,
+  GaugeValue,
+} from "@/components/gauge"
+
+export function CustomGauge({ value }: { value: number }) {
+  return (
+    <Gauge
+      value={value}
+      min={0}
+      max={1000}
+      startAngle={60}
+      endAngle={300}
+      radius={200}
+      padding={56}
+      transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+    >
+      <GaugeTrack
+        width={18}
+        color="var(--muted)"
+        opacity={1}
+        cap="round"
+        offset={0}
+      />
+      <GaugeArc
+        width={18}
+        color="var(--primary)"
+        opacity={1}
+        cap="round"
+        offset={0}
+      />
+      <GaugeTicks
+        count={40}
+        length={6}
+        width={1.5}
+        color="var(--muted-foreground)"
+        offset={-34}
+        cap="round"
+        opacity={0.5}
+      />
+      <GaugeValue
+        x={0}
+        y={-8}
+        fontSize={92}
+        color="var(--foreground)"
+        font="rounded"
+        weight="bold"
+        decimals={0}
+      />
+      <GaugeText
+        x={0}
+        y={56}
+        fontSize={24}
+        color="var(--muted-foreground)"
+        font="sans"
+        weight="medium"
+      >
+        Mbps
+      </GaugeText>
+      <GaugeText
+        x={0}
+        y={140}
+        fontSize={20}
+        color="var(--muted-foreground)"
+        font="sans"
+        weight="medium"
+      >
+        Download
+      </GaugeText>
+    </Gauge>
+  )
+}"
+`;
+
+exports[`gaugeToCode > prints the nested-rings template 1`] = `
+"import {
+  Gauge,
+  GaugeArc,
+  GaugeInset,
+  GaugeText,
+  GaugeTrack,
+  GaugeValue,
+} from "@/components/gauge"
+
+export function CustomGauge({
+  value,
+  exercise,
+  stand,
+}: {
+  value: number
+  exercise: number
+  stand: number
+}) {
+  return (
+    <Gauge
+      value={value}
+      min={0}
+      max={100}
+      startAngle={180}
+      endAngle={540}
+      radius={200}
+      padding={56}
+      transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+    >
+      <GaugeTrack
+        width={44}
+        color="var(--foreground)"
+        opacity={0.12}
+        cap="round"
+        offset={0}
+      />
+      <GaugeArc
+        width={44}
+        color="var(--foreground)"
+        opacity={1}
+        cap="round"
+        offset={0}
+      />
+      <GaugeValue
+        x={0}
+        y={-16}
+        fontSize={52}
+        color="var(--foreground)"
+        font="rounded"
+        weight="bold"
+        decimals={0}
+      />
+      <GaugeText
+        x={0}
+        y={24}
+        fontSize={20}
+        color="var(--muted-foreground)"
+        font="rounded"
+        weight="semibold"
+      >
+        Move
+      </GaugeText>
+      <GaugeInset
+        x={0}
+        y={0}
+        scale={0.74}
+        value={exercise}
+        min={0}
+        max={100}
+        startAngle={180}
+        endAngle={540}
+        transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+      >
+        <GaugeTrack
+          width={60}
+          color="var(--foreground)"
+          opacity={0.1}
+          cap="round"
+          offset={0}
+        />
+        <GaugeArc
+          width={60}
+          color="var(--foreground)"
+          opacity={0.62}
+          cap="round"
+          offset={0}
+        />
+      </GaugeInset>
+      <GaugeInset
+        x={0}
+        y={0}
+        scale={0.5}
+        value={stand}
+        min={0}
+        max={100}
+        startAngle={180}
+        endAngle={540}
+        transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+      >
+        <GaugeTrack
+          width={76}
+          color="var(--foreground)"
+          opacity={0.1}
+          cap="round"
+          offset={0}
+        />
+        <GaugeArc
+          width={76}
+          color="var(--foreground)"
+          opacity={0.34}
+          cap="round"
+          offset={0}
+        />
+      </GaugeInset>
+    </Gauge>
+  )
+}"
+`;
+
+exports[`gaugeToCode > prints the orrery template 1`] = `
+"import {
+  Gauge,
+  GaugeArc,
+  GaugeDot,
+  GaugeHub,
+  GaugeInset,
+  GaugeNeedle,
+  GaugeTrack,
+} from "@/components/gauge"
+
+export function CustomGauge({
+  value,
+  earth,
+  venus,
+  mercury,
+}: {
+  value: number
+  earth: number
+  venus: number
+  mercury: number
+}) {
+  return (
+    <Gauge
+      value={value}
+      min={0}
+      max={360}
+      startAngle={180}
+      endAngle={540}
+      radius={200}
+      padding={56}
+      transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+    >
+      <GaugeTrack
+        width={3}
+        color="var(--muted-foreground)"
+        opacity={0.7}
+        cap="butt"
+        offset={0}
+      />
+      <GaugeArc
+        width={3}
+        color="var(--foreground)"
+        opacity={1}
+        cap="butt"
+        offset={0}
+      />
+      <GaugeNeedle
+        style="line"
+        length={0.1}
+        width={1}
+        color="var(--foreground)"
+        tail={0}
+      />
+      <GaugeHub
+        radius={24}
+        color="var(--foreground)"
+      />
+      <GaugeDot
+        radius={7}
+        color="var(--foreground)"
+        opacity={1}
+        offset={0}
+      />
+      <GaugeInset
+        x={0}
+        y={0}
+        scale={1}
+        value={earth}
+        min={0}
+        max={360}
+        startAngle={180}
+        endAngle={540}
+        transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+      >
+        <GaugeTrack
+          width={3}
+          color="var(--muted-foreground)"
+          opacity={0.7}
+          cap="butt"
+          offset={-40}
+        />
+        <GaugeArc
+          width={3}
+          color="var(--foreground)"
+          opacity={1}
+          cap="butt"
+          offset={-40}
+        />
+        <GaugeDot
+          radius={9}
+          color="var(--foreground)"
+          opacity={1}
+          offset={-40}
+        />
+      </GaugeInset>
+      <GaugeInset
+        x={0}
+        y={0}
+        scale={1}
+        value={venus}
+        min={0}
+        max={360}
+        startAngle={180}
+        endAngle={540}
+        transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+      >
+        <GaugeTrack
+          width={3}
+          color="var(--muted-foreground)"
+          opacity={0.7}
+          cap="butt"
+          offset={-80}
+        />
+        <GaugeArc
+          width={3}
+          color="var(--foreground)"
+          opacity={1}
+          cap="butt"
+          offset={-80}
+        />
+        <GaugeDot
+          radius={8.5}
+          color="var(--foreground)"
+          opacity={1}
+          offset={-80}
+        />
+      </GaugeInset>
+      <GaugeInset
+        x={0}
+        y={0}
+        scale={1}
+        value={mercury}
+        min={0}
+        max={360}
+        startAngle={180}
+        endAngle={540}
+        transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+      >
+        <GaugeTrack
+          width={3}
+          color="var(--muted-foreground)"
+          opacity={0.7}
+          cap="butt"
+          offset={-120}
+        />
+        <GaugeArc
+          width={3}
+          color="var(--foreground)"
+          opacity={1}
+          cap="butt"
+          offset={-120}
+        />
+        <GaugeDot
+          radius={6}
+          color="var(--foreground)"
+          opacity={1}
+          offset={-120}
+        />
+      </GaugeInset>
+    </Gauge>
+  )
+}"
+`;
+
+exports[`gaugeToCode > prints the power-meter template 1`] = `
+"import {
+  Gauge,
+  GaugeHub,
+  GaugeNeedle,
+  GaugeText,
+  GaugeTickLabels,
+  GaugeTicks,
+  GaugeTrack,
+} from "@/components/gauge"
+
+export function CustomGauge({ value }: { value: number }) {
+  return (
+    <Gauge
+      value={value}
+      min={-10}
+      max={10}
+      startAngle={90}
+      endAngle={270}
+      radius={200}
+      padding={56}
+      fit="content"
+      transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+    >
+      <GaugeTrack
+        width={20}
+        color="var(--muted)"
+        opacity={1}
+        cap="butt"
+        offset={0}
+      />
+      <GaugeTicks
+        count={20}
+        length={8}
+        width={2}
+        color="var(--muted-foreground)"
+        offset={-20}
+        cap="round"
+        opacity={0.5}
+      />
+      <GaugeTicks
+        count={4}
+        length={14}
+        width={3}
+        color="var(--foreground)"
+        offset={-24}
+        cap="butt"
+        opacity={1}
+      />
+      <GaugeTickLabels
+        count={4}
+        offset={-56}
+        fontSize={22}
+        color="var(--muted-foreground)"
+        font="sans"
+        weight="semibold"
+        decimals={0}
+      />
+      <GaugeNeedle
+        style="pointer"
+        length={0.9}
+        width={18}
+        color="var(--foreground)"
+        tail={0}
+      />
+      <GaugeHub
+        radius={16}
+        color="var(--foreground)"
+      />
+      <GaugeText
+        x={84}
+        y={-32}
+        fontSize={20}
+        color="var(--muted-foreground)"
+        font="sans"
+        weight="medium"
+      >
+        kW in
+      </GaugeText>
+      <GaugeText
+        x={-84}
+        y={-32}
+        fontSize={20}
+        color="var(--muted-foreground)"
+        font="sans"
+        weight="medium"
+      >
+        kW out
+      </GaugeText>
+    </Gauge>
+  )
+}"
+`;
+
+exports[`gaugeToCode > prints the progress-ring template 1`] = `
+"import {
+  Gauge,
+  GaugeArc,
+  GaugeText,
+  GaugeTrack,
+  GaugeValue,
+} from "@/components/gauge"
+
+export function CustomGauge({ value }: { value: number }) {
+  return (
+    <Gauge
+      value={value}
+      min={0}
+      max={100}
+      startAngle={0}
+      endAngle={360}
+      radius={200}
+      padding={56}
+      transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+    >
+      <GaugeTrack
+        width={20}
+        color="var(--muted)"
+        opacity={1}
+        cap="round"
+        offset={0}
+      />
+      <GaugeArc
+        width={20}
+        color="var(--primary)"
+        opacity={1}
+        cap="round"
+        offset={0}
+      />
+      <GaugeValue
+        x={0}
+        y={0}
+        fontSize={84}
+        color="var(--foreground)"
+        font="sans"
+        weight="semibold"
+        decimals={0}
+      />
+      <GaugeText
+        x={0}
+        y={64}
+        fontSize={26}
+        color="var(--muted-foreground)"
+        font="sans"
+        weight="medium"
+      >
+        %
+      </GaugeText>
+      <GaugeText
+        x={0}
+        y={-68}
+        fontSize={20}
+        color="var(--muted-foreground)"
+        font="sans"
+        weight="medium"
+      >
+        Complete
+      </GaugeText>
+    </Gauge>
+  )
+}"
+`;
+
+exports[`gaugeToCode > prints the range template 1`] = `
+"import {
+  Gauge,
+  GaugeArc,
+  GaugeControl,
+  GaugeDot,
+  GaugeText,
+  GaugeTicks,
+  GaugeTrack,
+  GaugeValue,
+} from "@/components/gauge"
+
+export function CustomGauge({
+  value,
+  onChange,
+}: {
+  value: [number, number]
+  onChange: (value: [number, number]) => void
+}) {
+  return (
+    <GaugeControl
+      value={value}
+      onChange={onChange}
+      min={10}
+      max={30}
+      step={0.1}
+      startAngle={40}
+      endAngle={320}
+      label="Comfort"
+    >
+      <Gauge
+        value={value}
+        min={10}
+        max={30}
+        startAngle={40}
+        endAngle={320}
+        radius={200}
+        padding={56}
+      >
+        <GaugeTrack
+          width={28}
+          color="var(--muted)"
+          opacity={1}
+          cap="butt"
+          offset={0}
+        />
+        <GaugeArc
+          width={28}
+          color="var(--foreground)"
+          opacity={0.35}
+          cap="butt"
+          offset={0}
+        />
+        <GaugeTicks
+          count={20}
+          length={8}
+          width={2}
+          color="var(--muted-foreground)"
+          offset={-38}
+          cap="round"
+          opacity={0.6}
+        />
+        <GaugeDot
+          end="from"
+          radius={16}
+          color="var(--foreground)"
+          opacity={1}
+          offset={0}
+        />
+        <GaugeDot
+          radius={16}
+          color="var(--foreground)"
+          opacity={1}
+          offset={0}
+        />
+        <GaugeValue
+          x={0}
+          y={-4}
+          fontSize={76}
+          color="var(--foreground)"
+          font="rounded"
+          weight="bold"
+          decimals={0}
+        />
+        <GaugeText
+          x={0}
+          y={60}
+          fontSize={24}
+          color="var(--muted-foreground)"
+          font="sans"
+          weight="medium"
+        >
+          °C
+        </GaugeText>
+        <GaugeText
+          x={0}
+          y={-72}
+          fontSize={20}
+          color="var(--muted-foreground)"
+          font="sans"
+          weight="semibold"
+        >
+          Comfort
+        </GaugeText>
+      </Gauge>
+    </GaugeControl>
+  )
+}"
+`;
+
+exports[`gaugeToCode > prints the rev-tape template 1`] = `
+"import {
+  GaugeArc,
+  GaugeText,
+  GaugeTickLabels,
+  GaugeTicks,
+  GaugeTrack,
+  GaugeValue,
+  GaugeZones,
+  LinearGauge,
+} from "@/components/gauge"
+
+const zones = [
+  { to: 11, color: "var(--background)" },
+  { to: 12, color: "var(--foreground)" },
+]
+
+export function CustomGauge({ value }: { value: number }) {
+  return (
+    <LinearGauge
+      value={value}
+      min={4}
+      max={12}
+      length={400}
+      padding={{ top: 72, right: 16, bottom: 72, left: 16 }}
+      transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+    >
+      <GaugeTrack
+        width={16}
+        color="var(--muted)"
+        opacity={1}
+        cap="butt"
+        offset={0}
+      />
+      <GaugeZones
+        zones={zones}
+        width={5}
+        offset={18}
+        gap={0}
+        cap="butt"
+        opacity={1}
+      />
+      <GaugeArc
+        width={16}
+        color="var(--foreground)"
+        opacity={1}
+        cap="butt"
+        offset={0}
+      />
+      <GaugeTicks
+        count={32}
+        length={5}
+        width={1.5}
+        color="var(--muted-foreground)"
+        offset={-15.5}
+        cap="butt"
+        opacity={0.6}
+      />
+      <GaugeTicks
+        count={8}
+        length={10}
+        width={2}
+        color="var(--muted-foreground)"
+        offset={-18}
+        cap="butt"
+        opacity={1}
+      />
+      <GaugeTickLabels
+        count={4}
+        offset={-42}
+        fontSize={16}
+        color="var(--muted-foreground)"
+        font="sans"
+        weight="medium"
+        decimals={0}
+      />
+      <GaugeValue
+        x={-200}
+        y={-54}
+        fontSize={40}
+        color="var(--foreground)"
+        font="mono"
+        weight="semibold"
+        anchor="start"
+        decimals={1}
+      />
+      <GaugeText
+        x={200}
+        y={-48}
+        fontSize={18}
+        color="var(--muted-foreground)"
+        font="sans"
+        weight="medium"
+        anchor="end"
+      >
+        RPM ×1000
+      </GaugeText>
+    </LinearGauge>
+  )
+}"
+`;
+
+exports[`gaugeToCode > prints the saas-metric template 1`] = `
+"import {
+  Gauge,
+  GaugeArc,
+  GaugeText,
+  GaugeTrack,
+  GaugeValue,
+} from "@/components/gauge"
+
+export function CustomGauge({ value }: { value: number }) {
+  return (
+    <Gauge
+      value={value}
+      min={0}
+      max={100}
+      startAngle={90}
+      endAngle={270}
+      radius={200}
+      padding={56}
+      fit="content"
+      transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+    >
+      <GaugeTrack
+        width={28}
+        color="var(--muted)"
+        opacity={1}
+        cap="round"
+        offset={0}
+      />
+      <GaugeArc
+        width={28}
+        color="var(--primary)"
+        opacity={1}
+        cap="round"
+        offset={0}
+      />
+      <GaugeValue
+        x={0}
+        y={-44}
+        fontSize={84}
+        color="var(--foreground)"
+        font="sans"
+        weight="semibold"
+        decimals={0}
+      />
+      <GaugeText
+        x={54}
+        y={-52}
+        fontSize={28}
+        color="var(--muted-foreground)"
+        font="sans"
+        weight="medium"
+        anchor="start"
+      >
+        %
+      </GaugeText>
+      <GaugeText
+        x={0}
+        y={8}
+        fontSize={20}
+        color="var(--muted-foreground)"
+        font="sans"
+        weight="medium"
+      >
+        Conversion rate
+      </GaugeText>
+    </Gauge>
+  )
+}"
+`;
+
+exports[`gaugeToCode > prints the segments template 1`] = `
+"import {
+  Gauge,
+  GaugeText,
+  GaugeTickFill,
+  GaugeValue,
+} from "@/components/gauge"
+
+export function CustomGauge({ value }: { value: number }) {
+  return (
+    <Gauge
+      value={value}
+      min={0}
+      max={100}
+      startAngle={40}
+      endAngle={320}
+      radius={200}
+      padding={56}
+      transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+    >
+      <GaugeTickFill
+        count={40}
+        length={28}
+        litLength={40}
+        width={7}
+        color="var(--foreground)"
+        dimColor="var(--muted)"
+        offset={0}
+        cap="round"
+      />
+      <GaugeValue
+        x={0}
+        y={0}
+        fontSize={104}
+        color="var(--foreground)"
+        font="rounded"
+        weight="bold"
+        decimals={0}
+      />
+      <GaugeText
+        x={0}
+        y={68}
+        fontSize={26}
+        color="var(--muted-foreground)"
+        font="sans"
+        weight="medium"
+      >
+        %
+      </GaugeText>
+    </Gauge>
+  )
+}"
+`;
+
+exports[`gaugeToCode > prints the shift-lights template 1`] = `
+"import {
+  GaugeTickFill,
+  LinearGauge,
+} from "@/components/gauge"
+
+export function CustomGauge({ value }: { value: number }) {
+  return (
+    <LinearGauge
+      value={value}
+      min={9}
+      max={12}
+      length={400}
+      padding={{ top: 24, right: 16, bottom: 24, left: 16 }}
+      transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+    >
+      <GaugeTickFill
+        count={14}
+        length={0}
+        width={22}
+        color="var(--foreground)"
+        dimColor="var(--muted)"
+        offset={0}
+        cap="round"
+      />
+    </LinearGauge>
+  )
+}"
+`;
+
+exports[`gaugeToCode > prints the simple template 1`] = `
+"import {
+  Gauge,
+  GaugeArc,
+  GaugeTrack,
+  GaugeValue,
+} from "@/components/gauge"
+
+export function CustomGauge({ value }: { value: number }) {
+  return (
+    <Gauge
+      value={value}
+      min={0}
+      max={100}
+      startAngle={40}
+      endAngle={320}
+      radius={200}
+      padding={56}
+      transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+    >
+      <GaugeTrack
+        width={24}
+        color="var(--muted)"
+        opacity={1}
+        cap="round"
+        offset={0}
+      />
+      <GaugeArc
+        width={24}
+        color="var(--primary)"
+        opacity={1}
+        cap="round"
+        offset={0}
+      />
+      <GaugeValue
+        x={0}
+        y={0}
+        fontSize={104}
+        color="var(--foreground)"
+        font="rounded"
+        weight="semibold"
+        decimals={0}
+      />
+    </Gauge>
+  )
+}"
+`;
+
+exports[`gaugeToCode > prints the speed-fuel template 1`] = `
+"import {
+  Gauge,
+  GaugeArc,
+  GaugeHub,
+  GaugeInset,
+  GaugeNeedle,
+  GaugeText,
+  GaugeTickLabels,
+  GaugeTicks,
+  GaugeTrack,
+  GaugeValue,
+  GaugeZones,
+} from "@/components/gauge"
+
+const zones = [
+  { to: 180, color: "var(--muted)" },
+  { to: 240, color: "var(--foreground)" },
+]
+
+export function CustomGauge({
+  value,
+  fuel,
+}: {
+  value: number
+  fuel: number
+}) {
+  return (
+    <Gauge
+      value={value}
+      min={0}
+      max={240}
+      startAngle={40}
+      endAngle={320}
+      radius={200}
+      padding={56}
+      transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+    >
+      <GaugeZones
+        zones={zones}
+        width={8}
+        offset={0}
+        gap={0}
+        cap="butt"
+        opacity={1}
+      />
+      <GaugeTicks
+        count={48}
+        length={8}
+        width={1.5}
+        color="var(--muted-foreground)"
+        offset={-12}
+        cap="butt"
+        opacity={0.6}
+      />
+      <GaugeTicks
+        count={12}
+        length={18}
+        width={3}
+        color="var(--foreground)"
+        offset={-16}
+        cap="butt"
+        opacity={1}
+      />
+      <GaugeTickLabels
+        count={12}
+        offset={-54}
+        fontSize={20}
+        color="var(--foreground)"
+        font="sans"
+        weight="semibold"
+        decimals={0}
+      />
+      <GaugeNeedle
+        style="pointer"
+        length={0.85}
+        width={10}
+        color="var(--foreground)"
+        tail={32}
+      />
+      <GaugeHub
+        radius={12}
+        color="var(--foreground)"
+      />
+      <GaugeValue
+        x={0}
+        y={56}
+        fontSize={40}
+        color="var(--foreground)"
+        font="mono"
+        weight="semibold"
+        decimals={0}
+      />
+      <GaugeText
+        x={0}
+        y={88}
+        fontSize={16}
+        color="var(--muted-foreground)"
+        font="sans"
+        weight="medium"
+      >
+        km/h
+      </GaugeText>
+      <GaugeInset
+        x={0}
+        y={0}
+        scale={1}
+        value={fuel}
+        min={0}
+        max={100}
+        startAngle={326}
+        endAngle={394}
+        transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+      >
+        <GaugeTrack
+          width={8}
+          color="var(--muted)"
+          opacity={1}
+          cap="butt"
+          offset={0}
+        />
+        <GaugeArc
+          width={8}
+          color="var(--muted-foreground)"
+          opacity={1}
+          cap="butt"
+          offset={0}
+          reverse
+        />
+        <GaugeTicks
+          count={4}
+          length={10}
+          width={2}
+          color="var(--muted-foreground)"
+          offset={-12}
+          cap="butt"
+          opacity={1}
+        />
+        <GaugeText
+          x={-128}
+          y={188}
+          fontSize={20}
+          color="var(--muted-foreground)"
+          font="sans"
+          weight="semibold"
+        >
+          E
+        </GaugeText>
+        <GaugeText
+          x={128}
+          y={188}
+          fontSize={20}
+          color="var(--muted-foreground)"
+          font="sans"
+          weight="semibold"
+        >
+          F
+        </GaugeText>
+      </GaugeInset>
+    </Gauge>
+  )
+}"
+`;
+
+exports[`gaugeToCode > prints the speedometer template 1`] = `
+"import {
+  Gauge,
+  GaugeHub,
+  GaugeNeedle,
+  GaugeText,
+  GaugeTickLabels,
+  GaugeTicks,
+  GaugeValue,
+  GaugeZones,
+} from "@/components/gauge"
+
+const zones = [
+  { to: 180, color: "var(--muted)" },
+  { to: 240, color: "var(--foreground)" },
+]
+
+export function CustomGauge({ value }: { value: number }) {
+  return (
+    <Gauge
+      value={value}
+      min={0}
+      max={240}
+      startAngle={40}
+      endAngle={320}
+      radius={200}
+      padding={56}
+      transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+    >
+      <GaugeZones
+        zones={zones}
+        width={8}
+        offset={0}
+        gap={0}
+        cap="butt"
+        opacity={1}
+      />
+      <GaugeTicks
+        count={48}
+        length={8}
+        width={1.5}
+        color="var(--muted-foreground)"
+        offset={-12}
+        cap="butt"
+        opacity={0.6}
+      />
+      <GaugeTicks
+        count={12}
+        length={18}
+        width={3}
+        color="var(--foreground)"
+        offset={-16}
+        cap="butt"
+        opacity={1}
+      />
+      <GaugeTickLabels
+        count={12}
+        offset={-54}
+        fontSize={20}
+        color="var(--foreground)"
+        font="sans"
+        weight="semibold"
+        decimals={0}
+      />
+      <GaugeNeedle
+        style="pointer"
+        length={0.85}
+        width={10}
+        color="var(--foreground)"
+        tail={32}
+      />
+      <GaugeHub
+        radius={12}
+        color="var(--foreground)"
+      />
+      <GaugeValue
+        x={0}
+        y={92}
+        fontSize={44}
+        color="var(--foreground)"
+        font="mono"
+        weight="semibold"
+        decimals={0}
+      />
+      <GaugeText
+        x={0}
+        y={128}
+        fontSize={18}
+        color="var(--muted-foreground)"
+        font="sans"
+        weight="medium"
+      >
+        km/h
+      </GaugeText>
+    </Gauge>
+  )
+}"
+`;
+
+exports[`gaugeToCode > prints the sprint template 1`] = `
+"import {
+  Gauge,
+  GaugeArc,
+  GaugeInset,
+  GaugeText,
+  GaugeTooltip,
+  GaugeTrack,
+} from "@/components/gauge"
+
+export function CustomGauge({
+  value,
+  design,
+  qa,
+  frontend,
+  backend,
+}: {
+  value: number
+  design: number
+  qa: number
+  frontend: number
+  backend: number
+}) {
+  return (
+    <Gauge
+      value={value}
+      min={0}
+      max={100}
+      startAngle={180}
+      endAngle={540}
+      radius={200}
+      padding={56}
+      transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+    >
+      <GaugeInset
+        x={-100}
+        y={-100}
+        scale={0.42}
+        value={design}
+        min={0}
+        max={100}
+        startAngle={180}
+        endAngle={540}
+        transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+      >
+        <GaugeTrack
+          width={36}
+          color="var(--muted)"
+          opacity={1}
+          cap="round"
+          offset={0}
+        />
+        <GaugeArc
+          width={36}
+          color="var(--foreground)"
+          opacity={1}
+          cap="round"
+          offset={0}
+        />
+        <GaugeTooltip
+          label="17 of 20 tasks"
+          unit="%"
+          decimals={0}
+          position="value"
+          offset={24}
+          gap={8}
+        />
+        <GaugeText
+          x={0}
+          y={0}
+          fontSize={52}
+          color="var(--muted-foreground)"
+          font="sans"
+          weight="semibold"
+        >
+          Design
+        </GaugeText>
+      </GaugeInset>
+      <GaugeInset
+        x={100}
+        y={-100}
+        scale={0.42}
+        value={qa}
+        min={0}
+        max={100}
+        startAngle={180}
+        endAngle={540}
+        transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+      >
+        <GaugeTrack
+          width={36}
+          color="var(--muted)"
+          opacity={1}
+          cap="round"
+          offset={0}
+        />
+        <GaugeArc
+          width={36}
+          color="var(--foreground)"
+          opacity={1}
+          cap="round"
+          offset={0}
+        />
+        <GaugeTooltip
+          label="3 of 25 tasks"
+          unit="%"
+          decimals={0}
+          position="value"
+          offset={24}
+          gap={8}
+        />
+        <GaugeText
+          x={0}
+          y={0}
+          fontSize={52}
+          color="var(--muted-foreground)"
+          font="sans"
+          weight="semibold"
+        >
+          QA
+        </GaugeText>
+      </GaugeInset>
+      <GaugeInset
+        x={-100}
+        y={100}
+        scale={0.42}
+        value={frontend}
+        min={0}
+        max={100}
+        startAngle={180}
+        endAngle={540}
+        transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+      >
+        <GaugeTrack
+          width={36}
+          color="var(--muted)"
+          opacity={1}
+          cap="round"
+          offset={0}
+        />
+        <GaugeArc
+          width={36}
+          color="var(--foreground)"
+          opacity={1}
+          cap="round"
+          offset={0}
+        />
+        <GaugeTooltip
+          label="13 of 21 tasks"
+          unit="%"
+          decimals={0}
+          position="value"
+          offset={24}
+          gap={8}
+        />
+        <GaugeText
+          x={0}
+          y={0}
+          fontSize={52}
+          color="var(--muted-foreground)"
+          font="sans"
+          weight="semibold"
+        >
+          Frontend
+        </GaugeText>
+      </GaugeInset>
+      <GaugeInset
+        x={100}
+        y={100}
+        scale={0.42}
+        value={backend}
+        min={0}
+        max={100}
+        startAngle={180}
+        endAngle={540}
+        transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+      >
+        <GaugeTrack
+          width={36}
+          color="var(--muted)"
+          opacity={1}
+          cap="round"
+          offset={0}
+        />
+        <GaugeArc
+          width={36}
+          color="var(--foreground)"
+          opacity={1}
+          cap="round"
+          offset={0}
+        />
+        <GaugeTooltip
+          label="9 of 24 tasks"
+          unit="%"
+          decimals={0}
+          position="value"
+          offset={24}
+          gap={8}
+        />
+        <GaugeText
+          x={0}
+          y={0}
+          fontSize={52}
+          color="var(--muted-foreground)"
+          font="sans"
+          weight="semibold"
+        >
+          Backend
+        </GaugeText>
+      </GaugeInset>
+    </Gauge>
+  )
+}"
+`;
+
+exports[`gaugeToCode > prints the sun-path template 1`] = `
+"import {
+  Gauge,
+  GaugeArc,
+  GaugeDot,
+  GaugeText,
+  GaugeTicks,
+  GaugeTrack,
+} from "@/components/gauge"
+
+export function CustomGauge({ value }: { value: number }) {
+  return (
+    <Gauge
+      value={value}
+      min={6}
+      max={18}
+      startAngle={90}
+      endAngle={270}
+      radius={200}
+      padding={56}
+      fit="content"
+      transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+    >
+      <GaugeTrack
+        width={26}
+        color="var(--muted-foreground)"
+        opacity={0.19}
+        cap="round"
+        offset={0}
+      />
+      <GaugeArc
+        width={24}
+        color="var(--muted-foreground)"
+        opacity={1}
+        cap="round"
+        offset={0}
+      />
+      <GaugeTicks
+        count={24}
+        length={2}
+        width={3}
+        color="var(--foreground)"
+        offset={0}
+        cap="round"
+        opacity={0.5}
+      />
+      <GaugeDot
+        radius={17.5}
+        color="var(--primary)"
+        opacity={1}
+        offset={0}
+      />
+      <GaugeText
+        x={0}
+        y={-20}
+        fontSize={19}
+        color="var(--muted-foreground)"
+        font="rounded"
+        weight="semibold"
+      >
+        06:12 – 18:04
+      </GaugeText>
+      <GaugeText
+        x={0}
+        y={-66}
+        fontSize={24}
+        color="var(--foreground)"
+        font="rounded"
+        weight="semibold"
+      >
+        Daylight
+      </GaugeText>
+    </Gauge>
+  )
+}"
+`;
+
+exports[`gaugeToCode > prints the system template 1`] = `
+"import {
+  Gauge,
+  GaugeArc,
+  GaugeInset,
+  GaugeText,
+  GaugeTrack,
+  GaugeValue,
+} from "@/components/gauge"
+
+export function CustomGauge({
+  value,
+  mem,
+  disk,
+}: {
+  value: number
+  mem: number
+  disk: number
+}) {
+  return (
+    <Gauge
+      value={value}
+      min={0}
+      max={100}
+      startAngle={90}
+      endAngle={270}
+      radius={200}
+      padding={56}
+      transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+    >
+      <GaugeTrack
+        width={26}
+        color="var(--muted)"
+        opacity={1}
+        cap="round"
+        offset={0}
+      />
+      <GaugeArc
+        width={26}
+        color="var(--primary)"
+        opacity={1}
+        cap="round"
+        offset={0}
+      />
+      <GaugeValue
+        x={-12}
+        y={-60}
+        fontSize={76}
+        color="var(--foreground)"
+        font="rounded"
+        weight="bold"
+        decimals={0}
+      />
+      <GaugeText
+        x={38}
+        y={-68}
+        fontSize={26}
+        color="var(--muted-foreground)"
+        font="sans"
+        weight="medium"
+        anchor="start"
+      >
+        %
+      </GaugeText>
+      <GaugeText
+        x={0}
+        y={-124}
+        fontSize={22}
+        color="var(--muted-foreground)"
+        font="sans"
+        weight="medium"
+      >
+        CPU
+      </GaugeText>
+      <GaugeInset
+        x={-100}
+        y={110}
+        scale={0.4}
+        value={mem}
+        min={0}
+        max={100}
+        startAngle={90}
+        endAngle={270}
+        transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+      >
+        <GaugeTrack
+          width={30}
+          color="var(--muted)"
+          opacity={1}
+          cap="round"
+          offset={0}
+        />
+        <GaugeArc
+          width={30}
+          color="var(--foreground)"
+          opacity={1}
+          cap="round"
+          offset={0}
+        />
+        <GaugeValue
+          x={-24}
+          y={-24}
+          fontSize={88}
+          color="var(--foreground)"
+          font="rounded"
+          weight="bold"
+          decimals={0}
+        />
+        <GaugeText
+          x={52}
+          y={-32}
+          fontSize={44}
+          color="var(--muted-foreground)"
+          font="sans"
+          weight="medium"
+          anchor="start"
+        >
+          %
+        </GaugeText>
+        <GaugeText
+          x={0}
+          y={100}
+          fontSize={52}
+          color="var(--muted-foreground)"
+          font="sans"
+          weight="semibold"
+        >
+          MEM
+        </GaugeText>
+      </GaugeInset>
+      <GaugeInset
+        x={100}
+        y={110}
+        scale={0.4}
+        value={disk}
+        min={0}
+        max={100}
+        startAngle={90}
+        endAngle={270}
+        transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+      >
+        <GaugeTrack
+          width={30}
+          color="var(--muted)"
+          opacity={1}
+          cap="round"
+          offset={0}
+        />
+        <GaugeArc
+          width={30}
+          color="var(--muted-foreground)"
+          opacity={1}
+          cap="round"
+          offset={0}
+        />
+        <GaugeValue
+          x={-24}
+          y={-24}
+          fontSize={88}
+          color="var(--foreground)"
+          font="rounded"
+          weight="bold"
+          decimals={0}
+        />
+        <GaugeText
+          x={52}
+          y={-32}
+          fontSize={44}
+          color="var(--muted-foreground)"
+          font="sans"
+          weight="medium"
+          anchor="start"
+        >
+          %
+        </GaugeText>
+        <GaugeText
+          x={0}
+          y={100}
+          fontSize={52}
+          color="var(--muted-foreground)"
+          font="sans"
+          weight="semibold"
+        >
+          DISK
+        </GaugeText>
+      </GaugeInset>
+    </Gauge>
+  )
+}"
+`;
+
+exports[`gaugeToCode > prints the tachometer template 1`] = `
+"import {
+  Gauge,
+  GaugeHub,
+  GaugeNeedle,
+  GaugeText,
+  GaugeTickLabels,
+  GaugeTicks,
+  GaugeValue,
+  GaugeZones,
+} from "@/components/gauge"
+
+const zones = [
+  { to: 6.5, color: "var(--muted)" },
+  { to: 8, color: "var(--foreground)" },
+]
+
+export function CustomGauge({ value }: { value: number }) {
+  return (
+    <Gauge
+      value={value}
+      min={0}
+      max={8}
+      startAngle={40}
+      endAngle={320}
+      radius={200}
+      padding={56}
+      transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+    >
+      <GaugeZones
+        zones={zones}
+        width={10}
+        offset={4}
+        gap={0}
+        cap="butt"
+        opacity={1}
+      />
+      <GaugeTicks
+        count={40}
+        length={8}
+        width={1.5}
+        color="var(--muted-foreground)"
+        offset={-12}
+        cap="butt"
+        opacity={0.6}
+      />
+      <GaugeTicks
+        count={8}
+        length={18}
+        width={3}
+        color="var(--foreground)"
+        offset={-16}
+        cap="butt"
+        opacity={1}
+      />
+      <GaugeTickLabels
+        count={8}
+        offset={-52}
+        fontSize={24}
+        color="var(--foreground)"
+        font="sans"
+        weight="bold"
+        decimals={0}
+      />
+      <GaugeNeedle
+        style="pointer"
+        length={0.88}
+        width={10}
+        color="var(--foreground)"
+        tail={30}
+      />
+      <GaugeHub
+        radius={12}
+        color="var(--foreground)"
+      />
+      <GaugeValue
+        x={0}
+        y={92}
+        fontSize={44}
+        color="var(--foreground)"
+        font="mono"
+        weight="semibold"
+        decimals={1}
+      />
+      <GaugeText
+        x={0}
+        y={128}
+        fontSize={16}
+        color="var(--muted-foreground)"
+        font="sans"
+        weight="medium"
+      >
+        x1000 rpm
+      </GaugeText>
+    </Gauge>
+  )
+}"
+`;
+
+exports[`gaugeToCode > prints the tank template 1`] = `
+"import {
+  GaugeArc,
+  GaugeMarks,
+  GaugeText,
+  GaugeTrack,
+  GaugeValue,
+  GaugeZones,
+  LinearGauge,
+  zoneCutoffs,
+} from "@/components/gauge"
+
+const zones = [
+  { to: 25, color: "var(--muted)" },
+  { to: 50, color: "var(--muted-foreground)" },
+  { to: 75, color: "var(--foreground)" },
+  { to: 100, color: "var(--primary)" },
+]
+
+export function CustomGauge({ value }: { value: number }) {
+  return (
+    <LinearGauge
+      value={value}
+      min={0}
+      max={100}
+      orientation="vertical"
+      length={320}
+      padding={{ top: 60, right: 44, bottom: 60, left: 44 }}
+      transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+    >
+      <GaugeTrack
+        width={64}
+        color="var(--muted)"
+        opacity={1}
+        cap="butt"
+        offset={0}
+      />
+      <GaugeZones
+        zones={zones}
+        width={8}
+        offset={-24}
+        gap={1.5}
+        cap="butt"
+        opacity={0}
+      />
+      <GaugeArc
+        width={64}
+        color="var(--foreground)"
+        opacity={1}
+        cap="butt"
+        offset={0}
+      />
+      <GaugeMarks
+        values={zoneCutoffs(zones)}
+        length={64}
+        width={4}
+        color="var(--background)"
+        offset={0}
+        cap="butt"
+      />
+      <GaugeValue
+        x={-12}
+        y={196}
+        fontSize={36}
+        color="var(--foreground)"
+        font="sans"
+        weight="semibold"
+        decimals={0}
+      />
+      <GaugeText
+        x={16}
+        y={198}
+        fontSize={22}
+        color="var(--muted-foreground)"
+        font="sans"
+        weight="medium"
+        anchor="start"
+      >
+        %
+      </GaugeText>
+      <GaugeText
+        x={0}
+        y={-196}
+        fontSize={22}
+        color="var(--muted-foreground)"
+        font="sans"
+        weight="medium"
+      >
+        Water
+      </GaugeText>
+    </LinearGauge>
+  )
+}"
+`;
+
+exports[`gaugeToCode > prints the temperature template 1`] = `
+"import {
+  Gauge,
+  GaugeArc,
+  GaugeDot,
+  GaugeText,
+  GaugeTicks,
+  GaugeTrack,
+  GaugeValue,
+  GaugeZones,
+  zoneColor,
+} from "@/components/gauge"
+
+const zones = [
+  { to: 10, color: "var(--muted-foreground)" },
+  { to: 26, color: "var(--primary)" },
+  { to: 40, color: "var(--foreground)" },
+]
+
+export function CustomGauge({ value }: { value: number }) {
+  return (
+    <Gauge
+      value={value}
+      min={-20}
+      max={40}
+      startAngle={40}
+      endAngle={320}
+      radius={200}
+      padding={56}
+      transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+    >
+      <GaugeTrack
+        width={16}
+        color="var(--muted)"
+        opacity={1}
+        cap="round"
+        offset={0}
+      />
+      <GaugeZones
+        zones={zones}
+        width={6}
+        offset={-20}
+        gap={1}
+        cap="butt"
+        opacity={0.9}
+      />
+      <GaugeArc
+        width={16}
+        color={zoneColor(zones, value, "var(--primary)")}
+        opacity={1}
+        cap="round"
+        offset={0}
+      />
+      <GaugeTicks
+        count={60}
+        length={6}
+        width={1.5}
+        color="var(--muted-foreground)"
+        offset={-34}
+        cap="round"
+        opacity={0.5}
+      />
+      <GaugeDot
+        radius={5}
+        color="var(--foreground)"
+        opacity={1}
+        offset={-54}
+      />
+      <GaugeValue
+        x={0}
+        y={0}
+        fontSize={84}
+        color="var(--foreground)"
+        font="rounded"
+        weight="semibold"
+        decimals={1}
+      />
+      <GaugeText
+        x={0}
+        y={68}
+        fontSize={28}
+        color="var(--muted-foreground)"
+        font="sans"
+        weight="medium"
+      >
+        °C
+      </GaugeText>
+      <GaugeText
+        x={0}
+        y={-72}
+        fontSize={22}
+        color="var(--muted-foreground)"
+        font="sans"
+        weight="medium"
+      >
+        Cabin
+      </GaugeText>
+    </Gauge>
+  )
+}"
+`;
+
+exports[`gaugeToCode > prints the thermostat template 1`] = `
+"import {
+  Gauge,
+  GaugeArc,
+  GaugeDot,
+  GaugeText,
+  GaugeTicks,
+  GaugeTrack,
+  GaugeValue,
+} from "@/components/gauge"
+
+export function CustomGauge({ value }: { value: number }) {
+  return (
+    <Gauge
+      value={value}
+      min={10}
+      max={30}
+      startAngle={40}
+      endAngle={320}
+      radius={200}
+      padding={56}
+      transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+    >
+      <GaugeTrack
+        width={26}
+        color="var(--muted)"
+        opacity={1}
+        cap="butt"
+        offset={0}
+      />
+      <GaugeArc
+        width={26}
+        color="var(--foreground)"
+        opacity={0.4}
+        cap="butt"
+        offset={0}
+      />
+      <GaugeTicks
+        count={80}
+        length={30}
+        width={2.5}
+        color="var(--background)"
+        offset={0}
+        cap="butt"
+        opacity={1}
+      />
+      <GaugeDot
+        radius={13}
+        color="var(--foreground)"
+        opacity={1}
+        offset={0}
+      />
+      <GaugeValue
+        x={0}
+        y={-4}
+        fontSize={88}
+        color="var(--foreground)"
+        font="rounded"
+        weight="bold"
+        decimals={1}
+      />
+      <GaugeText
+        x={0}
+        y={64}
+        fontSize={24}
+        color="var(--muted-foreground)"
+        font="sans"
+        weight="medium"
+      >
+        °C
+      </GaugeText>
+      <GaugeText
+        x={0}
+        y={-80}
+        fontSize={20}
+        color="var(--muted-foreground)"
+        font="sans"
+        weight="semibold"
+      >
+        Heating
+      </GaugeText>
+    </Gauge>
+  )
+}"
+`;
+
+exports[`gaugeToCode > prints the throttle template 1`] = `
+"import {
+  GaugeArc,
+  GaugeMarks,
+  GaugeText,
+  GaugeTickLabels,
+  GaugeTrack,
+  GaugeValue,
+  GaugeZones,
+  LinearGauge,
+  zoneCutoffs,
+} from "@/components/gauge"
+
+const zones = [
+  { to: 25, color: "var(--muted)" },
+  { to: 50, color: "var(--muted-foreground)" },
+  { to: 75, color: "var(--foreground)" },
+  { to: 100, color: "var(--primary)" },
+]
+
+export function CustomGauge({ value }: { value: number }) {
+  return (
+    <LinearGauge
+      value={value}
+      min={0}
+      max={100}
+      length={400}
+      padding={{ top: 64, right: 28, bottom: 64, left: 28 }}
+      transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+    >
+      <GaugeTrack
+        width={28}
+        color="var(--muted)"
+        opacity={1}
+        cap="butt"
+        offset={0}
+      />
+      <GaugeZones
+        zones={zones}
+        width={8}
+        offset={-24}
+        gap={1.5}
+        cap="butt"
+        opacity={0}
+      />
+      <GaugeArc
+        width={28}
+        color="var(--foreground)"
+        opacity={1}
+        cap="butt"
+        offset={0}
+      />
+      <GaugeMarks
+        values={zoneCutoffs(zones)}
+        length={28}
+        width={4}
+        color="var(--background)"
+        offset={0}
+        cap="butt"
+      />
+      <GaugeTickLabels
+        count={4}
+        offset={-36}
+        fontSize={16}
+        color="var(--muted-foreground)"
+        font="sans"
+        weight="medium"
+        decimals={0}
+      />
+      <GaugeValue
+        x={178}
+        y={-44}
+        fontSize={32}
+        color="var(--foreground)"
+        font="sans"
+        weight="semibold"
+        anchor="end"
+        decimals={0}
+      />
+      <GaugeText
+        x={200}
+        y={-41}
+        fontSize={22}
+        color="var(--muted-foreground)"
+        font="sans"
+        weight="medium"
+        anchor="end"
+      >
+        %
+      </GaugeText>
+      <GaugeText
+        x={-200}
+        y={-44}
+        fontSize={22}
+        color="var(--muted-foreground)"
+        font="sans"
+        weight="medium"
+        anchor="start"
+      >
+        Throttle
+      </GaugeText>
+    </LinearGauge>
+  )
+}"
+`;
+
+exports[`gaugeToCode > prints the timer template 1`] = `
+"import {
+  Gauge,
+  GaugeArc,
+  GaugeText,
+  GaugeTicks,
+  GaugeTrack,
+  GaugeValue,
+} from "@/components/gauge"
+
+export function CustomGauge({ value }: { value: number }) {
+  return (
+    <Gauge
+      value={value}
+      min={0}
+      max={60}
+      startAngle={180}
+      endAngle={540}
+      radius={200}
+      padding={56}
+      transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+    >
+      <GaugeTrack
+        width={8}
+        color="var(--muted)"
+        opacity={1}
+        cap="butt"
+        offset={0}
+      />
+      <GaugeArc
+        width={8}
+        color="var(--foreground)"
+        opacity={1}
+        cap="butt"
+        offset={0}
+      />
+      <GaugeTicks
+        count={60}
+        length={5}
+        width={1.5}
+        color="var(--muted-foreground)"
+        offset={16}
+        cap="round"
+        opacity={0.5}
+      />
+      <GaugeTicks
+        count={12}
+        length={10}
+        width={2.5}
+        color="var(--foreground)"
+        offset={18}
+        cap="round"
+        opacity={1}
+      />
+      <GaugeValue
+        x={0}
+        y={-8}
+        fontSize={110}
+        color="var(--foreground)"
+        font="mono"
+        weight="regular"
+        decimals={0}
+      />
+      <GaugeText
+        x={0}
+        y={60}
+        fontSize={24}
+        color="var(--muted-foreground)"
+        font="mono"
+        weight="medium"
+      >
+        sec
+      </GaugeText>
+    </Gauge>
+  )
+}"
+`;
+
+exports[`gaugeToCode > prints the volume template 1`] = `
+"import {
+  Gauge,
+  GaugeArc,
+  GaugeControl,
+  GaugeDot,
+  GaugeHub,
+  GaugeTicks,
+  GaugeTrack,
+  GaugeValue,
+} from "@/components/gauge"
+
+export function CustomGauge({
+  value,
+  onChange,
+}: {
+  value: number
+  onChange: (value: number) => void
+}) {
+  return (
+    <GaugeControl
+      value={value}
+      onChange={onChange}
+      min={0}
+      max={100}
+      step={1}
+      startAngle={40}
+      endAngle={320}
+      label="Value"
+      knob
+    >
+      <Gauge
+        value={value}
+        min={0}
+        max={100}
+        startAngle={40}
+        endAngle={320}
+        radius={200}
+        padding={56}
+        transition={{ type: "spring", visualDuration: 0.3, bounce: 0 }}
+      >
+        <GaugeHub
+          radius={156}
+          color="var(--muted)"
+        />
+        <GaugeTrack
+          width={6}
+          color="var(--foreground)"
+          opacity={0.12}
+          cap="round"
+          offset={-18}
+        />
+        <GaugeArc
+          width={6}
+          color="var(--foreground)"
+          opacity={1}
+          cap="round"
+          offset={-18}
+        />
+        <GaugeTicks
+          count={20}
+          length={12}
+          width={3}
+          color="var(--muted-foreground)"
+          offset={6}
+          cap="round"
+          opacity={0.45}
+        />
+        <GaugeDot
+          radius={11}
+          color="var(--foreground)"
+          opacity={1}
+          offset={-76}
+        />
+        <GaugeValue
+          x={0}
+          y={0}
+          fontSize={64}
+          color="var(--foreground)"
+          font="rounded"
+          weight="bold"
+          decimals={0}
+        />
+      </Gauge>
+    </GaugeControl>
+  )
+}"
+`;
+
+exports[`gaugeToCode > prints the wind template 1`] = `
+"import {
+  Gauge,
+  GaugeNeedle,
+  GaugeText,
+  GaugeTickLabels,
+  GaugeTicks,
+  GaugeTrack,
+  compassLabel,
+} from "@/components/gauge"
+
+export function CustomGauge({ value }: { value: number }) {
+  return (
+    <Gauge
+      value={value}
+      min={0}
+      max={360}
+      startAngle={180}
+      endAngle={540}
+      radius={200}
+      padding={56}
+      transition={{ type: "spring", visualDuration: 0.5, bounce: 0.1 }}
+    >
+      <GaugeTrack
+        width={24}
+        color="var(--muted)"
+        opacity={1}
+        cap="butt"
+        offset={0}
+      />
+      <GaugeTicks
+        count={36}
+        length={4}
+        width={3}
+        color="var(--muted-foreground)"
+        offset={0}
+        cap="round"
+        opacity={0.6}
+      />
+      <GaugeTicks
+        count={4}
+        length={8}
+        width={3}
+        color="var(--muted-foreground)"
+        offset={0}
+        cap="round"
+        opacity={1}
+      />
+      <GaugeTickLabels
+        count={4}
+        offset={-44}
+        fontSize={32}
+        color="var(--muted-foreground)"
+        font="rounded"
+        weight="bold"
+        format={compassLabel}
+      />
+      <GaugeNeedle
+        style="arrow"
+        length={1.05}
+        width={7}
+        color="var(--foreground)"
+        tail={200}
+        tailDot={12}
+        gap={84}
+      />
+      <GaugeText
+        x={0}
+        y={32}
+        fontSize={26}
+        color="var(--muted-foreground)"
+        font="rounded"
+        weight="medium"
+      >
+        m/s
+      </GaugeText>
+      <GaugeText
+        x={0}
+        y={-14}
+        fontSize={72}
+        color="var(--foreground)"
+        font="rounded"
+        weight="bold"
+      >
+        5
+      </GaugeText>
+    </Gauge>
+  )
+}"
+`;
