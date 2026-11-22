@@ -43,6 +43,8 @@ export type GaugeNeedleProps = {
   end?: GaugeEnd
 }
 
+const TIP = 0.2
+
 const pts = (points: { x: number; y: number }[]) =>
   points.map((p) => `${p.x},${p.y}`).join(" ")
 
@@ -166,7 +168,7 @@ const NeedleShape = ({
 
   const left = polar(width / 2, angle - 90)
   const right = polar(width / 2, angle + 90)
-  const endRadius = width * 0.2
+  const endRadius = width * TIP
   const endLeft = polar(endRadius, angle - 90)
   const endRight = polar(endRadius, angle + 90)
   const blade = (end: { x: number; y: number }) =>

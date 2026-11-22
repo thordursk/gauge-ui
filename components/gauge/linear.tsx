@@ -4,6 +4,7 @@ import type { SVGProps } from "react"
 
 import { cn } from "@/lib/utils"
 
+import { GaugeControlSurface } from "./control"
 import { GaugeContext, useLinearGaugeContextValue } from "./context"
 import type { LinearGaugeDomainProps } from "./context"
 
@@ -84,19 +85,21 @@ export const LinearGauge = ({
 
   return (
     <GaugeContext.Provider value={gauge}>
-      <svg
-        viewBox={`${box.x} ${box.y} ${box.width} ${box.height}`}
-        preserveAspectRatio="xMidYMid meet"
-        style={{ aspectRatio: `${box.width} / ${box.height}`, ...style }}
-        className={cn(
-          "overflow-visible",
-          vertical ? "h-full w-auto" : "h-auto w-full",
-          className
-        )}
-        {...props}
-      >
-        {children}
-      </svg>
+      <GaugeControlSurface>
+        <svg
+          viewBox={`${box.x} ${box.y} ${box.width} ${box.height}`}
+          preserveAspectRatio="xMidYMid meet"
+          style={{ aspectRatio: `${box.width} / ${box.height}`, ...style }}
+          className={cn(
+            "overflow-visible",
+            vertical ? "h-full w-auto" : "h-auto w-full",
+            className
+          )}
+          {...props}
+        >
+          {children}
+        </svg>
+      </GaugeControlSurface>
     </GaugeContext.Provider>
   )
 }
