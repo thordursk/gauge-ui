@@ -1,10 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import {
+  BREW_BAND,
   DEFAULT_RECIPE,
+  GRIND_MAX,
+  GRIND_MIN,
+  PREINFUSION_BAND,
   WINDOW,
   shotTime,
   useEspressoSimulation,
+  type Espresso,
   type Recipe,
 } from "@/components/examples/espresso-simulation"
 
@@ -34,6 +39,15 @@ describe("shotTime", () => {
     expect(fine).toBeGreaterThan(WINDOW[1])
   })
 
+  it("clamps the grind to its range", () => {
+    expect(shotTime({ ...DEFAULT_RECIPE, grind: GRIND_MIN - 5 })).toBe(
+      shotTime({ ...DEFAULT_RECIPE, grind: GRIND_MIN })
+    )
+    expect(shotTime({ ...DEFAULT_RECIPE, grind: GRIND_MAX + 5 })).toBe(
+      shotTime({ ...DEFAULT_RECIPE, grind: GRIND_MAX })
+    )
+  })
+
   it("times the same shots as before", () => {
     const recipes: Recipe[] = [
       DEFAULT_RECIPE,
@@ -58,11 +72,26 @@ describe("useEspressoSimulation", () => {
     expect(shots).toMatchSnapshot()
   })
 
+  it("builds pressure inside the pre-infusion band before brewing", () => {
+    onScreen()
+    const { result } = runHook(useDefaultShot)
+    const shot = sample(() => result.current, { every: TICK, times: 200 })
+    const soaking = (shot as Espresso[]).filter(
+      (e, i, all) =>
+        e.phase === "preinfusion" && all[i + 1]?.phase === "extraction"
+    )
+    expect(soaking).toHaveLength(1)
+    expect(soaking[0].pressure).toBeGreaterThanOrEqual(PREINFUSION_BAND[0])
+    expect(soaking[0].pressure).toBeLessThanOrEqual(PREINFUSION_BAND[1])
+  })
+
   it("holds a shot partway through for reduced motion", () => {
     onScreen({ reducedMotion: true })
     const { result } = runHook(useDefaultShot)
     advance(100)
     expect(result.current.phase).toBe("extraction")
+    expect(result.current.pressure).toBeGreaterThanOrEqual(BREW_BAND[0])
+    expect(result.current.pressure).toBeLessThanOrEqual(BREW_BAND[1])
     expect(rounded(result.current)).toMatchSnapshot()
   })
 })
