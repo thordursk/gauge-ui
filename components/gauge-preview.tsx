@@ -34,18 +34,22 @@ type GaugePreviewProps = {
   tooltips?: boolean
 }
 
-const SWEEP_TURNS = 0.4
+export const HALF_TURN = 0.5
+export const SWEEP_TURNS = HALF_TURN * 0.8
 
-const sweepFrom = (spec: GaugeSpec, value: number) => {
-  const { min, max } = spec.domain
-  const span = max - min
-  const turns = Math.max(
+export const maxTurns = (spec: GaugeSpec) =>
+  Math.max(
     1,
     ...(spec.needles.show ? spec.needles.list.map((n) => n.turns) : []),
     ...(spec.dot.show ? [spec.dot.turns] : [])
   )
-  const reach = turns > 1 ? (span / turns) * SWEEP_TURNS : span
-  return Math.max(min, value - reach)
+
+export const reachWithinOneSweep = (span: number, turns: number) =>
+  turns > 1 ? (span / turns) * SWEEP_TURNS : span
+
+export const sweepFrom = (spec: GaugeSpec, value: number) => {
+  const { min, max } = spec.domain
+  return Math.max(min, value - reachWithinOneSweep(max - min, maxTurns(spec)))
 }
 
 const valueOf = (spec: GaugeSpec, value: number) =>
