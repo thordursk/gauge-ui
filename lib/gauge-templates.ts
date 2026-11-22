@@ -1,4 +1,5 @@
 import {
+  NO_PAINT,
   defaultPanelValues,
   resolvePanelValues,
   type PanelUpdates,
@@ -141,41 +142,41 @@ const planetOrbit = (
   text: { value: { show: false }, unit: { show: false } },
 })
 
+type MarksUpdates = NonNullable<PanelUpdates["cutoffs"]>["marks"]
+
+const marksAt = (
+  values: number[],
+  marks: MarksUpdates
+): PanelUpdates["cutoffs"] => ({
+  show: true,
+  band: { show: false },
+  marks: {
+    show: true,
+    values: values.join(", "),
+    offset: 0,
+    cap: "butt",
+    ...marks,
+  },
+})
+
 const quarterCuts = (
   min: number,
   max: number,
   length: number
 ): PanelUpdates["cutoffs"] => {
   const at = (t: number) => min + (max - min) * t
-  return {
-    show: true,
-    count: 4,
-    zone1: { to: at(0.25) },
-    zone2: { to: at(0.5) },
-    zone3: { to: at(0.75) },
-    band: { opacity: 0 },
-    marks: {
-      show: true,
-      length,
-      width: 4,
-      offset: 0,
-      cap: "butt",
-      color: token("background"),
-    },
-  }
+  return marksAt([at(0.25), at(0.5), at(0.75)], {
+    length,
+    width: 4,
+    color: token("background"),
+  })
 }
 
 const markAt = (
   at: number,
   length: number,
   color: ReturnType<typeof token>
-): PanelUpdates["cutoffs"] => ({
-  show: true,
-  count: 2,
-  zone1: { to: at },
-  band: { opacity: 0 },
-  marks: { show: true, length, width: 3, offset: 0, cap: "butt", color },
-})
+): PanelUpdates["cutoffs"] => marksAt([at], { length, width: 3, color })
 
 const spectrumBand = (db: number, x?: number): PanelUpdates => ({
   gauge: {
@@ -1109,28 +1110,11 @@ const templates: GaugeTemplate[] = [
         track: { width: 30, cap: "butt" },
         arc: { width: 30, color: token("foreground"), cap: "butt" },
       },
-      cutoffs: {
-        show: true,
-        count: 2,
-        zone1: { to: 80, color: token("muted") },
-        zone2: { color: token("muted") },
-        band: {
-          width: 30,
-          offset: 0,
-          gap: 0,
-          cap: "butt",
-          endCap: "butt",
-          opacity: 0,
-        },
-        marks: {
-          show: true,
-          length: 46,
-          width: 5,
-          offset: 0,
-          cap: "butt",
-          color: token("foreground"),
-        },
-      },
+      cutoffs: marksAt([80], {
+        length: 46,
+        width: 5,
+        color: token("foreground"),
+      }),
       text: {
         value: {
           fontSize: 92,
@@ -1787,7 +1771,7 @@ const templates: GaugeTemplate[] = [
       ...planetOrbit(0, 65, 7),
       needle: {
         show: true,
-        needle1: { style: "line", length: 0.1, width: 1, tail: 0 },
+        count: 0,
         hub: { radius: 24, color: token("foreground") },
       },
       text: {
@@ -1897,7 +1881,7 @@ const templates: GaugeTemplate[] = [
       cutoffs: {
         show: true,
         count: 2,
-        zone1: { to: 11, color: token("background") },
+        zone1: { to: 11, color: token(NO_PAINT) },
         zone2: { color: token("foreground") },
         band: { width: 5, offset: 18, gap: 0, cap: "butt", endCap: "butt" },
       },
