@@ -1,0 +1,3 @@
+# Code highlighting with dual-theme Shiki
+
+`lib/highlight.ts` builds a `shiki/core` highlighter with only the TSX grammar, the GitHub light and dark themes, and the JavaScript regex engine. That keeps the client bundle small and avoids WASM. It renders both themes at once (`defaultColor: false`), so the output carries `--shiki-light`/`--shiki-dark` variables and `app/globals.css` picks one by the `.dark` class. `background-color: transparent !important` beats Shiki's inline background, so the code drawer supplies its own. Line numbers are a CSS counter on `.code-block .line::before` with `user-select: none`, so they never enter the source string or the clipboard.

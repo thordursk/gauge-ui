@@ -1,0 +1,10 @@
+# Gauge animation model
+
+Gauges animate with a hand-rolled spring or tween (`components/gauge/transition.ts`, `use-animated-value.ts`). Several choices in it look like bugs or simplification targets but are deliberate.
+
+- **No clamping during flight.** `useGaugeReading` (`context.tsx`) publishes the animated value as the spring leaves it, and only folds it on a wrapped domain. Clamping would flatten the bounce past the ends. Consumers that need a bounded value, such as `valueToAngle`, clamp it themselves.
+- **Integration.** `stepSpring` uses semi-implicit Euler in fixed 1/240 s substeps and caps a frame's dt at 64 ms. Explicit Euler at frame rate diverges for stiff springs and after a tab switch.
+- **Wrapped domains.** `useAnimatedValue` keeps a wrapped target in an unbounded series, folding each change the short way round. It updates that series with setState during render (React's pattern for adjusting state to props), so no stale frame renders. At rest it snaps back to the canonical target (`restAt = target`), so turning forever never drifts. The flight simulation's `heading` likewise keeps counting past 360 (`flight-simulation.ts`), so the compass card in `cockpit.tsx` never spins back through north. Only the text readout wraps it.
+- **Config identity.** The transition is read through a ref, and the effect is keyed on `JSON.stringify(transition)`, so inline objects don't restart the animation on every render. As a result, changing only a function-valued `ease` doesn't restart a running animation.
+- **Readers share the spring.** Children that must move with the needle read `useGauge().value`, not the parent's prop. The cockpit `Horizon` does this so it never disagrees with the bank pointer mid-transition.
+- **Some gauges deliberately have no transition.** These are controls inside `GaugeControl` (music studio knobs and faders), so the cap stays under the pointer; `rocket-launch.tsx`'s `PressureBar`, so the fill never trails its max-Q mark; and the `time-dashboard.tsx` stopwatch hands, which wrap to zero and would swing the long way round.

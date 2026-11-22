@@ -1,0 +1,7 @@
+# GaugeControl is headless and keyboard-first
+
+`GaugeControl` (`components/gauge/control.tsx`) turns any gauge drawing into a slider without drawing anything itself.
+
+- **Hidden thumbs.** It renders one visually hidden `role="slider"` element per value (two for a range). The visible handle is whatever the gauge draws, `GaugeDot` for example. Those empty-looking divs are the accessible thumbs: each one is tabbable and announced.
+- **Pointer focus versus keyboard focus.** Browsers treat `focus()` called from script as keyboard focus and match `:focus-visible`. When the control focuses a thumb on pointer-down, it tags it `data-pointer` until a key is pressed. The focus ring (`has-[:focus-visible:not([data-pointer])]`) and `GaugeTooltip`'s focus check both skip tagged thumbs. The tooltip also treats any keydown as keyboard use, because the browser may not have flipped `:focus-visible` yet. This is a contract between `control.tsx` and `tooltip.tsx`.
+- **Square box only.** Drag angles are measured from the centre of the box. `buildSpec` (`lib/gauge-panels.ts`) therefore emits no `control` for a dial with `fit: "content"`, and the studio stage (`gauge-studio.tsx`) sizes a controlled gauge to the largest square (`size-[min(100cqw,100cqh)]`) inside a size container. The stage itself has no aspect ratio, so fitted and linear gauges can size from their own ratio. The hand control is disabled while an inset layer is selected, because it only sets the host value.
