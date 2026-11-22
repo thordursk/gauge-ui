@@ -23,9 +23,8 @@ describe("rehearsal", () => {
     expect(EVENTS).toMatchSnapshot()
   })
 
-  it("leaves the booster a landing reserve", () => {
-    expect(LANDING_RESERVE).toBeGreaterThan(0)
-    expect(LANDING_RESERVE).toBeLessThan(0.5)
+  it("leaves the booster the same landing reserve", () => {
+    expect(LANDING_RESERVE).toBe(0.15)
   })
 
   it("names the same phases", () => {
@@ -48,6 +47,14 @@ describe("useLaunchSimulation", () => {
       times: 50,
     })
     expect(mission).toMatchSnapshot()
+  })
+
+  it("marks the reserve where the booster's oxygen stands at shutdown", () => {
+    onScreen()
+    const { result } = runHook(useLaunchSimulation)
+    while (result.current.boosterStatus === "Attached") advance(TICK)
+    const { lox } = result.current.booster
+    expect(Math.round(lox * 100) / 100).toBe(LANDING_RESERVE)
   })
 
   it("lands the booster", () => {
