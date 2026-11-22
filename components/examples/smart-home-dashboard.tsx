@@ -666,10 +666,7 @@ const Climate = ({
           <GaugeControl
             value={room.target}
             onChange={onTarget}
-            min={T_MIN}
-            max={T_MAX}
             step={0.5}
-            {...SWEEP}
             label={`${room.name} setpoint`}
             valueText={`${room.target.toFixed(1)} °C`}
             disabled={mode === "off"}
@@ -777,9 +774,7 @@ const Lights = ({
               onChange={(level) => onChange(light.id, { level, on: true })}
               onPress={() => onChange(light.id, { on: !light.on })}
               min={1}
-              max={100}
               step={1}
-              {...SWEEP}
               label={`${light.name} brightness`}
               valueText={light.on ? `${light.level}%` : "Off"}
               className="w-full max-w-32"
@@ -827,10 +822,7 @@ const MusicPanel = ({
           <GaugeControl
             value={music.volume}
             onChange={(volume) => onChange({ volume })}
-            min={0}
-            max={100}
             step={1}
-            {...SWEEP}
             label="Volume"
             valueText={`${music.volume}%`}
             knob

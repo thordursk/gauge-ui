@@ -496,12 +496,7 @@ export const gaugeToCode = (spec: GaugeSpec) => {
           {
             value: new Raw("value"),
             onChange: new Raw("onChange"),
-            min: domain.min,
-            max: domain.max,
             step: control.step,
-            ...(linear
-              ? { orientation: domain.orientation, length: domain.length }
-              : { startAngle: domain.startAngle, endAngle: domain.endAngle }),
             label: spec.title.show ? spec.title.text : "Value",
             knob: control.knob || undefined,
           },

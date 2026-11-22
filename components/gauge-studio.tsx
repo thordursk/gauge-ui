@@ -82,23 +82,13 @@ export const GaugeStudio = () => {
   )
 
   const controlProps = (control: NonNullable<typeof spec.control>) => ({
-    min: spec.domain.min,
-    max: spec.domain.max,
     step: control.step,
-    ...(spec.domain.shape === "linear"
-      ? {
-          orientation: spec.domain.orientation,
-          length: spec.domain.length,
-          className:
-            spec.domain.orientation === "vertical"
-              ? "h-full max-w-full"
-              : "w-full max-h-full",
-        }
-      : {
-          startAngle: spec.domain.startAngle,
-          endAngle: spec.domain.endAngle,
-          className: "size-[min(100cqw,100cqh)]",
-        }),
+    className:
+      spec.domain.shape !== "linear"
+        ? "size-[min(100cqw,100cqh)]"
+        : spec.domain.orientation === "vertical"
+          ? "h-full max-w-full"
+          : "w-full max-h-full",
     label: spec.title.show ? spec.title.text : "Value",
     knob: control.knob,
     disabled: !hostSelected,

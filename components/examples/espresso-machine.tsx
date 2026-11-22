@@ -39,7 +39,11 @@ import {
 import { cn } from "@/lib/utils"
 
 import {
+  BREW_BAND,
   DEFAULT_RECIPE,
+  GRIND_MAX,
+  GRIND_MIN,
+  PREINFUSION_BAND,
   STEAM_BAND,
   WINDOW,
   useEspressoSimulation,
@@ -65,8 +69,7 @@ const SHOT_MAX = 40
 
 const SWEEP = { startAngle: 40, endAngle: 320 } as const
 
-const GRIND_MIN = 1
-const GRIND_MAX = 20
+const LOW_WATER = 15
 
 const PressureDial = ({
   pressure,
@@ -84,8 +87,14 @@ const PressureDial = ({
     transition={FOLLOW}
   >
     <GaugeTrack width={14} color={INK} opacity={0.1} />
-    <GaugeArc from={2} to={4} width={14} color={INK} opacity={0.35} />
-    <GaugeArc from={8} to={10} width={14} color={INK} />
+    <GaugeArc
+      from={PREINFUSION_BAND[0]}
+      to={PREINFUSION_BAND[1]}
+      width={14}
+      color={INK}
+      opacity={0.35}
+    />
+    <GaugeArc from={BREW_BAND[0]} to={BREW_BAND[1]} width={14} color={INK} />
     <GaugeTicks
       count={48}
       length={6}
@@ -302,7 +311,7 @@ const Tank = ({ level }: { level: number }) => (
     <GaugeTrack width={30} color={INK} opacity={0.1} />
     <GaugeArc width={30} color={INK} />
     <GaugeMarks count={4} length={30} width={3} color={CUT} />
-    <GaugeMarks values={[15]} length={44} width={3} color={MUTED} />
+    <GaugeMarks values={[LOW_WATER]} length={44} width={3} color={MUTED} />
   </LinearGauge>
 )
 
@@ -327,10 +336,7 @@ const Knob = ({
     <GaugeControl
       value={value}
       onChange={onChange}
-      min={min}
-      max={max}
       step={step}
-      {...SWEEP}
       knob
       label={label}
       valueText={format(value)}
@@ -371,10 +377,6 @@ const GrindSlider = ({
   <GaugeControl
     value={value}
     onChange={onChange}
-    orientation="horizontal"
-    length={SHORT}
-    min={GRIND_MIN}
-    max={GRIND_MAX}
     label="Grind"
     valueText={`Grind ${value} of ${GRIND_MAX}`}
     className="w-full"

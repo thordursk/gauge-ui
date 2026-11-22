@@ -28,10 +28,13 @@ export const ORBIT_SPEED = 7800
 export const COUNT = -5
 export const END = 540
 
-export const LANDING_RESERVE = 0.15
+export const BOOSTER_ENGINES = 9
+export const BURN_ENGINES = 3
+const BOOSTER_BURN = 165
 
 const G = 9.81
 const IGNITION = -3
+const ENGINE_STAGGER = 0.3
 const BUCKET = [40, 80] as const
 const BUCKET_THROTTLE = 0.72
 const MECO = 150
@@ -47,7 +50,7 @@ const ENTRY_SPEED = 750
 const BOOSTBACK_ACCEL = 5
 const ENTRY_ACCEL = 3
 const LANDING_ACCEL = 3.5
-const LANDING_MARGIN = 0.8
+const LANDING_LIGHTS = 0.8 * LANDING_ACCEL
 const STACK_DRAG = 0.05
 const BOOSTER_DRAG = 0.25
 
@@ -121,14 +124,18 @@ const drain = (stage: StageReadings, rate: number, dt: number) => {
   stage.fuel = Math.max(0, stage.fuel - draw * 0.98)
 }
 
-const BOOSTER_RATE = 1 / (9 * 165)
+const BOOSTER_RATE = 1 / (BOOSTER_ENGINES * BOOSTER_BURN)
 
 const ascend = (r: Rocket, dt: number) => {
   const { t, stack, booster } = r
 
   if (t >= IGNITION && t < MECO) {
     const bucket = t > BUCKET[0] && t < BUCKET[1]
-    booster.engines = clamp(Math.floor((t - IGNITION) / 0.3) + 1, 0, 9)
+    booster.engines = clamp(
+      Math.floor((t - IGNITION) / ENGINE_STAGGER) + 1,
+      0,
+      BOOSTER_ENGINES
+    )
     booster.throttle = approach(
       booster.throttle,
       bucket ? BUCKET_THROTTLE : 1,
@@ -149,7 +156,7 @@ const ascend = (r: Rocket, dt: number) => {
   let accel = 0
   if (t >= 0 && t < MECO) {
     accel =
-      (booster.throttle * (booster.engines / 9) * 1.45) /
+      (booster.throttle * (booster.engines / BOOSTER_ENGINES) * 1.45) /
       (0.22 + 0.78 * booster.lox)
   } else if (burning) {
     accel = (stack.throttle * 1.12) / (0.3 + 0.7 * stack.lox)
@@ -198,11 +205,7 @@ const flyHome = (r: Rocket, dt: number) => {
     ) {
       b.phase = "entry"
       r.entry = r.t
-    } else if (
-      b.entryDone &&
-      b.vy < 0 &&
-      stopping > LANDING_ACCEL * G * LANDING_MARGIN
-    ) {
+    } else if (b.entryDone && b.vy < 0 && stopping > LANDING_LIGHTS * G) {
       b.phase = "landing"
     }
   }
@@ -224,11 +227,11 @@ const flyHome = (r: Rocket, dt: number) => {
     ay = (-b.vy / (speed || 1)) * a
   }
   if (b.phase === "boostback") {
-    b.engines = 3
+    b.engines = BURN_ENGINES
     throttle = 1
     ax = -BOOSTBACK_ACCEL * G
   } else if (b.phase === "entry") {
-    b.engines = 3
+    b.engines = BURN_ENGINES
     throttle = 1
     against(ENTRY_ACCEL * G)
   } else if (b.phase === "landing") {
@@ -285,17 +288,22 @@ const fly = (r: Rocket, seconds: number) => {
 const rehearsal = (() => {
   const r = onThePad()
   let maxQ = 0
+  let reserve = 0
   while (r.t < END) {
     fly(r, SUBSTEP)
     if (r.q >= r.peakQ && r.t < MECO) maxQ = r.t
+    if (r.booster.phase === "attached") reserve = r.booster.lox
   }
   return {
+    reserve: Math.round(reserve * 100) / 100,
     maxQ: Math.round(maxQ),
     seco: Math.round(r.seco ?? INSERTION),
     entry: Math.round(r.entry ?? END),
     touchdown: Math.round(r.touchdown ?? END),
   }
 })()
+
+export const LANDING_RESERVE = rehearsal.reserve
 
 export type FlightEvent = {
   name: string
@@ -348,9 +356,11 @@ const TICK = 1 / 20
 export const WARP = 10
 const HOLD = 60
 
+const STILL_AT = 200
+
 const STILL = (() => {
   const r = onThePad()
-  fly(r, 200 - COUNT)
+  fly(r, STILL_AT - COUNT)
   return snapshot(r)
 })()
 

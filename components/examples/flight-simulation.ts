@@ -40,6 +40,12 @@ const approach = (from: number, to: number, rate: number, dt: number) =>
 
 const ALTITUDES = [3500, 4500, 5500, 6500, 7500]
 
+export const CLIMB = 700
+export const DESCENT = 500
+const LEVEL_OFF = 2.5
+export const MAX_BANK = 20
+const FIRST_CLEARANCE = 0.4
+
 const nextTargets = (s: FlightState) => {
   const roll = Math.random()
   const altitude =
@@ -65,7 +71,7 @@ const step = (s: FlightState, dt: number): FlightState => {
   }
 
   const altitudeError = targetAltitude - s.altitude
-  const vsTarget = clamp(altitudeError * 2.5, -500, 700)
+  const vsTarget = clamp(altitudeError * LEVEL_OFF, -DESCENT, CLIMB)
   const verticalSpeed = approach(s.verticalSpeed, vsTarget, 250, dt)
   const altitude = s.altitude + (verticalSpeed / 60) * dt
 
@@ -74,7 +80,7 @@ const step = (s: FlightState, dt: number): FlightState => {
   const airspeed = approach(s.airspeed, speedTarget, 2, dt)
 
   const headingError = targetHeading - s.heading
-  const bankTarget = clamp(headingError * 1.5, -20, 20)
+  const bankTarget = clamp(headingError * 1.5, -MAX_BANK, MAX_BANK)
   const bank = approach(s.bank, bankTarget, 6, dt) + Math.sin(time * 2.3) * 0.08
   const rate = (1091 * Math.tan((bank * Math.PI) / 180)) / airspeed
   const heading = s.heading + rate * dt
@@ -110,7 +116,11 @@ const TICK = 1 / 12
 
 export const useFlightSimulation = (target: RefObject<Element | null>) => {
   const [readings, setReadings] = useState<FlightReadings>(CRUISING)
-  const state = useRef<FlightState>({ ...CRUISING, time: 0, nextChange: 0.4 })
+  const state = useRef<FlightState>({
+    ...CRUISING,
+    time: 0,
+    nextChange: FIRST_CLEARANCE,
+  })
   const visible = useInView(target)
 
   useEffect(() => {
