@@ -17,15 +17,15 @@ import {
 } from "@/lib/gauge-panels"
 
 const panelConfigs = {
-  "gauge, round host": gaugeConfig({}, "host"),
-  "gauge, round inset": gaugeConfig({}, "inset"),
-  "gauge, linear host": gaugeConfig({ shape: "linear" }, "host"),
-  "gauge, linear inset": gaugeConfig({ shape: "linear" }, "inset"),
-  "value, defaults": valueConfig(0, 100),
-  "value, single": valueConfig(0, 100, {}),
-  "value, range": valueConfig(-50, 50, { range: true }),
-  "arcs, round": arcsConfig({}, false),
-  "arcs, linear": arcsConfig({}, true),
+  "gauge, round host": gaugeConfig("host", false),
+  "gauge, round inset": gaugeConfig("inset", false),
+  "gauge, linear host": gaugeConfig("host", true),
+  "gauge, linear inset": gaugeConfig("inset", true),
+  "value, defaults": valueConfig(0, 100, true),
+  "value, single": valueConfig(0, 100, false),
+  "value, range": valueConfig(-50, 50, true),
+  "arcs, round": arcsConfig(false),
+  "arcs, linear": arcsConfig(true),
   "cutoffs, 0 to 100": cutoffsConfig(0, 100),
   "cutoffs, 4 to 12": cutoffsConfig(4, 12),
   ticks: ticksConfig(),
@@ -55,8 +55,8 @@ describe("defaultPanelValues", () => {
   })
 })
 
-const resolveArcs = (flat: Record<string, unknown>) =>
-  resolveValues(arcsConfig(flat), flat as never)
+const resolveArcs = (flat: Record<string, string>) =>
+  resolveValues(arcsConfig(false), flat)
 
 describe("colour controls", () => {
   it("carry no custom colour while a palette token is picked", () => {

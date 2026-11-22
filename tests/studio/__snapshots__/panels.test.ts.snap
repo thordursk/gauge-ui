@@ -16,12 +16,9 @@ exports[`defaultPanelValues > builds the default spec 1`] = `
   "control": undefined,
   "domain": {
     "endAngle": 320,
-    "ends": 24,
     "fit": "square",
-    "length": 400,
     "max": 100,
     "min": 0,
-    "orientation": "horizontal",
     "padding": 56,
     "radius": 200,
     "shape": "round",
@@ -77,12 +74,12 @@ exports[`defaultPanelValues > builds the default spec 1`] = `
     "list": [
       {
         "color": "var(--foreground)",
-        "gap": 0,
+        "gap": undefined,
         "length": 0.85,
         "style": "line",
         "tail": 30,
         "tailColor": "var(--foreground)",
-        "tailDot": 0,
+        "tailDot": undefined,
         "turns": 1,
         "width": 6,
       },
@@ -481,7 +478,6 @@ exports[`defaultPanelValues > fills every panel 1`] = `
     "amplitude": 0.25,
     "animate": true,
     "from": 30,
-    "mode": "manual",
     "motion": {
       "bounce": 0.1,
       "type": "spring",
@@ -499,7 +495,6 @@ exports[`defaultPanelValues > follows the domain 1`] = `
   "amplitude": 0.25,
   "animate": true,
   "from": 12,
-  "mode": "manual",
   "motion": {
     "bounce": 0.1,
     "type": "spring",
@@ -935,7 +930,6 @@ exports[`defaultsOf > value, defaults 1`] = `
   "amplitude": 0.25,
   "animate": true,
   "from": 30,
-  "mode": "manual",
   "motion": {
     "bounce": 0.1,
     "type": "spring",
@@ -952,7 +946,6 @@ exports[`defaultsOf > value, range 1`] = `
   "amplitude": 0.25,
   "animate": true,
   "from": 30,
-  "mode": "manual",
   "motion": {
     "bounce": 0.1,
     "type": "spring",
@@ -968,7 +961,6 @@ exports[`defaultsOf > value, single 1`] = `
 {
   "amplitude": 0.25,
   "animate": true,
-  "mode": "manual",
   "motion": {
     "bounce": 0.1,
     "type": "spring",

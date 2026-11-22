@@ -1,7 +1,11 @@
 import {
   barPadding,
+  type GaugeDomain,
   type GaugeInsetSpec,
   type GaugeSpec,
+  type BaseGaugeSpec,
+  type LinearDomain,
+  type LinearFrame,
 } from "@/lib/gauge-spec"
 
 class Raw {
@@ -65,10 +69,10 @@ const container = (
     `${indent}</${tag}>`,
   ].join("\n")
 
-const usesZones = (spec: GaugeSpec) =>
+const usesZones = (spec: BaseGaugeSpec) =>
   spec.zones.show || spec.marks.show || (spec.arc.show && spec.arc.colorByZone)
 
-const zonesConst = (spec: GaugeSpec, name: string) =>
+const zonesConst = (spec: BaseGaugeSpec, name: string) =>
   `const ${name} = [\n${spec.zones.list
     .map((zone, i) => {
       const isLast = i === spec.zones.list.length - 1
@@ -77,10 +81,10 @@ const zonesConst = (spec: GaugeSpec, name: string) =>
     })
     .join("\n")}\n]\n`
 
-const valueType = (spec: GaugeSpec) =>
+const valueType = (spec: BaseGaugeSpec) =>
   spec.rangeFrom === undefined ? "number" : "[number, number]"
 
-const reading = (spec: GaugeSpec, name: string) =>
+const reading = (spec: BaseGaugeSpec, name: string) =>
   spec.rangeFrom === undefined ? name : `${name}[1]`
 
 type Names = {
@@ -89,7 +93,7 @@ type Names = {
 }
 
 const parts = (
-  spec: GaugeSpec,
+  spec: BaseGaugeSpec,
   indent: string,
   used: Set<string>,
   names: Names
@@ -269,8 +273,8 @@ const parts = (
             tail: needle.tail,
             tailColor:
               needle.tailColor === needle.color ? undefined : needle.tailColor,
-            tailDot: needle.tailDot > 0 ? needle.tailDot : undefined,
-            gap: needle.gap > 0 ? needle.gap : undefined,
+            tailDot: needle.tailDot,
+            gap: needle.gap,
             turns: needle.turns === 1 ? undefined : needle.turns,
           },
           indent
@@ -373,12 +377,12 @@ const parts = (
   return body
 }
 
-const paddingProp = (domain: GaugeSpec["domain"]) =>
+const paddingProp = (domain: LinearDomain & LinearFrame) =>
   domain.padding === domain.ends
     ? domain.padding
     : new Raw(literal(barPadding(domain)))
 
-const geometry = (domain: GaugeSpec["domain"]) =>
+const geometry = (domain: GaugeDomain) =>
   domain.shape === "linear"
     ? {
         orientation:

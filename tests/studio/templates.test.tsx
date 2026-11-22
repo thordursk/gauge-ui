@@ -28,7 +28,7 @@ describe("gauge templates", () => {
       it("renders the same played-in preview", () => {
         expect(
           renderToStaticMarkup(
-            <GaugePreview spec={spec} value={value} sweepIn />
+            <GaugePreview spec={spec} value={value} playIn={0} />
           )
         ).toMatchSnapshot()
       })

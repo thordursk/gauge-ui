@@ -6,8 +6,8 @@ import {
 import {
   hostLayer,
   layerName,
-  specFromLayers,
-  type GaugeLayer,
+  specOf,
+  type Composition,
 } from "@/lib/gauge-layers"
 
 export type TemplateInset = {
@@ -2102,20 +2102,23 @@ export const gaugeTemplates: GaugeTemplate[] = templateCategories.flatMap(
   ({ id }) => shelved.filter((template) => template.category === id)
 )
 
-export const templateLayers = (
+export const templateComposition = (
   template: GaugeTemplate | null
-): GaugeLayer[] => [
-  hostLayer(
+): Composition => ({
+  host: hostLayer(
     template ? resolvePanelValues(template.values) : defaultPanelValues()
   ),
-  ...(template?.insets ?? []).map((inset) => ({
+  insets: (template?.insets ?? []).map((inset) => ({
     id: inset.name,
     name: layerName(inset.name),
     values: resolvePanelValues(inset.values),
   })),
-]
+})
 
 export const templatePreview = (template: GaugeTemplate) => {
-  const layers = templateLayers(template)
-  return { spec: specFromLayers(layers), value: layers[0].values.value.value }
+  const composition = templateComposition(template)
+  return {
+    spec: specOf(composition),
+    value: composition.host.values.value.value,
+  }
 }

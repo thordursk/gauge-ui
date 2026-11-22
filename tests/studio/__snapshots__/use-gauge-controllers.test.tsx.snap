@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`useGaugeControllers > loads every template back to its own spec > rev-tape 1`] = `
+exports[`useGaugeControllers > loads every template back to its own spec in one pass > rev-tape 1`] = `
 {
   "arc": {
     "cap": "butt",
@@ -15,17 +15,13 @@ exports[`useGaugeControllers > loads every template back to its own spec > rev-t
   },
   "control": undefined,
   "domain": {
-    "endAngle": 320,
     "ends": 16,
-    "fit": "square",
     "length": 400,
     "max": 12,
     "min": 4,
     "orientation": "horizontal",
     "padding": 72,
-    "radius": 200,
     "shape": "linear",
-    "startAngle": 40,
   },
   "dot": {
     "both": false,
@@ -78,12 +74,12 @@ exports[`useGaugeControllers > loads every template back to its own spec > rev-t
     "list": [
       {
         "color": "var(--foreground)",
-        "gap": 0,
+        "gap": undefined,
         "length": 0.85,
         "style": "line",
         "tail": 30,
         "tailColor": "var(--foreground)",
-        "tailDot": 0,
+        "tailDot": undefined,
         "turns": 1,
         "width": 6,
       },
@@ -193,7 +189,7 @@ exports[`useGaugeControllers > loads every template back to its own spec > rev-t
 }
 `;
 
-exports[`useGaugeControllers > loads every template back to its own spec > shift-lights 1`] = `
+exports[`useGaugeControllers > loads every template back to its own spec in one pass > shift-lights 1`] = `
 {
   "arc": {
     "cap": "round",
@@ -208,17 +204,13 @@ exports[`useGaugeControllers > loads every template back to its own spec > shift
   },
   "control": undefined,
   "domain": {
-    "endAngle": 320,
     "ends": 16,
-    "fit": "square",
     "length": 400,
     "max": 12,
     "min": 9,
     "orientation": "horizontal",
     "padding": 24,
-    "radius": 200,
     "shape": "linear",
-    "startAngle": 40,
   },
   "dot": {
     "both": false,
@@ -271,12 +263,12 @@ exports[`useGaugeControllers > loads every template back to its own spec > shift
     "list": [
       {
         "color": "var(--foreground)",
-        "gap": 0,
+        "gap": undefined,
         "length": 0.85,
         "style": "line",
         "tail": 30,
         "tailColor": "var(--foreground)",
-        "tailDot": 0,
+        "tailDot": undefined,
         "turns": 1,
         "width": 6,
       },
@@ -390,7 +382,7 @@ exports[`useGaugeControllers > loads every template back to its own spec > shift
 }
 `;
 
-exports[`useGaugeControllers > loads every template back to its own spec > throttle 1`] = `
+exports[`useGaugeControllers > loads every template back to its own spec in one pass > throttle 1`] = `
 {
   "arc": {
     "cap": "butt",
@@ -405,17 +397,13 @@ exports[`useGaugeControllers > loads every template back to its own spec > throt
   },
   "control": undefined,
   "domain": {
-    "endAngle": 320,
     "ends": 28,
-    "fit": "square",
     "length": 400,
     "max": 100,
     "min": 0,
     "orientation": "horizontal",
     "padding": 64,
-    "radius": 200,
     "shape": "linear",
-    "startAngle": 40,
   },
   "dot": {
     "both": false,
@@ -468,12 +456,12 @@ exports[`useGaugeControllers > loads every template back to its own spec > throt
     "list": [
       {
         "color": "var(--foreground)",
-        "gap": 0,
+        "gap": undefined,
         "length": 0.85,
         "style": "line",
         "tail": 30,
         "tailColor": "var(--foreground)",
-        "tailDot": 0,
+        "tailDot": undefined,
         "turns": 1,
         "width": 6,
       },

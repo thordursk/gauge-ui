@@ -1,7 +1,8 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 
 import {
   ControlsStore,
+  DEFAULT_PAD_AXIS,
   flattenUpdates,
   parseConfig,
   resolveValues,
@@ -168,13 +169,13 @@ describe("ControlsStore", () => {
   } satisfies ControlConfig
 
   it("keeps edits across a rebuild, clamping and snapping sliders", () => {
-    ControlsStore.registerPanel("rebuild", "Rebuild", panel)
+    ControlsStore.setPanel("rebuild", "Rebuild", panel)
     ControlsStore.updateValues("rebuild", { level: 73, side: "right" })
     expect(ControlsStore.getValues("rebuild")).toMatchObject({
       level: 70,
       side: "right",
     })
-    ControlsStore.updatePanel("rebuild", "Rebuild", {
+    ControlsStore.setPanel("rebuild", "Rebuild", {
       ...panel,
       level: [50, 0, 60, 10],
     })
@@ -186,33 +187,146 @@ describe("ControlsStore", () => {
   })
 
   it("keeps values whose control has gone", () => {
-    ControlsStore.registerPanel("gone", "Gone", panel)
+    ControlsStore.setPanel("gone", "Gone", panel)
     ControlsStore.updateValues("gone", { side: "right" })
-    ControlsStore.updatePanel("gone", "Gone", { level: panel.level })
+    ControlsStore.setPanel("gone", "Gone", { level: panel.level })
     expect(ControlsStore.getValues("gone").side).toBe("right")
     ControlsStore.unregisterPanel("gone")
   })
 
   it("retains values while a panel is unmounted", () => {
-    ControlsStore.registerPanel("retained", "Retained", panel)
+    ControlsStore.setPanel("retained", "Retained", panel)
     ControlsStore.updateValues("retained", { level: 20 })
     ControlsStore.unregisterPanel("retained")
     expect(ControlsStore.getPanels().some((p) => p.id === "retained")).toBe(
       false
     )
-    ControlsStore.registerPanel("retained", "Retained", panel)
+    ControlsStore.setPanel("retained", "Retained", panel)
     expect(ControlsStore.getValues("retained").level).toBe(20)
     ControlsStore.unregisterPanel("retained")
   })
 
   it("falls back when a select's option is gone", () => {
-    ControlsStore.registerPanel("fallback", "Fallback", panel)
+    ControlsStore.setPanel("fallback", "Fallback", panel)
     ControlsStore.updateValues("fallback", { side: "right" })
-    ControlsStore.updatePanel("fallback", "Fallback", {
+    ControlsStore.setPanel("fallback", "Fallback", {
       ...panel,
       side: { type: "select", options: ["left", "up"], default: "up" },
     })
     expect(ControlsStore.getValues("fallback").side).toBe("up")
     ControlsStore.unregisterPanel("fallback")
+  })
+})
+
+describe("pad axes", () => {
+  it("default to the unit square", () => {
+    const parsed = parseConfig({ spot: { type: "pad" } })
+    expect(DEFAULT_PAD_AXIS).toEqual([0, -1, 1, 0.01])
+    expect(parsed.defaults.spot).toEqual({ x: 0, y: 0 })
+  })
+})
+
+describe("colour controls", () => {
+  const swatches = {
+    fill: {
+      token: {
+        type: "select",
+        options: ["primary", "custom"],
+        default: "primary",
+      },
+      custom: "#38bdf8",
+      _variant: "color",
+    },
+  } satisfies ControlConfig
+
+  it("are marked in their meta and hold both fields", () => {
+    const parsed = parseConfig(swatches)
+    const fill = parsed.byPath.get("fill")
+    expect(fill?.variant).toBe("color")
+    expect(fill?.children?.map((child) => child.type)).toEqual([
+      "select",
+      "color",
+    ])
+  })
+
+  it("resolve the custom colour only while custom is picked", () => {
+    expect(resolveValues(swatches, {}).fill).toEqual({ token: "primary" })
+    expect(resolveValues(swatches, { "fill.token": "custom" }).fill).toEqual({
+      token: "custom",
+      custom: "#38bdf8",
+    })
+    expect(
+      resolveValues(swatches, {
+        "fill.token": "custom",
+        "fill.custom": "#123456",
+      }).fill
+    ).toEqual({ token: "custom", custom: "#123456" })
+  })
+
+  it("take a custom colour in the same update as its token", () => {
+    expect(
+      flattenUpdates(swatches, { fill: { token: "custom", custom: "#123456" } })
+    ).toEqual({ "fill.token": "custom", "fill.custom": "#123456" })
+  })
+})
+
+describe("ControlsStore.loadPanel", () => {
+  const ranged = (max: number) =>
+    ({ level: [0, 0, max, 1] }) satisfies ControlConfig
+
+  it("normalises loaded values against the config it is handed", () => {
+    ControlsStore.setPanel("load", "Load", ranged(100))
+    ControlsStore.loadPanel("load", ranged(8000), { level: 6500 })
+    expect(ControlsStore.getValues("load").level).toBe(6500)
+    expect(
+      ControlsStore.getPanels().find((panel) => panel.id === "load")
+        ?.controls[0].max
+    ).toBe(8000)
+    ControlsStore.unregisterPanel("load")
+  })
+
+  it("keeps the panel's name and options unless told otherwise", () => {
+    ControlsStore.setPanel("opts", "Opts", ranged(10), {
+      defaultCollapsed: true,
+    })
+    ControlsStore.loadPanel("opts", ranged(10), { level: 3 }, { hidden: true })
+    const panel = ControlsStore.getPanels().find((p) => p.id === "opts")
+    expect(panel).toMatchObject({
+      name: "Opts",
+      defaultCollapsed: true,
+      hidden: true,
+    })
+    ControlsStore.unregisterPanel("opts")
+  })
+
+  it("waits for an unregistered panel in its retained values", () => {
+    ControlsStore.loadPanel("later", ranged(10), { level: 4 })
+    ControlsStore.setPanel("later", "Later", ranged(10))
+    expect(ControlsStore.getValues("later").level).toBe(4)
+    ControlsStore.unregisterPanel("later")
+  })
+})
+
+describe("ControlsStore.setPanel", () => {
+  it("ignores the same config object", () => {
+    const config = { level: [0, 0, 10, 1] } satisfies ControlConfig
+    ControlsStore.setPanel("same", "Same", config)
+    const listener = vi.fn()
+    const unsubscribe = ControlsStore.subscribeGlobal(listener)
+    ControlsStore.setPanel("same", "Same", config)
+    expect(listener).not.toHaveBeenCalled()
+    ControlsStore.setPanel("same", "Same", { ...config })
+    expect(listener).toHaveBeenCalledTimes(1)
+    unsubscribe()
+    ControlsStore.unregisterPanel("same")
+  })
+
+  it("keeps the values snapshot while nothing changed", () => {
+    const config = { level: [0, 0, 10, 1] } satisfies ControlConfig
+    ControlsStore.setPanel("stable", "Stable", config)
+    const before = ControlsStore.getValues("stable")
+    ControlsStore.setPanel("stable", "Stable", { ...config })
+    expect(ControlsStore.getValues("stable")).toBe(before)
+    ControlsStore.unregisterPanel("stable")
   })
 })

@@ -1,24 +1,33 @@
 import {
-  ControlsStore,
+  CUSTOM_TOKEN,
+  parseConfig,
+  resolveValues,
+  type ColorConfig,
+  type ColorValue,
   type ControlConfig,
   type ControlValueUpdates,
   type ResolvedValues,
+  type SelectConfig,
+  type SelectOption,
   type TransitionConfig,
 } from "@/lib/controls"
 
 import { clamp, type GaugeTransition } from "@/components/gauge"
 import type {
+  BaseGaugeSpec,
   FontFamily,
   FontWeight,
-  GaugeFit,
-  GaugeOrientation,
-  GaugeShape,
+  FramedDomain,
+  GaugeDomain,
   GaugeSpec,
+  GaugeSpecOf,
   GaugeTooltipPosition,
   GaugeTooltipSide,
   LabelFormat,
+  LinearDomain,
   NeedleSpec,
   NeedleStyle,
+  RoundDomain,
   StrokeCap,
   TextAnchor,
   TextSpec,
@@ -27,13 +36,14 @@ import type {
 
 export const RADIUS = 200
 
-type Option = string | { value: string; label: string; swatch?: string }
-type Select = { type: "select"; options: Option[]; default: string }
-type Axis = [number, number, number, number]
+type Axis = [value: number, min: number, max: number, step: number]
 type Pad = { type: "pad"; x: Axis; y: Axis }
 
 const toggle = (value: boolean): boolean => value
-const select = (options: Option[], value: string): Select => ({
+const select = <const V extends string>(
+  options: SelectOption<V>[],
+  value: NoInfer<V>
+): SelectConfig<V> => ({
   type: "select",
   options,
   default: value,
@@ -78,37 +88,24 @@ const DEFAULT_CUSTOM = "#38bdf8"
 const CUSTOM_SWATCH =
   "conic-gradient(from 0.5turn, #f87171, #facc15, #4ade80, #38bdf8, #a78bfa, #f87171)"
 
-export type Flat = Record<string, unknown>
-export const flatValues = (panelId: string): Flat =>
-  ControlsStore.getValues(panelId)
+const color = (token: Token): ColorConfig => ({
+  token: select<string>(
+    [
+      ...palette.map(({ value, label, css }) => ({
+        value,
+        label,
+        swatch: css,
+      })),
+      { value: CUSTOM_TOKEN, label: "Custom", swatch: CUSTOM_SWATCH },
+    ],
+    token
+  ),
+  custom: DEFAULT_CUSTOM,
+  _variant: "color",
+})
 
-type ColorFolder = { token: Select; custom: string; _collapsed: true }
-
-const color = (flat: Flat, path: string, token: Token): ColorFolder => {
-  const folder: Record<string, unknown> = {
-    token: select(
-      [
-        ...palette.map(({ value, label, css }) => ({
-          value,
-          label,
-          swatch: css,
-        })),
-        { value: "custom", label: "Custom", swatch: CUSTOM_SWATCH },
-      ],
-      token
-    ),
-    _collapsed: true,
-  }
-  if (flat[`${path}.token`] === "custom") {
-    const current = flat[`${path}.custom`]
-    folder.custom = typeof current === "string" ? current : DEFAULT_CUSTOM
-  }
-  return folder as ColorFolder
-}
-
-export type ColorValue = { token: string; custom?: string }
 export const css = (c: ColorValue) =>
-  c.token === "custom"
+  c.token === CUSTOM_TOKEN
     ? (c.custom ?? DEFAULT_CUSTOM)
     : (paletteCss.get(c.token) ?? `var(--${c.token})`)
 
@@ -131,7 +128,7 @@ const without = <T extends object>(config: T, keys: readonly string[]): T =>
     Object.entries(config).filter(([key]) => !keys.includes(key))
   ) as T
 
-const fullGaugeConfig = (flat: Flat = {}) =>
+const fullGaugeConfig = (linear = false) =>
   ({
     shape: select(["round", "linear"], "round"),
     min: [0, -100, 100, 1],
@@ -143,13 +140,9 @@ const fullGaugeConfig = (flat: Flat = {}) =>
     padding: [56, 0, 200, 1],
     ends: [24, 0, 200, 1],
     fit: select(["square", "content"], "square"),
-    stage: color(flat, "stage", "background"),
+    stage: color("background"),
     control: select(
-      [
-        "off",
-        { value: "ring", label: flat.shape === "linear" ? "Bar" : "Ring" },
-        "knob",
-      ],
+      ["off", { value: "ring", label: linear ? "Bar" : "Ring" }, "knob"],
       "off"
     ),
     placement: {
@@ -158,33 +151,33 @@ const fullGaugeConfig = (flat: Flat = {}) =>
     },
   }) satisfies ControlConfig
 
-export const gaugeConfig = (flat: Flat = {}, kind: LayerKind = "host") =>
-  without(fullGaugeConfig(flat), [
+export const gaugeConfig = (kind: LayerKind, linear: boolean) =>
+  without(fullGaugeConfig(linear), [
     ...(kind === "host" ? INSET_ONLY : HOST_ONLY),
-    ...(flat.shape === "linear" ? ROUND_ONLY : LINEAR_ONLY),
+    ...(linear ? ROUND_ONLY : LINEAR_ONLY),
   ])
 
-export const valueConfig = (min: number, max: number, flat?: Flat) =>
+const fullValueConfig = (min: number, max: number) =>
   ({
     value: [clamp(62, min, max), min, max, stepFor(max - min)],
     range: toggle(false),
-    ...((flat === undefined || flat.range === true
-      ? { from: [clamp(30, min, max), min, max, stepFor(max - min)] }
-      : {}) as { from: Axis }),
-    mode: select([...playModes], "manual"),
+    from: [clamp(30, min, max), min, max, stepFor(max - min)],
     period: [3, 0.2, 20, 0.1],
     amplitude: [0.25, 0, 1, 0.01],
     animate: toggle(true),
     motion: { type: "spring", visualDuration: 0.5, bounce: 0.1 },
   }) satisfies ControlConfig
 
-export const arcsConfig = (flat: Flat = {}, linear = false) =>
+export const valueConfig = (min: number, max: number, range: boolean) =>
+  without(fullValueConfig(min, max), range ? [] : ["from"])
+
+export const arcsConfig = (linear: boolean) =>
   without(
     {
       track: {
         show: toggle(true),
         width: [24, 1, 80, 1],
-        color: color(flat, "track.color", "muted"),
+        color: color("muted"),
         opacity: [1, 0, 1, 0.01],
         cap: cap("round"),
         offset: [0, -120, 120, 1],
@@ -192,7 +185,7 @@ export const arcsConfig = (flat: Flat = {}, linear = false) =>
       arc: {
         show: toggle(true),
         width: [24, 1, 80, 1],
-        color: color(flat, "arc.color", "primary"),
+        color: color("primary"),
         colorByZone: toggle(false),
         reverse: toggle(false),
         fromZero: toggle(false),
@@ -203,25 +196,25 @@ export const arcsConfig = (flat: Flat = {}, linear = false) =>
       face: {
         show: toggle(false),
         radius: [150, 1, 260, 1],
-        color: color(flat, "face.color", "muted"),
+        color: color("muted"),
       },
     } satisfies ControlConfig,
     linear ? ["face"] : []
   )
 
-export const cutoffsConfig = (min: number, max: number, flat: Flat = {}) => {
+export const cutoffsConfig = (min: number, max: number) => {
   const step = stepFor(max - min)
   const at = (t: number): Axis => [min + (max - min) * t, min, max, step]
   return {
     show: toggle(false),
     count: [3, 1, 4, 1],
-    zone1: { to: at(0.5), color: color(flat, "zone1.color", "muted") },
+    zone1: { to: at(0.5), color: color("muted") },
     zone2: {
       to: at(0.75),
-      color: color(flat, "zone2.color", "muted-foreground"),
+      color: color("muted-foreground"),
     },
-    zone3: { to: at(0.9), color: color(flat, "zone3.color", "foreground") },
-    zone4: { color: color(flat, "zone4.color", "primary") },
+    zone3: { to: at(0.9), color: color("foreground") },
+    zone4: { color: color("primary") },
     band: {
       width: [8, 1, 60, 1],
       offset: [-24, -120, 120, 1],
@@ -234,7 +227,7 @@ export const cutoffsConfig = (min: number, max: number, flat: Flat = {}) => {
       show: toggle(false),
       length: [16, 1, 80, 1],
       width: [3, 0.5, 12, 0.5],
-      color: color(flat, "marks.color", "foreground"),
+      color: color("foreground"),
       offset: [0, -120, 120, 1],
       cap: cap("round"),
     },
@@ -242,8 +235,6 @@ export const cutoffsConfig = (min: number, max: number, flat: Flat = {}) => {
 }
 
 const tickConfig = (
-  flat: Flat,
-  path: string,
   count: number,
   length: number,
   width: number,
@@ -254,16 +245,16 @@ const tickConfig = (
     count: [count, 1, 100, 1],
     length: [length, 1, 80, 1],
     width: [width, 0.5, 12, 0.5],
-    color: color(flat, `${path}.color`, "muted-foreground"),
+    color: color("muted-foreground"),
     offset: [-44, -160, 160, 1],
     cap: cap("round"),
     opacity: [opacity, 0, 1, 0.01],
   }) satisfies ControlConfig
 
-export const ticksConfig = (flat: Flat = {}) =>
+export const ticksConfig = () =>
   ({
-    major: tickConfig(flat, "major", 10, 16, 3, 1),
-    minor: { ...tickConfig(flat, "minor", 50, 8, 1.5, 0.6), _collapsed: true },
+    major: tickConfig(10, 16, 3, 1),
+    minor: { ...tickConfig(50, 8, 1.5, 0.6), _collapsed: true },
     fill: {
       show: toggle(false),
       mode: select(["fill", "nearest"], "fill"),
@@ -271,8 +262,8 @@ export const ticksConfig = (flat: Flat = {}) =>
       length: [24, 0, 80, 1],
       litLength: [24, 0, 80, 1],
       width: [6, 0.5, 20, 0.5],
-      color: color(flat, "fill.color", "primary"),
-      dimColor: color(flat, "fill.dimColor", "muted"),
+      color: color("primary"),
+      dimColor: color("muted"),
       offset: [0, -160, 160, 1],
       cap: cap("round"),
       _collapsed: true,
@@ -282,7 +273,7 @@ export const ticksConfig = (flat: Flat = {}) =>
       count: [10, 1, 40, 1],
       offset: [-76, -220, 220, 1],
       fontSize: [18, 6, 60, 1],
-      color: color(flat, "labels.color", "muted-foreground"),
+      color: color("muted-foreground"),
       font: font("sans"),
       weight: weight("medium"),
       decimals: [0, 0, 3, 1],
@@ -292,8 +283,6 @@ export const ticksConfig = (flat: Flat = {}) =>
   }) satisfies ControlConfig
 
 const textConfig = (
-  flat: Flat,
-  path: string,
   show: boolean,
   text: string,
   x: number,
@@ -306,55 +295,35 @@ const textConfig = (
     text,
     position: position(x, y),
     fontSize: [size, 6, 120, 1],
-    color: color(flat, `${path}.color`, token),
+    color: color(token),
     font: font("sans"),
     weight: weight("medium"),
     anchor: anchor("middle"),
   }) satisfies ControlConfig
 
-export const textPanelConfig = (flat: Flat = {}) =>
+export const textPanelConfig = () =>
   ({
     value: {
       show: toggle(true),
       position: position(0, 0),
       fontSize: [96, 8, 240, 1],
-      color: color(flat, "value.color", "foreground"),
+      color: color("foreground"),
       font: font("rounded"),
       weight: weight("semibold"),
       decimals: [0, 0, 3, 1],
       anchor: anchor("middle"),
     },
     unit: {
-      ...textConfig(
-        flat,
-        "unit",
-        true,
-        "km/h",
-        0,
-        -0.34,
-        28,
-        "muted-foreground"
-      ),
+      ...textConfig(true, "km/h", 0, -0.34, 28, "muted-foreground"),
       _collapsed: true,
     },
     title: {
-      ...textConfig(
-        flat,
-        "title",
-        false,
-        "Speed",
-        0,
-        0.33,
-        24,
-        "muted-foreground"
-      ),
+      ...textConfig(false, "Speed", 0, 0.33, 24, "muted-foreground"),
       _collapsed: true,
     },
   }) satisfies ControlConfig
 
 const needleFolder = (
-  flat: Flat,
-  path: string,
   style: NeedleStyle,
   length: number,
   width: number,
@@ -365,38 +334,38 @@ const needleFolder = (
     style: select(["line", "pointer", "compass", "arrow"], style),
     length: [length, 0.1, 1.2, 0.01],
     width: [width, 1, 40, 0.5],
-    color: color(flat, `${path}.color`, "foreground"),
+    color: color("foreground"),
     tail: [tail, 0, 200, 1],
-    tailColor: color(flat, `${path}.tailColor`, "foreground"),
+    tailColor: color("foreground"),
     tailDot: [0, 0, 40, 0.5],
     gap: [0, 0, 200, 1],
     turns: [turns, 1, 720, 1],
   }) satisfies ControlConfig
 
-export const needleConfig = (flat: Flat = {}) =>
+export const needleConfig = () =>
   ({
     show: toggle(false),
     count: [1, 1, 3, 1],
-    needle1: needleFolder(flat, "needle1", "line", 0.85, 6, 30, 1),
+    needle1: needleFolder("line", 0.85, 6, 30, 1),
     needle2: {
-      ...needleFolder(flat, "needle2", "line", 0.8, 3, 0, 12),
+      ...needleFolder("line", 0.8, 3, 0, 12),
       _collapsed: true,
     },
     needle3: {
-      ...needleFolder(flat, "needle3", "line", 0.9, 1.5, 30, 720),
+      ...needleFolder("line", 0.9, 1.5, 30, 720),
       _collapsed: true,
     },
     hub: {
       radius: [12, 0, 60, 1],
-      color: color(flat, "hub.color", "foreground"),
+      color: color("foreground"),
     },
   }) satisfies ControlConfig
 
-export const dotConfig = (flat: Flat = {}) =>
+export const dotConfig = () =>
   ({
     show: toggle(false),
     radius: [10, 1, 60, 0.5],
-    color: color(flat, "color", "foreground"),
+    color: color("foreground"),
     opacity: [1, 0, 1, 0.01],
     offset: [0, -120, 120, 1],
     turns: [1, 1, 720, 1],
@@ -431,8 +400,17 @@ export const tooltipConfig = () =>
     gap: [8, 0, 64, 1],
   }) satisfies ControlConfig
 
-export type GaugeValues = ResolvedValues<ReturnType<typeof gaugeConfig>>
-export type ValueValues = ResolvedValues<ReturnType<typeof valueConfig>>
+type FullGaugeValues = ResolvedValues<ReturnType<typeof fullGaugeConfig>>
+export type RoundGaugeValues = Omit<
+  FullGaugeValues,
+  "shape" | (typeof LINEAR_ONLY)[number]
+> & { shape: "round" }
+export type LinearGaugeValues = Omit<
+  FullGaugeValues,
+  "shape" | (typeof ROUND_ONLY)[number]
+> & { shape: "linear" }
+export type GaugeValues = RoundGaugeValues | LinearGaugeValues
+export type ValueValues = ResolvedValues<ReturnType<typeof fullValueConfig>>
 export type ArcsValues = ResolvedValues<ReturnType<typeof arcsConfig>>
 export type CutoffsValues = ResolvedValues<ReturnType<typeof cutoffsConfig>>
 export type TicksValues = ResolvedValues<ReturnType<typeof ticksConfig>>
@@ -468,29 +446,8 @@ export type PanelUpdates = {
 const isRecord = (v: unknown): v is Record<string, unknown> =>
   typeof v === "object" && v !== null && !Array.isArray(v)
 
-export const defaultsOf = <T extends ControlConfig>(
-  config: T
-): ResolvedValues<T> => {
-  const out: Record<string, unknown> = {}
-  for (const [key, raw] of Object.entries(config)) {
-    if (key === "_collapsed") continue
-    const entry: unknown = raw
-    if (Array.isArray(entry)) out[key] = entry[0]
-    else if (isRecord(entry) && entry.type === "select")
-      out[key] = entry.default
-    else if (isRecord(entry) && entry.type === "pad") {
-      const pad = entry as unknown as Pad
-      out[key] = { x: pad.x[0], y: pad.y[0] }
-    } else if (
-      isRecord(entry) &&
-      (entry.type === "spring" || entry.type === "easing")
-    )
-      out[key] = entry
-    else if (isRecord(entry)) out[key] = defaultsOf(entry as ControlConfig)
-    else out[key] = entry
-  }
-  return out as ResolvedValues<T>
-}
+export const defaultsOf = <T extends ControlConfig>(config: T) =>
+  resolveValues(config, parseConfig(config).defaults)
 
 export const withoutMeta = <T>(values: T): T => {
   if (!isRecord(values)) return values
@@ -514,8 +471,8 @@ export const mergeValues = <T>(base: T, updates: unknown): T => {
 
 export const defaultPanelValues = (min = 0, max = 100): PanelValues => ({
   gauge: defaultsOf(fullGaugeConfig()),
-  value: defaultsOf(valueConfig(min, max)),
-  arcs: defaultsOf(arcsConfig()),
+  value: defaultsOf(fullValueConfig(min, max)),
+  arcs: defaultsOf(arcsConfig(false)),
   cutoffs: defaultsOf(cutoffsConfig(min, max)),
   ticks: defaultsOf(ticksConfig()),
   text: defaultsOf(textPanelConfig()),
@@ -525,10 +482,21 @@ export const defaultPanelValues = (min = 0, max = 100): PanelValues => ({
 })
 
 export const resolvePanelValues = (updates: PanelUpdates): PanelValues => {
-  const min = updates.gauge?.min ?? gaugeConfig().min[0]
-  const max = updates.gauge?.max ?? gaugeConfig().max[0]
-  return mergeValues(defaultPanelValues(min, max), updates)
+  const { min, max } = defaultsOf(fullGaugeConfig())
+  return mergeValues(
+    defaultPanelValues(updates.gauge?.min ?? min, updates.gauge?.max ?? max),
+    updates
+  )
 }
+
+export const panelInputs = ({
+  gauge,
+  value,
+}: Pick<PanelValues, "gauge" | "value">) => ({
+  linear: gauge.shape === "linear",
+  ...domainOf(gauge),
+  range: value.range,
+})
 
 export const domainOf = (gauge: GaugeValues) => ({
   min: Math.min(gauge.min, gauge.max - 1),
@@ -551,10 +519,53 @@ export const toGaugeTransition = (t: TransitionConfig): GaugeTransition => {
   return spring
 }
 
+const roundOf = (gauge: RoundGaugeValues): RoundDomain => ({
+  shape: "round",
+  ...domainOf(gauge),
+  startAngle: gauge.startAngle,
+  endAngle: Math.max(gauge.endAngle, gauge.startAngle + 1),
+  radius: RADIUS,
+})
+
+const linearOf = (gauge: LinearGaugeValues): LinearDomain => ({
+  shape: "linear",
+  ...domainOf(gauge),
+  orientation: gauge.orientation,
+  length: gauge.length,
+})
+
+const shapeOf = (gauge: GaugeValues): GaugeDomain =>
+  gauge.shape === "linear" ? linearOf(gauge) : roundOf(gauge)
+
+const framedOf = (gauge: GaugeValues): FramedDomain =>
+  gauge.shape === "linear"
+    ? { ...linearOf(gauge), padding: gauge.padding, ends: gauge.ends }
+    : { ...roundOf(gauge), padding: gauge.padding, fit: gauge.fit }
+
 export const buildSpec = (v: PanelValues): GaugeSpec => {
-  const { gauge, value, arcs, cutoffs, ticks, text, needle, dot, tooltip } = v
-  const { min, max } = domainOf(gauge)
-  const linear = gauge.shape === "linear"
+  const { gauge } = v
+  const domain = framedOf(gauge)
+  const { min, max } = domain
+  return {
+    ...partsOf(v, domain),
+    control:
+      gauge.control === "off" ||
+      (domain.shape === "round" && domain.fit === "content")
+        ? undefined
+        : { knob: gauge.control === "knob", step: stepFor(max - min) },
+  }
+}
+
+export const buildInsetSpec = (v: PanelValues): BaseGaugeSpec =>
+  partsOf(v, shapeOf(v.gauge))
+
+const partsOf = <D extends GaugeDomain>(
+  v: PanelValues,
+  domain: D
+): GaugeSpecOf<D> => {
+  const { value, arcs, cutoffs, ticks, text, needle, dot, tooltip } = v
+  const { min, max } = domain
+  const linear = domain.shape === "linear"
 
   const zoneFolders: { to?: number; color: ColorValue }[] = [
     cutoffs.zone1,
@@ -588,8 +599,8 @@ export const buildSpec = (v: PanelValues): GaugeSpec => {
     color: css(n.color),
     tail: n.tail,
     tailColor: css(n.tailColor),
-    tailDot: n.tailDot,
-    gap: n.gap,
+    tailDot: n.tailDot > 0 ? n.tailDot : undefined,
+    gap: n.gap > 0 ? n.gap : undefined,
     turns: n.turns,
   })
 
@@ -607,23 +618,7 @@ export const buildSpec = (v: PanelValues): GaugeSpec => {
   return {
     transition: value.animate ? toGaugeTransition(value.motion) : undefined,
     rangeFrom: value.range ? clamp(value.from, min, max) : undefined,
-    control:
-      gauge.control === "off" || (!linear && gauge.fit === "content")
-        ? undefined
-        : { knob: gauge.control === "knob", step: stepFor(max - min) },
-    domain: {
-      shape: gauge.shape as GaugeShape,
-      min,
-      max,
-      startAngle: gauge.startAngle,
-      endAngle: Math.max(gauge.endAngle, gauge.startAngle + 1),
-      radius: RADIUS,
-      padding: gauge.padding,
-      fit: gauge.fit as GaugeFit,
-      orientation: gauge.orientation as GaugeOrientation,
-      length: gauge.length,
-      ends: gauge.ends,
-    },
+    domain,
     face: {
       ...arcs.face,
       show: !linear && arcs.face.show,

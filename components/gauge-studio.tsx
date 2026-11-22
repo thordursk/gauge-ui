@@ -29,11 +29,8 @@ import { useMediaQuery } from "@/hooks/use-media-query"
 import { useStoredValue } from "@/hooks/use-stored-value"
 import { gaugeToCode } from "@/lib/gauge-code"
 import { GaugeControl, clamp } from "@/components/gauge"
-import { css, stepFor, type PlayMode } from "@/lib/gauge-panels"
-import {
-  readControlsVisibility,
-  writeControlsVisibility,
-} from "@/lib/storage"
+import { css, stepFor } from "@/lib/gauge-panels"
+import { readControlsVisibility, writeControlsVisibility } from "@/lib/storage"
 
 const SIDEBAR_QUERY = "(min-width: 48rem)"
 
@@ -42,14 +39,17 @@ export const GaugeStudio = () => {
     spec,
     stage,
     hostValue,
-    sweepKey,
-    layers,
+    playIn,
+    composition,
     selected,
+    selectedLayer,
+    hostSelected,
     selectLayer,
     addLayer,
     removeLayer,
     value: val,
     domain: { min, max },
+    mode,
     setValue,
     setRange,
     setMode,
@@ -68,18 +68,16 @@ export const GaugeStudio = () => {
     writeControlsVisibility(showControls ? "hidden" : "shown")
 
   const current = clamp(val.value, min, max)
-  const mode = val.mode as PlayMode
-  const shown = selected === 0 ? current : hostValue
+  const shown = hostSelected ? current : hostValue
 
   const gauge = (
     <AnimatedGauge
-      key={sweepKey}
       spec={spec}
       value={shown}
       mode={mode}
       period={val.period}
       amplitude={val.amplitude}
-      sweepIn
+      playIn={playIn}
     />
   )
 
@@ -103,7 +101,7 @@ export const GaugeStudio = () => {
         }),
     label: spec.title.show ? spec.title.text : "Value",
     knob: control.knob,
-    disabled: selected !== 0,
+    disabled: !hostSelected,
   })
 
   return (
@@ -217,7 +215,7 @@ export const GaugeStudio = () => {
             )}
           </div>
           <ControlBar
-            layers={layers}
+            composition={composition}
             selected={selected}
             onSelect={selectLayer}
             onAdd={addLayer}
@@ -240,7 +238,7 @@ export const GaugeStudio = () => {
               <span className="text-xs font-medium text-muted-foreground">
                 Controls
               </span>
-              <CopyValuesButton values={layers[selected].values} />
+              <CopyValuesButton values={selectedLayer.values} />
             </div>
             <ScrollArea revealOnHover className="min-h-0 w-full flex-1">
               <ControlsRoot />

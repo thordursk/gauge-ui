@@ -4,14 +4,12 @@ import { useRef } from "react"
 
 import { Row } from "@/components/controls/field-controls"
 import {
+  DEFAULT_PAD_AXIS,
   snapToStep,
   stepDecimals,
-  type PadAxis,
   type PadConfig,
   type PadValue,
 } from "@/lib/controls"
-
-const DEFAULT_AXIS: PadAxis = [0, -1, 1, 0.01]
 
 export type PadControlProps = {
   label: string
@@ -20,9 +18,14 @@ export type PadControlProps = {
   onChange: (value: PadValue) => void
 }
 
-export const PadControl = ({ label, pad, value, onChange }: PadControlProps) => {
-  const [, minX, maxX, stepX = 0.01] = pad?.x ?? DEFAULT_AXIS
-  const [, minY, maxY, stepY = 0.01] = pad?.y ?? DEFAULT_AXIS
+export const PadControl = ({
+  label,
+  pad,
+  value,
+  onChange,
+}: PadControlProps) => {
+  const [, minX, maxX, stepX = 0.01] = pad?.x ?? DEFAULT_PAD_AXIS
+  const [, minY, maxY, stepY = 0.01] = pad?.y ?? DEFAULT_PAD_AXIS
 
   const area = useRef<HTMLDivElement>(null)
   const dragging = useRef(false)
@@ -72,8 +75,7 @@ export const PadControl = ({ label, pad, value, onChange }: PadControlProps) => 
           dragging.current = false
         }}
         onKeyDown={(e) => {
-          const dx =
-            e.key === "ArrowLeft" ? -1 : e.key === "ArrowRight" ? 1 : 0
+          const dx = e.key === "ArrowLeft" ? -1 : e.key === "ArrowRight" ? 1 : 0
           const dy = e.key === "ArrowDown" ? -1 : e.key === "ArrowUp" ? 1 : 0
           if (!dx && !dy) return
           e.preventDefault()

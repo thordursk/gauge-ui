@@ -2,21 +2,23 @@ import { act, render } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import { AnimatedGauge } from "@/components/animated-gauge"
-import { addedLayer, hostLayer, specFromLayers } from "@/lib/gauge-layers"
+import { addedLayer, hostLayer, specOf } from "@/lib/gauge-layers"
 import { defaultPanelValues, mergeValues } from "@/lib/gauge-panels"
 
 const host = hostLayer(defaultPanelValues())
-const inset = addedLayer([host])
-const spec = specFromLayers([
+const inset = addedLayer({ host, insets: [] })
+const spec = specOf({
   host,
-  {
-    ...inset,
-    values: mergeValues(inset.values, {
-      gauge: { max: 50 },
-      value: { value: 20 },
-    }),
-  },
-])
+  insets: [
+    {
+      ...inset,
+      values: mergeValues(inset.values, {
+        gauge: { max: 50 },
+        value: { value: 20 },
+      }),
+    },
+  ],
+})
 
 const advance = (ms: number) => {
   act(() => {
@@ -121,11 +123,54 @@ describe("AnimatedGauge", () => {
         mode="manual"
         period={3}
         amplitude={0.2}
-        sweepIn
+        playIn={0}
       />
     )
     expect(readings(container)).toEqual([0, 0])
     advance(0)
     expect(readings(container)).toEqual([40, 20])
+  })
+
+  it("plays in again each time the signal changes", () => {
+    const props = {
+      spec,
+      value: 40,
+      mode: "manual",
+      period: 3,
+      amplitude: 0.2,
+    } as const
+    const { container, rerender } = render(
+      <AnimatedGauge {...props} playIn={0} />
+    )
+    advance(0)
+    expect(readings(container)).toEqual([40, 20])
+    rerender(<AnimatedGauge {...props} value={50} playIn={0} />)
+    advance(0)
+    expect(readings(container)).toEqual([50, 20])
+    rerender(<AnimatedGauge {...props} value={50} playIn={1} />)
+    expect(readings(container)).toEqual([0, 0])
+    advance(0)
+    expect(readings(container)).toEqual([50, 20])
+  })
+
+  it("keeps its play clock running through a replay", () => {
+    const props = {
+      spec,
+      value: 40,
+      mode: "sweep",
+      period: 3,
+      amplitude: 0.2,
+    } as const
+    const { container, rerender } = render(
+      <AnimatedGauge {...props} playIn={0} />
+    )
+    advance(0)
+    expect(readings(container)).toEqual([100, 50])
+    advance(1000)
+    rerender(<AnimatedGauge {...props} playIn={1} />)
+    advance(0)
+    expect(readings(container)).toEqual([100, 50])
+    advance(2000)
+    expect(readings(container)).toEqual([0, 0])
   })
 })

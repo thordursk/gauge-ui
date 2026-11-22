@@ -6,15 +6,15 @@ import { LayerPicker } from "@/components/layer-picker"
 import { PlayModePicker } from "@/components/play-mode-picker"
 import { Slider } from "@/components/ui/slider"
 import { stepDecimals } from "@/lib/controls"
-import type { GaugeLayer } from "@/lib/gauge-layers"
+import type { Composition } from "@/lib/gauge-layers"
 import type { PlayMode } from "@/lib/gauge-panels"
 
 export type ControlBarProps = {
-  layers: GaugeLayer[]
-  selected: number
-  onSelect: (index: number) => void
+  composition: Composition
+  selected: string
+  onSelect: (id: string) => void
   onAdd: () => void
-  onRemove: (index: number) => void
+  onRemove: (id: string) => void
   value: number
   min: number
   max: number
@@ -25,7 +25,7 @@ export type ControlBarProps = {
 }
 
 export const ControlBar = ({
-  layers,
+  composition,
   selected,
   onSelect,
   onAdd,
@@ -55,7 +55,7 @@ export const ControlBar = ({
   return (
     <div className="flex w-full max-w-md items-center gap-1 rounded-2xl bg-secondary/80 p-1 text-card-foreground ring ring-foreground/10 backdrop-blur-sm max-sm:flex-wrap">
       <LayerPicker
-        layers={layers}
+        composition={composition}
         selected={selected}
         onSelect={onSelect}
         onAdd={onAdd}

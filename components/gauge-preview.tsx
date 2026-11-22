@@ -24,19 +24,23 @@ import {
   zoneCutoffs,
   type GaugeTransition,
 } from "@/components/gauge"
-import { barPadding, type GaugeSpec } from "@/lib/gauge-spec"
+import {
+  barPadding,
+  type GaugeSpec,
+  type BaseGaugeSpec,
+} from "@/lib/gauge-spec"
 
 type GaugePreviewProps = {
   spec: GaugeSpec
   value: number
   transition?: GaugeTransition | boolean
-  sweepIn?: boolean
+  playIn?: number
   tooltips?: boolean
 }
 
 const SWEEP_TURNS = 0.4
 
-const sweepFrom = (spec: GaugeSpec, value: number) => {
+const sweepFrom = (spec: BaseGaugeSpec, value: number) => {
   const { min, max } = spec.domain
   const span = max - min
   const turns = Math.max(
@@ -48,17 +52,18 @@ const sweepFrom = (spec: GaugeSpec, value: number) => {
   return Math.max(min, value - reach)
 }
 
-const valueOf = (spec: GaugeSpec, value: number) =>
+const valueOf = (spec: BaseGaugeSpec, value: number) =>
   spec.rangeFrom === undefined ? value : ([spec.rangeFrom, value] as const)
 
 export const GaugePreview = ({
   spec,
   value,
   transition = spec.transition,
-  sweepIn = false,
+  playIn,
   tooltips = true,
 }: GaugePreviewProps) => {
   const { domain } = spec
+  const sweepIn = playIn !== undefined
   const root = {
     value: valueOf(spec, value),
     min: domain.min,
@@ -116,6 +121,7 @@ export const GaugePreview = ({
 
   return domain.shape === "linear" ? (
     <LinearGauge
+      key={playIn}
       {...root}
       orientation={domain.orientation}
       length={domain.length}
@@ -128,6 +134,7 @@ export const GaugePreview = ({
     </LinearGauge>
   ) : (
     <Gauge
+      key={playIn}
       {...root}
       startAngle={domain.startAngle}
       endAngle={domain.endAngle}
@@ -145,7 +152,7 @@ const GaugeParts = ({
   value,
   tooltips,
 }: {
-  spec: GaugeSpec
+  spec: BaseGaugeSpec
   value: number
   tooltips: boolean
 }) => {
