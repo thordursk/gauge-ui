@@ -31,7 +31,7 @@ export {
   type Zone,
 } from "@/components/gauge"
 
-export type GaugeShape = "round" | "linear"
+export type GaugeShape = GaugeDomain["shape"]
 
 export type LabelFormat = "number" | "compass" | "clock"
 
@@ -64,29 +64,41 @@ export type NeedleSpec = {
   color: string
   tail: number
   tailColor: string
-  tailDot: number
-  gap: number
+  tailDot?: number
+  gap?: number
   turns: number
 }
 
-export type GaugeSpec = {
+export type RoundDomain = {
+  shape: "round"
+  min: number
+  max: number
+  startAngle: number
+  endAngle: number
+  radius: number
+}
+
+export type LinearDomain = {
+  shape: "linear"
+  min: number
+  max: number
+  orientation: GaugeOrientation
+  length: number
+}
+
+export type GaugeDomain = RoundDomain | LinearDomain
+
+export type RoundFrame = { padding: number; fit: GaugeFit }
+
+export type LinearFrame = { padding: number; ends: number }
+
+export type FramedDomain =
+  (RoundDomain & RoundFrame) | (LinearDomain & LinearFrame)
+
+export type GaugeSpecOf<D extends GaugeDomain> = {
   transition?: GaugeTransition
   rangeFrom?: number
-  control?: { knob: boolean; step: number }
-  insets?: GaugeInsetSpec[]
-  domain: {
-    shape: GaugeShape
-    min: number
-    max: number
-    startAngle: number
-    endAngle: number
-    radius: number
-    padding: number
-    fit: GaugeFit
-    orientation: GaugeOrientation
-    length: number
-    ends: number
-  }
+  domain: D
   face: { show: boolean; radius: number; color: string }
   track: {
     show: boolean
@@ -181,11 +193,18 @@ export type GaugeSpec = {
   title: TextSpec & { text: string }
 }
 
+export type BaseGaugeSpec = GaugeSpecOf<GaugeDomain>
+
+export type GaugeSpec = GaugeSpecOf<FramedDomain> & {
+  control?: { knob: boolean; step: number }
+  insets?: GaugeInsetSpec[]
+}
+
 export const barPadding = ({
   orientation,
   padding,
   ends,
-}: GaugeSpec["domain"]) =>
+}: LinearDomain & LinearFrame) =>
   orientation === "vertical"
     ? { top: ends, right: padding, bottom: ends, left: padding }
     : { top: padding, right: ends, bottom: padding, left: ends }
@@ -196,5 +215,5 @@ export type GaugeInsetSpec = {
   y: number
   scale: number
   value: number
-  spec: GaugeSpec
+  spec: BaseGaugeSpec
 }

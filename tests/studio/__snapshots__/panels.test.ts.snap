@@ -1,0 +1,980 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`defaultPanelValues > builds the default spec 1`] = `
+{
+  "arc": {
+    "cap": "round",
+    "color": "var(--primary)",
+    "colorByZone": false,
+    "from": undefined,
+    "offset": 0,
+    "opacity": 1,
+    "reverse": false,
+    "show": true,
+    "width": 24,
+  },
+  "control": undefined,
+  "domain": {
+    "endAngle": 320,
+    "fit": "square",
+    "max": 100,
+    "min": 0,
+    "padding": 56,
+    "radius": 200,
+    "shape": "round",
+    "startAngle": 40,
+  },
+  "dot": {
+    "both": false,
+    "color": "var(--foreground)",
+    "offset": 0,
+    "opacity": 1,
+    "radius": 10,
+    "show": false,
+    "turns": 1,
+  },
+  "face": {
+    "color": "var(--muted)",
+    "radius": 150,
+    "show": false,
+  },
+  "majorTicks": {
+    "cap": "round",
+    "color": "var(--muted-foreground)",
+    "count": 10,
+    "length": 16,
+    "offset": -44,
+    "opacity": 1,
+    "show": false,
+    "width": 3,
+  },
+  "marks": {
+    "cap": "round",
+    "color": "var(--foreground)",
+    "length": 16,
+    "offset": 0,
+    "show": false,
+    "values": undefined,
+    "width": 3,
+  },
+  "minorTicks": {
+    "cap": "round",
+    "color": "var(--muted-foreground)",
+    "count": 50,
+    "length": 8,
+    "offset": -44,
+    "opacity": 0.6,
+    "show": false,
+    "width": 1.5,
+  },
+  "needles": {
+    "hub": {
+      "color": "var(--foreground)",
+      "radius": 12,
+    },
+    "list": [
+      {
+        "color": "var(--foreground)",
+        "gap": undefined,
+        "length": 0.85,
+        "style": "line",
+        "tail": 30,
+        "tailColor": "var(--foreground)",
+        "tailDot": undefined,
+        "turns": 1,
+        "width": 6,
+      },
+    ],
+    "show": false,
+  },
+  "rangeFrom": undefined,
+  "tickFill": {
+    "cap": "round",
+    "color": "var(--primary)",
+    "count": 40,
+    "dimColor": "var(--muted)",
+    "length": 24,
+    "litLength": 24,
+    "mode": "fill",
+    "offset": 0,
+    "show": false,
+    "width": 6,
+  },
+  "tickLabels": {
+    "color": "var(--muted-foreground)",
+    "count": 10,
+    "decimals": 0,
+    "font": "sans",
+    "fontSize": 18,
+    "format": "number",
+    "offset": -76,
+    "show": false,
+    "weight": "medium",
+  },
+  "title": {
+    "anchor": "middle",
+    "color": "var(--muted-foreground)",
+    "font": "sans",
+    "fontSize": 24,
+    "show": false,
+    "text": "Speed",
+    "weight": "medium",
+    "x": 0,
+    "y": -66,
+  },
+  "tooltip": {
+    "decimals": 0,
+    "gap": 8,
+    "label": "Value",
+    "offset": 24,
+    "open": false,
+    "position": "value",
+    "show": false,
+    "side": "auto",
+    "unit": "",
+  },
+  "track": {
+    "cap": "round",
+    "color": "var(--muted)",
+    "offset": 0,
+    "opacity": 1,
+    "show": true,
+    "width": 24,
+  },
+  "transition": {
+    "bounce": 0.1,
+    "type": "spring",
+    "visualDuration": 0.5,
+  },
+  "unit": {
+    "anchor": "middle",
+    "color": "var(--muted-foreground)",
+    "font": "sans",
+    "fontSize": 28,
+    "show": true,
+    "text": "km/h",
+    "weight": "medium",
+    "x": 0,
+    "y": 68,
+  },
+  "value": {
+    "anchor": "middle",
+    "color": "var(--foreground)",
+    "decimals": 0,
+    "font": "rounded",
+    "fontSize": 96,
+    "show": true,
+    "weight": "semibold",
+    "x": 0,
+    "y": -0,
+  },
+  "zones": {
+    "cap": "butt",
+    "endCap": "butt",
+    "gap": 1.5,
+    "list": [
+      {
+        "color": "var(--muted)",
+        "to": 50,
+      },
+      {
+        "color": "var(--muted-foreground)",
+        "to": 75,
+      },
+      {
+        "color": "var(--foreground)",
+        "to": 100,
+      },
+    ],
+    "offset": -24,
+    "opacity": 1,
+    "show": false,
+    "width": 8,
+  },
+}
+`;
+
+exports[`defaultPanelValues > fills every panel 1`] = `
+{
+  "arcs": {
+    "arc": {
+      "cap": "round",
+      "color": {
+        "token": "primary",
+      },
+      "colorByZone": false,
+      "fromZero": false,
+      "offset": 0,
+      "opacity": 1,
+      "reverse": false,
+      "show": true,
+      "width": 24,
+    },
+    "face": {
+      "color": {
+        "token": "muted",
+      },
+      "radius": 150,
+      "show": false,
+    },
+    "track": {
+      "cap": "round",
+      "color": {
+        "token": "muted",
+      },
+      "offset": 0,
+      "opacity": 1,
+      "show": true,
+      "width": 24,
+    },
+  },
+  "cutoffs": {
+    "band": {
+      "cap": "butt",
+      "endCap": "butt",
+      "gap": 1.5,
+      "offset": -24,
+      "opacity": 1,
+      "show": true,
+      "width": 8,
+    },
+    "count": 3,
+    "marks": {
+      "cap": "round",
+      "color": {
+        "token": "foreground",
+      },
+      "length": 16,
+      "offset": 0,
+      "show": false,
+      "values": "",
+      "width": 3,
+    },
+    "show": false,
+    "zone1": {
+      "color": {
+        "token": "muted",
+      },
+      "to": 50,
+    },
+    "zone2": {
+      "color": {
+        "token": "muted-foreground",
+      },
+      "to": 75,
+    },
+    "zone3": {
+      "color": {
+        "token": "foreground",
+      },
+      "to": 90,
+    },
+    "zone4": {
+      "color": {
+        "token": "primary",
+      },
+    },
+  },
+  "dot": {
+    "color": {
+      "token": "foreground",
+    },
+    "ends": "value",
+    "offset": 0,
+    "opacity": 1,
+    "radius": 10,
+    "show": false,
+    "turns": 1,
+  },
+  "gauge": {
+    "control": "off",
+    "endAngle": 320,
+    "ends": 24,
+    "fit": "square",
+    "length": 400,
+    "max": 100,
+    "min": 0,
+    "orientation": "horizontal",
+    "padding": 56,
+    "placement": {
+      "position": {
+        "x": 0,
+        "y": 0,
+      },
+      "scale": 0.5,
+    },
+    "shape": "round",
+    "stage": {
+      "token": "background",
+    },
+    "startAngle": 40,
+  },
+  "needle": {
+    "count": 1,
+    "hub": {
+      "color": {
+        "token": "foreground",
+      },
+      "radius": 12,
+    },
+    "needle1": {
+      "color": {
+        "token": "foreground",
+      },
+      "gap": 0,
+      "length": 0.85,
+      "style": "line",
+      "tail": 30,
+      "tailColor": {
+        "token": "foreground",
+      },
+      "tailDot": 0,
+      "turns": 1,
+      "width": 6,
+    },
+    "needle2": {
+      "color": {
+        "token": "foreground",
+      },
+      "gap": 0,
+      "length": 0.8,
+      "style": "line",
+      "tail": 0,
+      "tailColor": {
+        "token": "foreground",
+      },
+      "tailDot": 0,
+      "turns": 12,
+      "width": 3,
+    },
+    "needle3": {
+      "color": {
+        "token": "foreground",
+      },
+      "gap": 0,
+      "length": 0.9,
+      "style": "line",
+      "tail": 30,
+      "tailColor": {
+        "token": "foreground",
+      },
+      "tailDot": 0,
+      "turns": 720,
+      "width": 1.5,
+    },
+    "show": false,
+  },
+  "text": {
+    "title": {
+      "anchor": "middle",
+      "color": {
+        "token": "muted-foreground",
+      },
+      "font": "sans",
+      "fontSize": 24,
+      "position": {
+        "x": 0,
+        "y": 0.33,
+      },
+      "show": false,
+      "text": "Speed",
+      "weight": "medium",
+    },
+    "unit": {
+      "anchor": "middle",
+      "color": {
+        "token": "muted-foreground",
+      },
+      "font": "sans",
+      "fontSize": 28,
+      "position": {
+        "x": 0,
+        "y": -0.34,
+      },
+      "show": true,
+      "text": "km/h",
+      "weight": "medium",
+    },
+    "value": {
+      "anchor": "middle",
+      "color": {
+        "token": "foreground",
+      },
+      "decimals": 0,
+      "font": "rounded",
+      "fontSize": 96,
+      "position": {
+        "x": 0,
+        "y": 0,
+      },
+      "show": true,
+      "weight": "semibold",
+    },
+  },
+  "ticks": {
+    "fill": {
+      "cap": "round",
+      "color": {
+        "token": "primary",
+      },
+      "count": 40,
+      "dimColor": {
+        "token": "muted",
+      },
+      "length": 24,
+      "litLength": 24,
+      "mode": "fill",
+      "offset": 0,
+      "show": false,
+      "width": 6,
+    },
+    "labels": {
+      "color": {
+        "token": "muted-foreground",
+      },
+      "count": 10,
+      "decimals": 0,
+      "font": "sans",
+      "fontSize": 18,
+      "format": "number",
+      "offset": -76,
+      "show": false,
+      "weight": "medium",
+    },
+    "major": {
+      "cap": "round",
+      "color": {
+        "token": "muted-foreground",
+      },
+      "count": 10,
+      "length": 16,
+      "offset": -44,
+      "opacity": 1,
+      "show": false,
+      "width": 3,
+    },
+    "minor": {
+      "cap": "round",
+      "color": {
+        "token": "muted-foreground",
+      },
+      "count": 50,
+      "length": 8,
+      "offset": -44,
+      "opacity": 0.6,
+      "show": false,
+      "width": 1.5,
+    },
+  },
+  "tooltip": {
+    "decimals": 0,
+    "gap": 8,
+    "label": "Value",
+    "offset": 24,
+    "pin": false,
+    "position": "value",
+    "show": false,
+    "side": "auto",
+    "unit": "",
+  },
+  "value": {
+    "amplitude": 0.25,
+    "animate": true,
+    "from": 30,
+    "motion": {
+      "bounce": 0.1,
+      "type": "spring",
+      "visualDuration": 0.5,
+    },
+    "period": 3,
+    "range": false,
+    "value": 62,
+  },
+}
+`;
+
+exports[`defaultPanelValues > follows the domain 1`] = `
+{
+  "amplitude": 0.25,
+  "animate": true,
+  "from": 12,
+  "motion": {
+    "bounce": 0.1,
+    "type": "spring",
+    "visualDuration": 0.5,
+  },
+  "period": 3,
+  "range": false,
+  "value": 12,
+}
+`;
+
+exports[`defaultsOf > arcs, linear 1`] = `
+{
+  "arc": {
+    "cap": "round",
+    "color": {
+      "token": "primary",
+    },
+    "colorByZone": false,
+    "fromZero": false,
+    "offset": 0,
+    "opacity": 1,
+    "reverse": false,
+    "show": true,
+    "width": 24,
+  },
+  "track": {
+    "cap": "round",
+    "color": {
+      "token": "muted",
+    },
+    "offset": 0,
+    "opacity": 1,
+    "show": true,
+    "width": 24,
+  },
+}
+`;
+
+exports[`defaultsOf > arcs, round 1`] = `
+{
+  "arc": {
+    "cap": "round",
+    "color": {
+      "token": "primary",
+    },
+    "colorByZone": false,
+    "fromZero": false,
+    "offset": 0,
+    "opacity": 1,
+    "reverse": false,
+    "show": true,
+    "width": 24,
+  },
+  "face": {
+    "color": {
+      "token": "muted",
+    },
+    "radius": 150,
+    "show": false,
+  },
+  "track": {
+    "cap": "round",
+    "color": {
+      "token": "muted",
+    },
+    "offset": 0,
+    "opacity": 1,
+    "show": true,
+    "width": 24,
+  },
+}
+`;
+
+exports[`defaultsOf > cutoffs, 0 to 100 1`] = `
+{
+  "band": {
+    "cap": "butt",
+    "endCap": "butt",
+    "gap": 1.5,
+    "offset": -24,
+    "opacity": 1,
+    "show": true,
+    "width": 8,
+  },
+  "count": 3,
+  "marks": {
+    "cap": "round",
+    "color": {
+      "token": "foreground",
+    },
+    "length": 16,
+    "offset": 0,
+    "show": false,
+    "values": "",
+    "width": 3,
+  },
+  "show": false,
+  "zone1": {
+    "color": {
+      "token": "muted",
+    },
+    "to": 50,
+  },
+  "zone2": {
+    "color": {
+      "token": "muted-foreground",
+    },
+    "to": 75,
+  },
+  "zone3": {
+    "color": {
+      "token": "foreground",
+    },
+    "to": 90,
+  },
+  "zone4": {
+    "color": {
+      "token": "primary",
+    },
+  },
+}
+`;
+
+exports[`defaultsOf > cutoffs, 4 to 12 1`] = `
+{
+  "band": {
+    "cap": "butt",
+    "endCap": "butt",
+    "gap": 1.5,
+    "offset": -24,
+    "opacity": 1,
+    "show": true,
+    "width": 8,
+  },
+  "count": 3,
+  "marks": {
+    "cap": "round",
+    "color": {
+      "token": "foreground",
+    },
+    "length": 16,
+    "offset": 0,
+    "show": false,
+    "values": "",
+    "width": 3,
+  },
+  "show": false,
+  "zone1": {
+    "color": {
+      "token": "muted",
+    },
+    "to": 8,
+  },
+  "zone2": {
+    "color": {
+      "token": "muted-foreground",
+    },
+    "to": 10,
+  },
+  "zone3": {
+    "color": {
+      "token": "foreground",
+    },
+    "to": 11.2,
+  },
+  "zone4": {
+    "color": {
+      "token": "primary",
+    },
+  },
+}
+`;
+
+exports[`defaultsOf > dot 1`] = `
+{
+  "color": {
+    "token": "foreground",
+  },
+  "ends": "value",
+  "offset": 0,
+  "opacity": 1,
+  "radius": 10,
+  "show": false,
+  "turns": 1,
+}
+`;
+
+exports[`defaultsOf > gauge, linear host 1`] = `
+{
+  "control": "off",
+  "ends": 24,
+  "length": 400,
+  "max": 100,
+  "min": 0,
+  "orientation": "horizontal",
+  "padding": 56,
+  "shape": "round",
+  "stage": {
+    "token": "background",
+  },
+}
+`;
+
+exports[`defaultsOf > gauge, linear inset 1`] = `
+{
+  "length": 400,
+  "max": 100,
+  "min": 0,
+  "orientation": "horizontal",
+  "placement": {
+    "position": {
+      "x": 0,
+      "y": 0,
+    },
+    "scale": 0.5,
+  },
+  "shape": "round",
+}
+`;
+
+exports[`defaultsOf > gauge, round host 1`] = `
+{
+  "control": "off",
+  "endAngle": 320,
+  "fit": "square",
+  "max": 100,
+  "min": 0,
+  "padding": 56,
+  "shape": "round",
+  "stage": {
+    "token": "background",
+  },
+  "startAngle": 40,
+}
+`;
+
+exports[`defaultsOf > gauge, round inset 1`] = `
+{
+  "endAngle": 320,
+  "max": 100,
+  "min": 0,
+  "placement": {
+    "position": {
+      "x": 0,
+      "y": 0,
+    },
+    "scale": 0.5,
+  },
+  "shape": "round",
+  "startAngle": 40,
+}
+`;
+
+exports[`defaultsOf > needle 1`] = `
+{
+  "count": 1,
+  "hub": {
+    "color": {
+      "token": "foreground",
+    },
+    "radius": 12,
+  },
+  "needle1": {
+    "color": {
+      "token": "foreground",
+    },
+    "gap": 0,
+    "length": 0.85,
+    "style": "line",
+    "tail": 30,
+    "tailColor": {
+      "token": "foreground",
+    },
+    "tailDot": 0,
+    "turns": 1,
+    "width": 6,
+  },
+  "needle2": {
+    "color": {
+      "token": "foreground",
+    },
+    "gap": 0,
+    "length": 0.8,
+    "style": "line",
+    "tail": 0,
+    "tailColor": {
+      "token": "foreground",
+    },
+    "tailDot": 0,
+    "turns": 12,
+    "width": 3,
+  },
+  "needle3": {
+    "color": {
+      "token": "foreground",
+    },
+    "gap": 0,
+    "length": 0.9,
+    "style": "line",
+    "tail": 30,
+    "tailColor": {
+      "token": "foreground",
+    },
+    "tailDot": 0,
+    "turns": 720,
+    "width": 1.5,
+  },
+  "show": false,
+}
+`;
+
+exports[`defaultsOf > text 1`] = `
+{
+  "title": {
+    "anchor": "middle",
+    "color": {
+      "token": "muted-foreground",
+    },
+    "font": "sans",
+    "fontSize": 24,
+    "position": {
+      "x": 0,
+      "y": 0.33,
+    },
+    "show": false,
+    "text": "Speed",
+    "weight": "medium",
+  },
+  "unit": {
+    "anchor": "middle",
+    "color": {
+      "token": "muted-foreground",
+    },
+    "font": "sans",
+    "fontSize": 28,
+    "position": {
+      "x": 0,
+      "y": -0.34,
+    },
+    "show": true,
+    "text": "km/h",
+    "weight": "medium",
+  },
+  "value": {
+    "anchor": "middle",
+    "color": {
+      "token": "foreground",
+    },
+    "decimals": 0,
+    "font": "rounded",
+    "fontSize": 96,
+    "position": {
+      "x": 0,
+      "y": 0,
+    },
+    "show": true,
+    "weight": "semibold",
+  },
+}
+`;
+
+exports[`defaultsOf > ticks 1`] = `
+{
+  "fill": {
+    "cap": "round",
+    "color": {
+      "token": "primary",
+    },
+    "count": 40,
+    "dimColor": {
+      "token": "muted",
+    },
+    "length": 24,
+    "litLength": 24,
+    "mode": "fill",
+    "offset": 0,
+    "show": false,
+    "width": 6,
+  },
+  "labels": {
+    "color": {
+      "token": "muted-foreground",
+    },
+    "count": 10,
+    "decimals": 0,
+    "font": "sans",
+    "fontSize": 18,
+    "format": "number",
+    "offset": -76,
+    "show": false,
+    "weight": "medium",
+  },
+  "major": {
+    "cap": "round",
+    "color": {
+      "token": "muted-foreground",
+    },
+    "count": 10,
+    "length": 16,
+    "offset": -44,
+    "opacity": 1,
+    "show": false,
+    "width": 3,
+  },
+  "minor": {
+    "cap": "round",
+    "color": {
+      "token": "muted-foreground",
+    },
+    "count": 50,
+    "length": 8,
+    "offset": -44,
+    "opacity": 0.6,
+    "show": false,
+    "width": 1.5,
+  },
+}
+`;
+
+exports[`defaultsOf > tooltip 1`] = `
+{
+  "decimals": 0,
+  "gap": 8,
+  "label": "Value",
+  "offset": 24,
+  "pin": false,
+  "position": "value",
+  "show": false,
+  "side": "auto",
+  "unit": "",
+}
+`;
+
+exports[`defaultsOf > value, defaults 1`] = `
+{
+  "amplitude": 0.25,
+  "animate": true,
+  "from": 30,
+  "motion": {
+    "bounce": 0.1,
+    "type": "spring",
+    "visualDuration": 0.5,
+  },
+  "period": 3,
+  "range": false,
+  "value": 62,
+}
+`;
+
+exports[`defaultsOf > value, range 1`] = `
+{
+  "amplitude": 0.25,
+  "animate": true,
+  "from": 30,
+  "motion": {
+    "bounce": 0.1,
+    "type": "spring",
+    "visualDuration": 0.5,
+  },
+  "period": 3,
+  "range": false,
+  "value": 50,
+}
+`;
+
+exports[`defaultsOf > value, single 1`] = `
+{
+  "amplitude": 0.25,
+  "animate": true,
+  "motion": {
+    "bounce": 0.1,
+    "type": "spring",
+    "visualDuration": 0.5,
+  },
+  "period": 3,
+  "range": false,
+  "value": 62,
+}
+`;

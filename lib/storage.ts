@@ -22,6 +22,14 @@ const listeners = new Set<() => void>()
 
 const announce = () => listeners.forEach((listener) => listener())
 
+export type ControlsVisibility = "shown" | "hidden"
+
+export const readControlsVisibility = (): ControlsVisibility =>
+  readStored(storageKeys.controls) === "hidden" ? "hidden" : "shown"
+
+export const writeControlsVisibility = (visibility: ControlsVisibility) =>
+  writeStored(storageKeys.controls, visibility)
+
 export const subscribeStored = (onChange: () => void) => {
   listeners.add(onChange)
   window.addEventListener("storage", onChange)

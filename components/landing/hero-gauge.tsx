@@ -21,7 +21,7 @@ export const HeroGauge = () => {
       mode="wander"
       period={1.8}
       amplitude={0.3}
-      sweepIn
+      playIn={0}
     />
   )
 }

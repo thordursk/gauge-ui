@@ -19,20 +19,20 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { buildSpec } from "@/lib/gauge-panels"
-import type { GaugeLayer } from "@/lib/gauge-layers"
+import type { Composition, GaugeLayer } from "@/lib/gauge-layers"
 import { cn } from "@/lib/utils"
 
 type LayerPickerProps = {
-  layers: GaugeLayer[]
-  selected: number
-  onSelect: (index: number) => void
+  composition: Composition
+  selected: string
+  onSelect: (id: string) => void
   onAdd: () => void
-  onRemove: (index: number) => void
+  onRemove: (id: string) => void
   className?: string
 }
 
 export const LayerPicker = ({
-  layers,
+  composition: { host, insets },
   selected,
   onSelect,
   onAdd,
@@ -40,8 +40,8 @@ export const LayerPicker = ({
   className,
 }: LayerPickerProps) => {
   const [open, setOpen] = useState(false)
-  const current = layers[selected] ?? layers[0]
-  const stack = layers.map((layer, index) => ({ layer, index })).reverse()
+  const count = insets.length + 1
+  const current = insets.find((layer) => layer.id === selected) ?? host
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -60,9 +60,9 @@ export const LayerPicker = ({
               data-icon="inline-start"
             />
             <span className="truncate">{current.name}</span>
-            {layers.length > 1 && (
+            {count > 1 && (
               <span className="rounded-full bg-foreground/10 px-1.5 text-[11px] tabular-nums">
-                {layers.length}
+                {count}
               </span>
             )}
             <HugeiconsIcon icon={ArrowDown01Icon} data-icon="inline-end" />
@@ -81,16 +81,20 @@ export const LayerPicker = ({
           </PopoverTitle>
         </PopoverHeader>
         <div className="flex flex-col gap-0.5">
-          {stack.map(({ layer, index }) => (
+          {[...insets].reverse().map((layer) => (
             <LayerRow
               key={layer.id}
               layer={layer}
-              selected={index === selected}
-              removable={index !== 0}
-              onSelect={() => onSelect(index)}
-              onRemove={() => onRemove(index)}
+              selected={layer.id === selected}
+              onSelect={() => onSelect(layer.id)}
+              onRemove={() => onRemove(layer.id)}
             />
           ))}
+          <LayerRow
+            layer={host}
+            selected={host.id === selected}
+            onSelect={() => onSelect(host.id)}
+          />
         </div>
         <div>
           <Button
@@ -115,18 +119,11 @@ export const LayerPicker = ({
 type LayerRowProps = {
   layer: GaugeLayer
   selected: boolean
-  removable: boolean
   onSelect: () => void
-  onRemove: () => void
+  onRemove?: () => void
 }
 
-const LayerRow = ({
-  layer,
-  selected,
-  removable,
-  onSelect,
-  onRemove,
-}: LayerRowProps) => {
+const LayerRow = ({ layer, selected, onSelect, onRemove }: LayerRowProps) => {
   const spec = useMemo(() => buildSpec(layer.values), [layer.values])
 
   return (
@@ -152,7 +149,7 @@ const LayerRow = ({
         </span>
         <span className="truncate text-sm font-medium">{layer.name}</span>
       </button>
-      {removable ? (
+      {onRemove ? (
         <Button
           size="icon-sm"
           variant="ghost"

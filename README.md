@@ -92,6 +92,24 @@ export function Speed({ value }: { value: number }) {
 
 `Gauge` and `GaugeInset` also take `wrap`, which treats the domain as circular so a heading animates the shortest way round, and `rotate`, which turns the whole scale under a fixed pointer the way a compass card turns.
 
+## Controls
+
+`GaugeControl` turns the gauge inside it into a slider. It takes the value, `onChange`, a `label` and `step`; the domain, angles, orientation, length and `wrap` all come from the gauge, so they're set once, on the gauge.
+
+```tsx
+<GaugeControl value={volume} onChange={setVolume} step={1} knob label="Volume">
+  <Gauge value={volume} min={0} max={100} startAngle={40} endAngle={320}>
+    <GaugeTrack />
+    <GaugeArc />
+    <GaugeDot offset={-70} />
+  </Gauge>
+</GaugeControl>
+```
+
+- The gauge can sit directly inside the control or inside a component of your own. Wrap exactly one gauge; insets inside it aren't controlled.
+- `min` and `max` on the control are optional limits inside the gauge's domain, for a slider that stops short of its scale: a dimmer drawn from 0 that never goes below 1 takes `min={1}`.
+- A press in the middle of the face, or Enter, calls `onPress`. With `knob`, a drag on the face turns the value from where it is instead.
+
 ## Bars
 
 `LinearGauge` lays the scale out straight instead of round, as a horizontal or vertical bar. It publishes the same context as `Gauge`, so the same parts draw along it. The only exception is `GaugeNeedle`, which needs a centre to pivot on.
@@ -109,7 +127,7 @@ export function Speed({ value }: { value: number }) {
 - The bar is `length` SVG units long (default 400) and centred on the origin. A horizontal bar runs left to right. A vertical bar runs bottom to top.
 - `offset` moves a part outward, the same as on a dial: up from a horizontal bar, or left of a vertical one. Use a negative offset for labels below or to the right.
 - `padding` takes one number, or `{ top, right, bottom, left }` for a different amount on each side. The SVG gets a matching `aspect-ratio`, so a horizontal bar fills its width and a vertical bar fills its height.
-- `GaugeControl` takes `orientation` (and `length`, if it isn't 400) to work as a slider along the bar. `LinearGaugeInset` puts a bar inside another gauge.
+- `GaugeControl` round a `LinearGauge` works as a slider along the bar. `LinearGaugeInset` puts a bar inside another gauge.
 - On a `wrap` domain, a range that runs past the end of the bar continues from its start.
 
 ## Ranges
@@ -144,7 +162,7 @@ Pass a `[from, to]` pair as `value` to show a span of the domain instead of a si
 <GaugeTickFill count={72} mode="nearest" length={0} litLength={40} dimColor="transparent" />
 ```
 
-On an open domain, the ends are sorted and the control's thumbs stop when they meet. On a `wrap` domain the order matters, because the range runs forward from `from`: `[22, 6]` on a 24-hour ring is the night and `[6, 22]` is the day. Pass `wrap` to `GaugeControl` too, so its thumbs can cross the seam.
+On an open domain, the ends are sorted and the control's thumbs stop when they meet. On a `wrap` domain the order matters, because the range runs forward from `from`: `[22, 6]` on a 24-hour ring is the night and `[6, 22]` is the day. A `GaugeControl` round a wrapped gauge lets its thumbs cross the seam.
 
 `GaugeDots` stands round dots at fixed values the way `GaugeTicks` stands lines: `count` intervals with both ends included (one fewer on a closed ring, where the ends meet), or the `values` you give it. `radius` sizes each dot, and `color` can pick one per dot:
 
@@ -251,7 +269,7 @@ Value changes are instant by default. Pass `transition` to `Gauge` and every par
 | `duration` | tween | Seconds. Default 0.5 |
 | `ease` | tween | `linear`, `easeIn`, `easeOut`, `easeInOut`, `[x1, y1, x2, y2]` or `(t) => number`. Default `easeInOut` |
 
-Inside custom primitives, `useGauge()` exposes both `value`, the animated figure being drawn this frame, and `target`, the value the gauge is heading for. On a range, `from` and `targetFrom` are the same for its start, and `range` is `true`. The studio's Value panel has the same controls, and the code it generates carries your transition.
+Inside custom primitives, `useGauge()` exposes both `value`, the animated figure being drawn this frame, and `target`, the value the gauge is heading for. On a range, `from` and `targetFrom` are the same for its start, and `range` is `true`. Its `scale` draws along the gauge: `scale.path(from, to)` between two positions, and `scale.wrappedPath(start, length)` for a span that carries on past the end, round a ring or back in at the start of a bar. To animate a value of your own the same way, `useAnimatedValue(target, transition, { span, initial, wrap })` returns the figure to draw this frame. The studio's Value panel has the same controls, and the code it generates carries your transition.
 
 ## Studio
 

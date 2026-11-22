@@ -4,10 +4,14 @@ import { useEffect, useState, type RefObject } from "react"
 
 import { useInView } from "@/hooks/use-in-view"
 
+export type Gear = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8
+
+export type Tyres = [fl: number, fr: number, rl: number, rr: number]
+
 export type Telemetry = {
   speed: number
   rpm: number
-  gear: number
+  gear: Gear
   throttle: number
   brake: number
   steer: number
@@ -19,35 +23,37 @@ export type Telemetry = {
   delta: number
   sectors: number[]
   bestSectors: number[]
-  tyres: [number, number, number, number]
+  tyres: Tyres
   battery: number
   ers: number
   fuel: number
   clock: number
 }
 
+export const KMH = 3.6
+
 type Corner = {
   speed: number
-  turn: 1 | -1
+  turn: "left" | "right"
 }
 
 type Segment = { length: number; corner?: Corner }
 
 const TRACK: Segment[] = [
   { length: 820 },
-  { length: 120, corner: { speed: 95, turn: 1 } },
+  { length: 120, corner: { speed: 95 / KMH, turn: "right" } },
   { length: 380 },
-  { length: 160, corner: { speed: 180, turn: -1 } },
-  { length: 90, corner: { speed: 165, turn: 1 } },
+  { length: 160, corner: { speed: 180 / KMH, turn: "left" } },
+  { length: 90, corner: { speed: 165 / KMH, turn: "right" } },
   { length: 520 },
-  { length: 200, corner: { speed: 235, turn: 1 } },
+  { length: 200, corner: { speed: 235 / KMH, turn: "right" } },
   { length: 300 },
-  { length: 110, corner: { speed: 110, turn: -1 } },
+  { length: 110, corner: { speed: 110 / KMH, turn: "left" } },
   { length: 640 },
-  { length: 130, corner: { speed: 80, turn: 1 } },
+  { length: 130, corner: { speed: 80 / KMH, turn: "right" } },
   { length: 260 },
-  { length: 150, corner: { speed: 145, turn: -1 } },
-  { length: 180, corner: { speed: 200, turn: 1 } },
+  { length: 150, corner: { speed: 145 / KMH, turn: "left" } },
+  { length: 180, corner: { speed: 200 / KMH, turn: "right" } },
   { length: 340 },
 ]
 
@@ -63,14 +69,17 @@ export const SECTOR_STARTS = [1500, 3000]
 
 export const CORNERS = TRACK.flatMap((s, i) => (s.corner ? [STARTS[i]] : []))
 
-const VMAX = 340 / 3.6
+const VMAX = 340 / KMH
 const BRAKE_PLAN = 30
 const MAX_BRAKE = 36
-const UPSHIFT = 11.9
-const DOWNSHIFT = 8
+const TOP_GEAR = 8
+const UPSHIFT = 11900
+const DOWNSHIFT = 8000
+const IDLE = 3500
+const REV_LIMIT = 12200
 const RATIOS = Array.from(
-  { length: 8 },
-  (_, g) => 120 * (35.8 / 120) ** (g / 7)
+  { length: TOP_GEAR },
+  (_, g) => 120 * (35.8 / 120) ** (g / (TOP_GEAR - 1))
 )
 const SAMPLE = 25
 const FULL_TANK = 40
@@ -93,8 +102,7 @@ const segmentAt = (distance: number) => {
   return i
 }
 
-const rpmIn = (gear: number, speed: number) =>
-  (speed * 3.6 * RATIOS[gear - 1]) / 1000
+const rpmIn = (gear: Gear, speed: number) => speed * KMH * RATIOS[gear - 1]
 
 type Car = {
   distance: number
@@ -102,9 +110,9 @@ type Car = {
   throttle: number
   brake: number
   steer: number
-  gear: number
+  gear: Gear
   rpm: number
-  tyres: [number, number, number, number]
+  tyres: Tyres
   battery: number
   ers: number
   fuel: number
@@ -140,7 +148,7 @@ const step = (car: Car, dt: number, random: () => number) => {
     const j = (index + k) % TRACK.length
     const next = TRACK[j]
     if (next.corner) {
-      const vc = (next.corner.speed / 3.6) * car.pace
+      const vc = next.corner.speed * car.pace
       needs.set(j, (v * v - vc * vc) / (2 * Math.max(ahead, 1)))
     }
     ahead += next.length
@@ -151,7 +159,7 @@ const step = (car: Car, dt: number, random: () => number) => {
       if (need > BRAKE_PLAN) car.braking = j
     }
   }
-  const limit = segment.corner ? (segment.corner.speed / 3.6) * car.pace : VMAX
+  const limit = segment.corner ? segment.corner.speed * car.pace : VMAX
 
   let throttleTo = 1
   let brakeTo = 0
@@ -175,24 +183,28 @@ const step = (car: Car, dt: number, random: () => number) => {
   }
 
   const lock = segment.corner
-    ? segment.corner.turn *
-      clamp((300 - segment.corner.speed) / 230, 0.15, 0.95) *
+    ? (segment.corner.turn === "right" ? 1 : -1) *
+      clamp((300 - segment.corner.speed * KMH) / 230, 0.15, 0.95) *
       Math.sin(Math.PI * clamp(progress * 1.1, 0, 1)) ** 0.6
     : 0
   car.steer = approach(car.steer, lock, 4, dt) + (random() - 0.5) * 0.01
 
-  if (car.gear < 8 && rpmIn(car.gear, car.speed) > UPSHIFT) car.gear += 1
-  if (
-    car.gear > 1 &&
-    rpmIn(car.gear, car.speed) < DOWNSHIFT &&
-    rpmIn(car.gear - 1, car.speed) < UPSHIFT - 0.4
-  ) {
-    car.gear -= 1
+  if (car.gear < TOP_GEAR && rpmIn(car.gear, car.speed) > UPSHIFT) {
+    car.gear = (car.gear + 1) as Gear
+  }
+  if (car.gear > 1) {
+    const lower = (car.gear - 1) as Gear
+    if (
+      rpmIn(car.gear, car.speed) < DOWNSHIFT &&
+      rpmIn(lower, car.speed) < UPSHIFT - 400
+    ) {
+      car.gear = lower
+    }
   }
   car.rpm = clamp(
-    rpmIn(car.gear, car.speed) + (random() - 0.5) * 0.06,
-    3.5,
-    12.2
+    rpmIn(car.gear, car.speed) + (random() - 0.5) * 60,
+    IDLE,
+    REV_LIMIT
   )
 
   const lateral = car.steer * (car.speed / 70)
@@ -205,11 +217,9 @@ const step = (car: Car, dt: number, random: () => number) => {
     90 + traction * 9 + right * 16 + left * 5,
     90 + traction * 9 + left * 16 + right * 5,
   ]
-  car.tyres = car.tyres.map(
-    (t, i) => t + (targets[i] - t) * 0.25 * dt
-  ) as Car["tyres"]
+  car.tyres = car.tyres.map((t, i) => t + (targets[i] - t) * 0.25 * dt) as Tyres
 
-  if (car.throttle > 0.95 && car.speed * 3.6 > 140 && car.battery > 2) {
+  if (car.throttle > 0.95 && car.speed > 140 / KMH && car.battery > 2) {
     car.ers = 120
     car.battery -= 1.5 * dt
   } else if (car.brake > 0.1) {
@@ -252,7 +262,7 @@ const step = (car: Car, dt: number, random: () => number) => {
 }
 
 const readings = (car: Car): Telemetry => ({
-  speed: car.speed * 3.6,
+  speed: car.speed,
   rpm: car.rpm,
   gear: car.gear,
   throttle: car.throttle,
@@ -279,12 +289,12 @@ const startSession = () => {
   const random = seeded(7)
   const car: Car = {
     distance: 0,
-    speed: 280 / 3.6,
+    speed: 280 / KMH,
     throttle: 1,
     brake: 0,
     steer: 0,
     gear: 7,
-    rpm: 11,
+    rpm: 11000,
     tyres: [92, 92, 94, 94],
     battery: 62,
     ers: 0,

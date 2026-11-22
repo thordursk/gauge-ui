@@ -1,10 +1,42 @@
 import { render } from "@testing-library/react"
+import { renderToStaticMarkup } from "react-dom/server"
 import { describe, expect, it } from "vitest"
 
 import { GaugePreview } from "@/components/gauge-preview"
 import { gaugeToCode } from "@/lib/gauge-code"
-import type { GaugeSpec } from "@/lib/gauge-spec"
+import type { BaseGaugeSpec, GaugeSpec } from "@/lib/gauge-spec"
 import { gaugeTemplates, templatePreview } from "@/lib/gauge-templates"
+
+describe("gauge templates", () => {
+  it("keep their shelves and order", () => {
+    expect(gaugeTemplates.map((t) => `${t.category}/${t.id}`)).toMatchSnapshot()
+  })
+
+  describe.each(gaugeTemplates.map((t) => [t.id, t] as const))(
+    "%s",
+    (_, template) => {
+      const { spec, value } = templatePreview(template)
+
+      it("generates the same code", () => {
+        expect(gaugeToCode(spec)).toMatchSnapshot()
+      })
+
+      it("renders the same preview", () => {
+        expect(
+          renderToStaticMarkup(<GaugePreview spec={spec} value={value} />)
+        ).toMatchSnapshot()
+      })
+
+      it("renders the same played-in preview", () => {
+        expect(
+          renderToStaticMarkup(
+            <GaugePreview spec={spec} value={value} playIn={0} />
+          )
+        ).toMatchSnapshot()
+      })
+    }
+  )
+})
 
 const template = (id: string) => {
   const found = gaugeTemplates.find((t) => t.id === id)
@@ -12,7 +44,7 @@ const template = (id: string) => {
   return templatePreview(found)
 }
 
-const layers = (spec: GaugeSpec) => [
+const layers = (spec: GaugeSpec): BaseGaugeSpec[] => [
   spec,
   ...(spec.insets ?? []).map((inset) => inset.spec),
 ]
@@ -33,7 +65,7 @@ describe("every template", () => {
   })
 
   it.each(all)("%s hides no needle under its hub", (_, spec) => {
-    if (!spec.needles.show) return
+    if (!spec.needles.show || spec.domain.shape !== "round") return
     for (const needle of spec.needles.list) {
       expect(needle.length * spec.domain.radius).toBeGreaterThan(
         spec.needles.hub.radius

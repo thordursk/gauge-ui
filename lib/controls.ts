@@ -1,4 +1,9 @@
-export type SliderTuple = [number, number, number, number?]
+export type SliderTuple = [
+  value: number,
+  min: number,
+  max: number,
+  step?: number,
+]
 
 export type SpringConfig = {
   type: "spring"
@@ -17,17 +22,20 @@ export type EasingConfig = {
 
 export type TransitionConfig = SpringConfig | EasingConfig
 
-export type SelectOption =
-  | string
-  | { value: string; label: string; swatch?: string }
+export type SelectOption<V extends string = string> =
+  V | { value: V; label: string; swatch?: string }
 
-export type SelectConfig = {
+export type SelectConfig<V extends string = string> = {
   type: "select"
-  options: SelectOption[]
-  default?: string
+  options: SelectOption<V>[]
+  default?: V
 }
 
-export type TextConfig = { type: "text"; default?: string; placeholder?: string }
+export type TextConfig = {
+  type: "text"
+  default?: string
+  placeholder?: string
+}
 
 export type PadAxis = SliderTuple
 export type PadValue = { x: number; y: number }
@@ -36,6 +44,18 @@ export type PadConfig = {
   x?: PadAxis
   y?: PadAxis
 }
+
+export const DEFAULT_PAD_AXIS: PadAxis = [0, -1, 1, 0.01]
+
+export const CUSTOM_TOKEN = "custom"
+
+export type ColorConfig = {
+  token: SelectConfig
+  custom: string
+  _variant: "color"
+}
+
+export type ColorValue = { token: string; custom?: string }
 
 export type ControlValue =
   | number
@@ -51,36 +71,44 @@ export type ControlConfig = {
   [key: string]: ControlValue | SliderTuple | ControlConfig
 }
 
+type MetaKey = `_${string}`
+
 export type ResolvedValues<T extends ControlConfig> = {
-  [K in keyof T]: T[K] extends SliderTuple
+  [K in keyof T as K extends MetaKey ? never : K]: T[K] extends SliderTuple
     ? number
     : T[K] extends SpringConfig
       ? TransitionConfig
       : T[K] extends EasingConfig
         ? TransitionConfig
-        : T[K] extends SelectConfig
-          ? string
+        : T[K] extends SelectConfig<infer V>
+          ? V
           : T[K] extends TextConfig
             ? string
             : T[K] extends PadConfig
               ? PadValue
-              : T[K] extends ControlConfig
-                ? ResolvedValues<T[K]>
-                : T[K]
+              : T[K] extends ColorConfig
+                ? ColorValue
+                : T[K] extends ControlConfig
+                  ? ResolvedValues<T[K]>
+                  : T[K]
 }
 
 export type ControlValueUpdates<T extends ControlConfig> = {
-  [K in keyof T as K extends "_collapsed" ? never : K]?: T[K] extends SliderTuple
+  [K in keyof T as K extends MetaKey ? never : K]?: T[K] extends SliderTuple
     ? number
     : T[K] extends SpringConfig | EasingConfig
       ? TransitionConfig
-      : T[K] extends SelectConfig | TextConfig
-        ? string
-        : T[K] extends PadConfig
-          ? PadValue
-          : T[K] extends ControlConfig
-            ? ControlValueUpdates<T[K]>
-            : T[K]
+      : T[K] extends SelectConfig<infer V>
+        ? V
+        : T[K] extends TextConfig
+          ? string
+          : T[K] extends PadConfig
+            ? PadValue
+            : T[K] extends ColorConfig
+              ? Partial<ColorValue>
+              : T[K] extends ControlConfig
+                ? ControlValueUpdates<T[K]>
+                : T[K]
 }
 
 export type ControlType =
@@ -104,6 +132,7 @@ export type ControlMeta = {
   placeholder?: string
   pad?: PadConfig
   defaultOpen?: boolean
+  variant?: "color"
   children?: ControlMeta[]
 }
 
@@ -131,6 +160,16 @@ const isSelectConfig = (v: unknown): v is SelectConfig =>
 const isTextConfig = (v: unknown): v is TextConfig => hasType(v, "text")
 
 const isPadConfig = (v: unknown): v is PadConfig => hasType(v, "pad")
+
+const isColorConfig = (v: unknown): v is ColorConfig =>
+  isRecord(v) && v._variant === "color"
+
+const isMetaKey = (key: string) => key.startsWith("_")
+
+export const colorPaths = (path: string) => ({
+  token: `${path}.token`,
+  custom: `${path}.custom`,
+})
 
 export const isPadValue = (v: unknown): v is PadValue =>
   isRecord(v) && typeof v.x === "number" && typeof v.y === "number"
@@ -162,7 +201,8 @@ const inferStep = (min: number, max: number) => {
 
 const inferRange = (value: number) => {
   if (value >= 0 && value <= 1) return { min: 0, max: 1, step: 0.01 }
-  if (value >= 0 && value <= 10) return { min: 0, max: value * 3 || 10, step: 0.1 }
+  if (value >= 0 && value <= 10)
+    return { min: 0, max: value * 3 || 10, step: 0.1 }
   if (value >= 0 && value <= 100)
     return { min: 0, max: value * 3 || 100, step: 1 }
   if (value >= 0) return { min: 0, max: value * 3 || 1000, step: 10 }
@@ -192,9 +232,15 @@ const optionValue = (option: SelectOption) =>
 const leafDefault = (raw: unknown): ControlValue => {
   if (Array.isArray(raw)) return raw[0] as number
   if (isSelectConfig(raw))
-    return raw.default ?? (raw.options.length ? optionValue(raw.options[0]) : "")
+    return (
+      raw.default ?? (raw.options.length ? optionValue(raw.options[0]) : "")
+    )
   if (isTextConfig(raw)) return raw.default ?? ""
-  if (isPadConfig(raw)) return { x: raw.x?.[0] ?? 0, y: raw.y?.[0] ?? 0 }
+  if (isPadConfig(raw))
+    return {
+      x: (raw.x ?? DEFAULT_PAD_AXIS)[0],
+      y: (raw.y ?? DEFAULT_PAD_AXIS)[0],
+    }
   return raw as ControlValue
 }
 
@@ -211,7 +257,7 @@ export const parseConfig = (config: ControlConfig): ParsedConfig => {
   const visit = (cfg: ControlConfig, prefix: string): ControlMeta[] => {
     const controls: ControlMeta[] = []
     for (const [key, raw] of Object.entries(cfg)) {
-      if (key === "_collapsed") continue
+      if (isMetaKey(key)) continue
       const path = prefix ? `${prefix}.${key}` : key
       const label = formatLabel(key)
       let control: ControlMeta | undefined
@@ -245,6 +291,7 @@ export const parseConfig = (config: ControlConfig): ParsedConfig => {
           path,
           label,
           defaultOpen: !folder._collapsed,
+          variant: isColorConfig(folder) ? "color" : undefined,
           children: visit(folder, path),
         }
       }
@@ -263,15 +310,28 @@ export const resolveValues = <T extends ControlConfig>(
   config: T,
   flat: FlatValues
 ): ResolvedValues<T> => {
-  const visit = (cfg: ControlConfig, prefix: string): Record<string, unknown> => {
+  const leaf = (raw: unknown, path: string) =>
+    flat[path] !== undefined ? flat[path] : leafDefault(raw)
+  const visit = (
+    cfg: ControlConfig,
+    prefix: string
+  ): Record<string, unknown> => {
     const out: Record<string, unknown> = {}
     for (const [key, raw] of Object.entries(cfg)) {
-      if (key === "_collapsed") continue
+      if (isMetaKey(key)) continue
       const path = prefix ? `${prefix}.${key}` : key
-      if (isFolderConfig(raw)) out[key] = visit(raw, path)
-      else out[key] = flat[path] !== undefined ? flat[path] : leafDefault(raw)
+      if (isColorConfig(raw)) out[key] = color(raw, path)
+      else if (isFolderConfig(raw)) out[key] = visit(raw, path)
+      else out[key] = leaf(raw, path)
     }
     return out
+  }
+  const color = (raw: ColorConfig, path: string): ColorValue => {
+    const paths = colorPaths(path)
+    const token = leaf(raw.token, paths.token) as string
+    return token === CUSTOM_TOKEN
+      ? { token, custom: leaf(raw.custom, paths.custom) as string }
+      : { token }
   }
   return visit(config, "") as ResolvedValues<T>
 }
@@ -287,7 +347,7 @@ export const flattenUpdates = (
     prefix: string
   ) => {
     for (const [key, value] of Object.entries(ups)) {
-      if (value === undefined || key === "_collapsed") continue
+      if (value === undefined || isMetaKey(key)) continue
       const raw = cfg[key]
       if (raw === undefined) continue
       const path = prefix ? `${prefix}.${key}` : key
@@ -332,7 +392,12 @@ const normalizeValue = (
       if (!isPadValue(existing)) return fallback
       const clampAxis = (value: number, axis?: PadAxis) =>
         axis
-          ? snapToStep(value, axis[3] ?? inferStep(axis[1], axis[2]), axis[1], axis[2])
+          ? snapToStep(
+              value,
+              axis[3] ?? inferStep(axis[1], axis[2]),
+              axis[1],
+              axis[2]
+            )
           : value
       const x = clampAxis(existing.x, control.pad?.x)
       const y = clampAxis(existing.y, control.pad?.y)
@@ -351,8 +416,17 @@ const EMPTY_VALUES: FlatValues = {}
 
 export type PanelOptions = { defaultCollapsed?: boolean; hidden?: boolean }
 
+const sameValues = (a: FlatValues, b: FlatValues) => {
+  const keys = Object.keys(b)
+  return (
+    Object.keys(a).length === keys.length &&
+    keys.every((key) => Object.is(a[key], b[key]))
+  )
+}
+
 class ControlsStoreClass {
   private panels = new Map<string, PanelConfig>()
+  private configs = new Map<string, ControlConfig>()
   private values = new Map<string, FlatValues>()
   private byPanel = new Map<string, Map<string, ControlMeta>>()
   private defaults = new Map<string, FlatValues>()
@@ -361,39 +435,61 @@ class ControlsStoreClass {
   private globalListeners = new Set<Listener>()
   private snapshot: PanelConfig[] = []
 
-  registerPanel(
+  setPanel(
     id: string,
     name: string,
     config: ControlConfig,
     options: PanelOptions = {}
   ) {
-    const previous =
-      this.retained.get(id) ?? this.values.get(id) ?? EMPTY_VALUES
-    this.setPanel(id, name, config, options, previous)
-  }
-
-  updatePanel(
-    id: string,
-    name: string,
-    config: ControlConfig,
-    options: PanelOptions = {}
-  ) {
+    const panel = this.panels.get(id)
+    if (
+      panel &&
+      panel.name === name &&
+      this.configs.get(id) === config &&
+      panel.defaultCollapsed === (options.defaultCollapsed ?? false) &&
+      panel.hidden === (options.hidden ?? false)
+    )
+      return
     const previous =
       this.values.get(id) ?? this.retained.get(id) ?? EMPTY_VALUES
-    this.setPanel(id, name, config, options, previous)
+    this.apply(id, name, config, options, previous)
+  }
+
+  loadPanel(
+    id: string,
+    config: ControlConfig,
+    values: FlatValues,
+    options: PanelOptions = {}
+  ) {
+    const panel = this.panels.get(id)
+    if (!panel) {
+      this.retained.set(id, { ...this.retained.get(id), ...values })
+      return
+    }
+    this.apply(
+      id,
+      panel.name,
+      config,
+      {
+        defaultCollapsed: options.defaultCollapsed ?? panel.defaultCollapsed,
+        hidden: options.hidden ?? panel.hidden,
+      },
+      { ...this.values.get(id), ...values }
+    )
   }
 
   unregisterPanel(id: string) {
     const values = this.values.get(id)
     if (values) this.retained.set(id, values)
     this.panels.delete(id)
+    this.configs.delete(id)
     this.values.delete(id)
     this.byPanel.delete(id)
     this.defaults.delete(id)
     this.notifyGlobal()
   }
 
-  private setPanel(
+  private apply(
     id: string,
     name: string,
     config: ControlConfig,
@@ -413,11 +509,14 @@ class ControlsStoreClass {
       defaultCollapsed: options.defaultCollapsed ?? false,
       hidden: options.hidden ?? false,
     })
-    this.values.set(id, values)
+    this.configs.set(id, config)
     this.byPanel.set(id, byPath)
     this.defaults.set(id, defaults)
     this.retained.delete(id)
     this.notifyGlobal()
+    const current = this.values.get(id)
+    if (current && sameValues(current, values)) return
+    this.values.set(id, values)
     this.notify(id)
   }
 

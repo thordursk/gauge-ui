@@ -28,6 +28,8 @@ import {
 import { cn } from "@/lib/utils"
 
 import {
+  BOOSTER_ENGINES,
+  BURN_ENGINES,
   COUNT,
   END,
   EVENTS,
@@ -152,13 +154,19 @@ const EngineFlower = ({
   )
 }
 
+const RING = BOOSTER_ENGINES - 1
+const LANDING_THREE = [0, RING / 2]
+
 const boosterLayout =
   (engines: number, t: number): EngineLayout =>
   (i) =>
-    engines >= 9 ||
-    (t >= SEPARATION && engines === 3 ? i === 0 || i === 4 : i < engines - 1)
+    engines >= BOOSTER_ENGINES ||
+    (t >= SEPARATION && engines === BURN_ENGINES
+      ? LANDING_THREE.includes(i)
+      : i < engines - 1)
 
 const FULL = 900
+const TIMELINE_PAD = 4
 
 const eventTime = (name: string) => EVENTS.find((e) => e.name === name)?.t ?? 0
 
@@ -204,7 +212,7 @@ const Timeline = ({ t }: { t: number }) => {
       max={END}
       length={FULL}
       transition={FOLLOW}
-      padding={{ top: 20, bottom: 20, left: 4, right: 4 }}
+      padding={{ top: 20, bottom: 20, left: TIMELINE_PAD, right: TIMELINE_PAD }}
       onPointerMove={pick}
       onPointerDown={pick}
       onPointerLeave={() => setHover(null)}
@@ -422,10 +430,8 @@ const Labelled = ({
   </div>
 )
 
-const along = (t: number) => {
-  const pad = 4
-  return `${((pad + ((t - COUNT) / (END - COUNT)) * FULL) / (FULL + pad * 2)) * 100}%`
-}
+const along = (t: number) =>
+  `${((TIMELINE_PAD + ((t - COUNT) / (END - COUNT)) * FULL) / (FULL + TIMELINE_PAD * 2)) * 100}%`
 
 const EventLabels = ({ t, booster }: { t: number; booster: boolean }) => (
   <div className="relative hidden h-4 sm:block">
@@ -597,7 +603,7 @@ export const RocketLaunch = () => {
         stage={booster}
         engines={
           <EngineFlower
-            ring={8}
+            ring={RING}
             lit={boosterLayout(booster.engines, t)}
             centreLit={booster.engines > 0}
             throttle={booster.throttle}

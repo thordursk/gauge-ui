@@ -14,7 +14,9 @@ import { PadControl } from "@/components/controls/pad-control"
 import { SliderControl } from "@/components/controls/slider-control"
 import { TransitionControl } from "@/components/controls/transition-control"
 import {
+  CUSTOM_TOKEN,
   ControlsStore,
+  colorPaths,
   isPadValue,
   isTransitionConfig,
   type ControlMeta,
@@ -139,17 +141,41 @@ const ControlList = ({
   </>
 )
 
-const colorFolderOf = (control: ControlMeta) => {
-  const children = control.children ?? []
-  const token = children.find(
-    (child) => child.type === "select" && child.path.endsWith(".token")
+const ColorRow = ({
+  panelId,
+  control,
+  values,
+}: {
+  panelId: string
+  control: ControlMeta
+  values: FlatValues
+}) => {
+  const paths = colorPaths(control.path)
+  const token = values[paths.token]
+  const custom = values[paths.custom]
+  const options =
+    control.children?.find((child) => child.path === paths.token)?.options ?? []
+  return (
+    <>
+      <SelectControl
+        label={control.label}
+        options={options}
+        value={typeof token === "string" ? token : ""}
+        onChange={(next) =>
+          ControlsStore.updateValue(panelId, paths.token, next)
+        }
+      />
+      {token === CUSTOM_TOKEN && (
+        <ColorControl
+          label="Custom"
+          value={typeof custom === "string" ? custom : "#000000"}
+          onChange={(next) =>
+            ControlsStore.updateValue(panelId, paths.custom, next)
+          }
+        />
+      )}
+    </>
   )
-  if (!token) return null
-  const rest = children.filter((child) => child !== token)
-  const custom =
-    rest.length === 1 && rest[0].type === "color" ? rest[0] : undefined
-  if (rest.length !== (custom ? 1 : 0)) return null
-  return { token, custom }
 }
 
 const ControlRow = ({
@@ -167,35 +193,8 @@ const ControlRow = ({
 
   switch (control.type) {
     case "folder": {
-      const color = colorFolderOf(control)
-      if (color) {
-        const token = values[color.token.path]
-        return (
-          <>
-            <SelectControl
-              label={control.label}
-              options={color.token.options ?? []}
-              value={typeof token === "string" ? token : ""}
-              onChange={(next) =>
-                ControlsStore.updateValue(panelId, color.token.path, next)
-              }
-            />
-            {color.custom && (
-              <ColorControl
-                label="Custom"
-                value={
-                  typeof values[color.custom.path] === "string"
-                    ? (values[color.custom.path] as string)
-                    : "#000000"
-                }
-                onChange={(next) =>
-                  ControlsStore.updateValue(panelId, color.custom!.path, next)
-                }
-              />
-            )}
-          </>
-        )
-      }
+      if (control.variant === "color")
+        return <ColorRow panelId={panelId} control={control} values={values} />
       return (
         <Folder label={control.label} defaultOpen={control.defaultOpen ?? true}>
           <ControlList

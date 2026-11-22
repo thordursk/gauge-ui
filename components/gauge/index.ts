@@ -119,4 +119,7 @@ export {
   type GaugeTransition,
   type GaugeTweenTransition,
 } from "./transition"
-export { useAnimatedValue } from "./use-animated-value"
+export {
+  useAnimatedValue,
+  type AnimatedValueOptions,
+} from "./use-animated-value"
