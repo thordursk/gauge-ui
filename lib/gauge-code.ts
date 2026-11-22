@@ -65,8 +65,13 @@ const container = (
     `${indent}</${tag}>`,
   ].join("\n")
 
+const marksAtCutoffs = (spec: GaugeSpec) =>
+  spec.marks.show && spec.marks.values === undefined
+
 const usesZones = (spec: GaugeSpec) =>
-  spec.zones.show || spec.marks.show || (spec.arc.show && spec.arc.colorByZone)
+  spec.zones.show ||
+  marksAtCutoffs(spec) ||
+  (spec.arc.show && spec.arc.colorByZone)
 
 const zonesConst = (spec: GaugeSpec, name: string) =>
   `const ${name} = [\n${spec.zones.list
@@ -175,7 +180,11 @@ const parts = (
       element(
         "GaugeMarks",
         {
-          values: new Raw(`zoneCutoffs(${names.zones})`),
+          values: new Raw(
+            spec.marks.values
+              ? literal(spec.marks.values)
+              : `zoneCutoffs(${names.zones})`
+          ),
           length: spec.marks.length,
           width: spec.marks.width,
           color: spec.marks.color,
@@ -256,7 +265,7 @@ const parts = (
   }
 
   if (spec.needles.show) {
-    used.add("GaugeNeedle")
+    if (spec.needles.list.length > 0) used.add("GaugeNeedle")
     for (const needle of spec.needles.list) {
       body.push(
         element(
@@ -368,7 +377,7 @@ const parts = (
   }
 
   if (spec.arc.show && spec.arc.colorByZone) used.add("zoneColor")
-  if (spec.marks.show) used.add("zoneCutoffs")
+  if (marksAtCutoffs(spec)) used.add("zoneCutoffs")
 
   return body
 }

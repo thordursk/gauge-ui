@@ -119,6 +119,7 @@ export type GaugeSpec = {
   }
   marks: {
     show: boolean
+    values?: number[]
     length: number
     width: number
     color: string

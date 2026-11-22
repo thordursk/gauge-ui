@@ -196,7 +196,7 @@ const GaugeParts = ({
       )}
       {marks.show && (
         <GaugeMarks
-          values={zoneCutoffs(zones.list)}
+          values={marks.values ?? zoneCutoffs(zones.list)}
           length={marks.length}
           width={marks.width}
           color={marks.color}

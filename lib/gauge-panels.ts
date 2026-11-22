@@ -3,6 +3,7 @@ import {
   type ControlConfig,
   type ControlValueUpdates,
   type ResolvedValues,
+  type TextConfig,
   type TransitionConfig,
 } from "@/lib/controls"
 
@@ -37,6 +38,11 @@ const select = (options: Option[], value: string): Select => ({
   type: "select",
   options,
   default: value,
+})
+const textField = (value: string, placeholder: string): TextConfig => ({
+  type: "text",
+  default: value,
+  placeholder,
 })
 const cap = (value: StrokeCap = "round") => select(["round", "butt"], value)
 const font = (value: FontFamily = "sans") =>
@@ -82,9 +88,19 @@ export type Flat = Record<string, unknown>
 export const flatValues = (panelId: string): Flat =>
   ControlsStore.getValues(panelId)
 
+export const NO_PAINT = "none"
+
+const NO_PAINT_SWATCH =
+  "linear-gradient(135deg, transparent 44%, var(--muted-foreground) 44%, var(--muted-foreground) 56%, transparent 56%)"
+
 type ColorFolder = { token: Select; custom: string; _collapsed: true }
 
-const color = (flat: Flat, path: string, token: Token): ColorFolder => {
+const color = (
+  flat: Flat,
+  path: string,
+  token: Token,
+  { none = false }: { none?: boolean } = {}
+): ColorFolder => {
   const folder: Record<string, unknown> = {
     token: select(
       [
@@ -93,6 +109,9 @@ const color = (flat: Flat, path: string, token: Token): ColorFolder => {
           label,
           swatch: css,
         })),
+        ...(none
+          ? [{ value: NO_PAINT, label: "None", swatch: NO_PAINT_SWATCH }]
+          : []),
         { value: "custom", label: "Custom", swatch: CUSTOM_SWATCH },
       ],
       token
@@ -110,7 +129,9 @@ export type ColorValue = { token: string; custom?: string }
 export const css = (c: ColorValue) =>
   c.token === "custom"
     ? (c.custom ?? DEFAULT_CUSTOM)
-    : (paletteCss.get(c.token) ?? `var(--${c.token})`)
+    : c.token === NO_PAINT
+      ? NO_PAINT
+      : (paletteCss.get(c.token) ?? `var(--${c.token})`)
 
 export const stepFor = (span: number) =>
   span > 0 ? Math.pow(10, Math.floor(Math.log10(span)) - 2) : 1
@@ -212,17 +233,17 @@ export const arcsConfig = (flat: Flat = {}, linear = false) =>
 export const cutoffsConfig = (min: number, max: number, flat: Flat = {}) => {
   const step = stepFor(max - min)
   const at = (t: number): Axis => [min + (max - min) * t, min, max, step]
+  const zone = (path: string, token: Token) =>
+    color(flat, path, token, { none: true })
   return {
     show: toggle(false),
     count: [3, 1, 4, 1],
-    zone1: { to: at(0.5), color: color(flat, "zone1.color", "muted") },
-    zone2: {
-      to: at(0.75),
-      color: color(flat, "zone2.color", "muted-foreground"),
-    },
-    zone3: { to: at(0.9), color: color(flat, "zone3.color", "foreground") },
-    zone4: { color: color(flat, "zone4.color", "primary") },
+    zone1: { to: at(0.5), color: zone("zone1.color", "muted") },
+    zone2: { to: at(0.75), color: zone("zone2.color", "muted-foreground") },
+    zone3: { to: at(0.9), color: zone("zone3.color", "foreground") },
+    zone4: { color: zone("zone4.color", "primary") },
     band: {
+      show: toggle(true),
       width: [8, 1, 60, 1],
       offset: [-24, -120, 120, 1],
       gap: [1.5, 0, 10, 0.5],
@@ -232,6 +253,7 @@ export const cutoffsConfig = (min: number, max: number, flat: Flat = {}) => {
     },
     marks: {
       show: toggle(false),
+      values: textField("", "Zone cutoffs"),
       length: [16, 1, 80, 1],
       width: [3, 0.5, 12, 0.5],
       color: color(flat, "marks.color", "foreground"),
@@ -376,7 +398,7 @@ const needleFolder = (
 export const needleConfig = (flat: Flat = {}) =>
   ({
     show: toggle(false),
-    count: [1, 1, 3, 1],
+    count: [1, 0, 3, 1],
     needle1: needleFolder(flat, "needle1", "line", 0.85, 6, 30, 1),
     needle2: {
       ...needleFolder(flat, "needle2", "line", 0.8, 3, 0, 12),
@@ -478,6 +500,8 @@ export const defaultsOf = <T extends ControlConfig>(
     if (Array.isArray(entry)) out[key] = entry[0]
     else if (isRecord(entry) && entry.type === "select")
       out[key] = entry.default
+    else if (isRecord(entry) && entry.type === "text")
+      out[key] = entry.default ?? ""
     else if (isRecord(entry) && entry.type === "pad") {
       const pad = entry as unknown as Pad
       out[key] = { x: pad.x[0], y: pad.y[0] }
@@ -550,6 +574,15 @@ export const toGaugeTransition = (t: TransitionConfig): GaugeTransition => {
   }
   return spring
 }
+
+export const markValues = (text: string, min: number, max: number) =>
+  text.trim() === ""
+    ? undefined
+    : text
+        .split(/[\s,]+/)
+        .filter(Boolean)
+        .map(Number)
+        .filter((v) => Number.isFinite(v) && v >= min && v <= max)
 
 export const buildSpec = (v: PanelValues): GaugeSpec => {
   const { gauge, value, arcs, cutoffs, ticks, text, needle, dot, tooltip } = v
@@ -646,7 +679,7 @@ export const buildSpec = (v: PanelValues): GaugeSpec => {
       from: arcs.arc.fromZero ? clamp(0, min, max) : undefined,
     },
     zones: {
-      show: cutoffs.show,
+      show: cutoffs.show && cutoffs.band.show,
       list: zoneList,
       width: cutoffs.band.width,
       offset: cutoffs.band.offset,
@@ -656,9 +689,12 @@ export const buildSpec = (v: PanelValues): GaugeSpec => {
       opacity: cutoffs.band.opacity,
     },
     marks: {
-      ...cutoffs.marks,
       show: cutoffs.show && cutoffs.marks.show,
+      values: markValues(cutoffs.marks.values, min, max),
+      length: cutoffs.marks.length,
+      width: cutoffs.marks.width,
       color: css(cutoffs.marks.color),
+      offset: cutoffs.marks.offset,
       cap: cutoffs.marks.cap as StrokeCap,
     },
     majorTicks: tick(ticks.major),
