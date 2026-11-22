@@ -3398,13 +3398,13 @@ exports[`HeroBackdrop > renders the marquee rows of template previews 1`] = `
 <text x="-156" y="0">W</text>
 </g>
 <g>
-<mask id="gauge-needle-gap_R_l5k_" maskUnits="userSpaceOnUse" x="-10000" y="-10000" width="20000" height="20000">
+<mask id="gauge-needle-gap_id0_" maskUnits="userSpaceOnUse" x="-10000" y="-10000" width="20000" height="20000">
 <rect x="-10000" y="-10000" width="20000" height="20000" fill="white">
 </rect>
 <circle r="84" fill="black">
 </circle>
 </mask>
-<g mask="url(#gauge-needle-gap_R_l5k_)">
+<g mask="url(#gauge-needle-gap_id0_)">
 <g>
 <polygon points="3.364,0.965 -3.364,-0.965 51.763000000000005,-193.217 58.491,-191.287" fill="var(--foreground)">
 </polygon>
@@ -4319,13 +4319,13 @@ exports[`HeroBackdrop > renders the marquee rows of template previews 1`] = `
 <text x="-156" y="0">W</text>
 </g>
 <g>
-<mask id="gauge-needle-gap_R_l7c_" maskUnits="userSpaceOnUse" x="-10000" y="-10000" width="20000" height="20000">
+<mask id="gauge-needle-gap_id1_" maskUnits="userSpaceOnUse" x="-10000" y="-10000" width="20000" height="20000">
 <rect x="-10000" y="-10000" width="20000" height="20000" fill="white">
 </rect>
 <circle r="84" fill="black">
 </circle>
 </mask>
-<g mask="url(#gauge-needle-gap_R_l7c_)">
+<g mask="url(#gauge-needle-gap_id1_)">
 <g>
 <polygon points="3.364,0.965 -3.364,-0.965 51.763000000000005,-193.217 58.491,-191.287" fill="var(--foreground)">
 </polygon>
@@ -4619,13 +4619,13 @@ exports[`HeroBackdrop > renders the marquee rows of template previews 1`] = `
 <text x="-156" y="0">W</text>
 </g>
 <g>
-<mask id="gauge-needle-gap_R_l4d_" maskUnits="userSpaceOnUse" x="-10000" y="-10000" width="20000" height="20000">
+<mask id="gauge-needle-gap_id2_" maskUnits="userSpaceOnUse" x="-10000" y="-10000" width="20000" height="20000">
 <rect x="-10000" y="-10000" width="20000" height="20000" fill="white">
 </rect>
 <circle r="84" fill="black">
 </circle>
 </mask>
-<g mask="url(#gauge-needle-gap_R_l4d_)">
+<g mask="url(#gauge-needle-gap_id2_)">
 <g>
 <polygon points="3.364,0.965 -3.364,-0.965 51.763000000000005,-193.217 58.491,-191.287" fill="var(--foreground)">
 </polygon>
@@ -5662,13 +5662,13 @@ exports[`HeroBackdrop > renders the marquee rows of template previews 1`] = `
 <text x="-156" y="0">W</text>
 </g>
 <g>
-<mask id="gauge-needle-gap_R_l65_" maskUnits="userSpaceOnUse" x="-10000" y="-10000" width="20000" height="20000">
+<mask id="gauge-needle-gap_id3_" maskUnits="userSpaceOnUse" x="-10000" y="-10000" width="20000" height="20000">
 <rect x="-10000" y="-10000" width="20000" height="20000" fill="white">
 </rect>
 <circle r="84" fill="black">
 </circle>
 </mask>
-<g mask="url(#gauge-needle-gap_R_l65_)">
+<g mask="url(#gauge-needle-gap_id3_)">
 <g>
 <polygon points="3.364,0.965 -3.364,-0.965 51.763000000000005,-193.217 58.491,-191.287" fill="var(--foreground)">
 </polygon>

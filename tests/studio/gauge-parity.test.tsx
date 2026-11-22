@@ -9,7 +9,7 @@ import { GaugePreview } from "@/components/gauge-preview"
 import { gaugeToCode } from "@/lib/gauge-code"
 import type { GaugeSpec } from "@/lib/gauge-spec"
 import { gaugeTemplates, templatePreview } from "@/lib/gauge-templates"
-import { markup } from "@/tests/markup"
+import { markup, stableIds } from "@/tests/markup"
 
 vi.mock("@/components/gauge", async (importOriginal) => ({
   ...(await importOriginal<typeof gaugeModule>()),
@@ -54,14 +54,6 @@ const rootSvg = (html: string) =>
   html
     .slice(html.indexOf("<svg"), html.lastIndexOf("</svg>") + "</svg>".length)
     .replace(/^(<svg[^>]*?) class="[^"]*"/, "$1")
-
-const stableIds = (html: string) => {
-  const ids = new Map<string, string>()
-  return html.replace(/_R_[0-9a-z]+_/g, (id) => {
-    if (!ids.has(id)) ids.set(id, `_id${ids.size}_`)
-    return ids.get(id)!
-  })
-}
 
 const generated = (spec: GaugeSpec, value: number) => {
   const CustomGauge = compile(gaugeToCode(spec))
