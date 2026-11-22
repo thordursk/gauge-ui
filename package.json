@@ -12,7 +12,9 @@
     "lint:prune": "eslint --prune-suppressions",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "typecheck": "tsc --noEmit",
-    "registry:build": "shadcn build"
+    "registry:build": "shadcn build",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
@@ -34,15 +36,20 @@
   "devDependencies": {
     "@eslint/compat": "^2.1.1",
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.13",
+    "@types/node": "^22.20.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "agentation": "^3.1.2",
     "eslint": "^10",
     "eslint-config-next": "16.4.3",
+    "jsdom": "^31.0.1",
     "prettier": "^3.9.6",
     "prettier-plugin-tailwindcss": "^0.8.1",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^5.1.1"
   }
 }
