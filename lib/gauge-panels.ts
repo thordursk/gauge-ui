@@ -26,6 +26,9 @@ import type {
 } from "@/lib/gauge-spec"
 
 export const RADIUS = 200
+const MIN_FLOOR = -100
+const MINUTE_HAND_TURNS = 12
+const SECOND_HAND_TURNS = 720
 
 type Option = string | { value: string; label: string; swatch?: string }
 type Select = { type: "select"; options: Option[]; default: string }
@@ -134,8 +137,8 @@ const without = <T extends object>(config: T, keys: readonly string[]): T =>
 const fullGaugeConfig = (flat: Flat = {}) =>
   ({
     shape: select(["round", "linear"], "round"),
-    min: [0, -100, 100, 1],
-    max: [100, -99, 1000, 1],
+    min: [0, MIN_FLOOR, 100, 1],
+    max: [100, MIN_FLOOR + 1, 1000, 1],
     startAngle: [40, 0, 360, 1],
     endAngle: [320, 180, 540, 1],
     orientation: select(["horizontal", "vertical"], "horizontal"),
@@ -370,7 +373,7 @@ const needleFolder = (
     tailColor: color(flat, `${path}.tailColor`, "foreground"),
     tailDot: [0, 0, 40, 0.5],
     gap: [0, 0, 200, 1],
-    turns: [turns, 1, 720, 1],
+    turns: [turns, 1, SECOND_HAND_TURNS, 1],
   }) satisfies ControlConfig
 
 export const needleConfig = (flat: Flat = {}) =>
@@ -379,11 +382,11 @@ export const needleConfig = (flat: Flat = {}) =>
     count: [1, 1, 3, 1],
     needle1: needleFolder(flat, "needle1", "line", 0.85, 6, 30, 1),
     needle2: {
-      ...needleFolder(flat, "needle2", "line", 0.8, 3, 0, 12),
+      ...needleFolder(flat, "needle2", "line", 0.8, 3, 0, MINUTE_HAND_TURNS),
       _collapsed: true,
     },
     needle3: {
-      ...needleFolder(flat, "needle3", "line", 0.9, 1.5, 30, 720),
+      ...needleFolder(flat, "needle3", "line", 0.9, 1.5, 30, SECOND_HAND_TURNS),
       _collapsed: true,
     },
     hub: {
@@ -399,7 +402,7 @@ export const dotConfig = (flat: Flat = {}) =>
     color: color(flat, "color", "foreground"),
     opacity: [1, 0, 1, 0.01],
     offset: [0, -120, 120, 1],
-    turns: [1, 1, 720, 1],
+    turns: [1, 1, SECOND_HAND_TURNS, 1],
     ends: select(["value", "both"], "value"),
   }) satisfies ControlConfig
 
