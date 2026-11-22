@@ -1,7 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import {
+  CLIMB,
   CRUISING,
+  DESCENT,
+  MAX_BANK,
   useFlightSimulation,
   type FlightReadings,
 } from "@/components/examples/flight-simulation"
@@ -48,9 +51,9 @@ describe("useFlightSimulation", () => {
     const { result } = runHook(useFlightSimulation)
     const flight = sample(() => result.current, { every: TICK, times: 1200 })
     for (const f of flight as FlightReadings[]) {
-      expect(f.verticalSpeed).toBeLessThanOrEqual(700)
-      expect(f.verticalSpeed).toBeGreaterThanOrEqual(-500)
-      expect(Math.abs(f.bank)).toBeLessThanOrEqual(20.1)
+      expect(f.verticalSpeed).toBeLessThanOrEqual(CLIMB)
+      expect(f.verticalSpeed).toBeGreaterThanOrEqual(-DESCENT)
+      expect(Math.abs(f.bank)).toBeLessThanOrEqual(MAX_BANK + 0.1)
     }
   })
 })
