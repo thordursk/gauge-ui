@@ -6,11 +6,11 @@ import {
   Gauge,
   GaugeArc,
   GaugeDot,
+  GaugeDots,
   GaugeInset,
   GaugeMarks,
   GaugeText,
   GaugeTickLabels,
-  GaugeTicks,
   GaugeTooltip,
   GaugeTrack,
   GaugeValue,
@@ -122,7 +122,7 @@ const EngineFlower = ({
 }) => {
   const glow = fade(35 + 65 * throttle)
   const dark = fade(12)
-  const turn = 180 / Math.max(ring, 1)
+  const spacing = 360 / Math.max(ring, 1)
   return (
     <Gauge value={fuel * 100} transition={FOLLOW} padding={12}>
       <GaugeTrack width={10} color={INK} opacity={0.12} />
@@ -130,16 +130,15 @@ const EngineFlower = ({
       <GaugeInset
         value={0}
         max={Math.max(ring, 1)}
-        startAngle={180 + turn}
-        endAngle={540 + turn}
+        startAngle={180 + spacing / 2}
+        endAngle={540 + spacing / 2}
         scale={0.85}
       >
         {ring > 0 && (
-          <GaugeTicks
+          <GaugeDots
             count={ring}
             offset={-82}
-            length={0}
-            width={ENGINE * 2}
+            radius={ENGINE}
             color={(v) => (lit(Math.round(v)) ? glow : dark)}
           />
         )}
