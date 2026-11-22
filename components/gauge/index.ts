@@ -57,7 +57,12 @@ export {
   type GaugeTextProps,
   type GaugeValueProps,
 } from "./text"
-export { GaugeDot, type GaugeDotProps } from "./dot"
+export {
+  GaugeDot,
+  GaugeDots,
+  type GaugeDotProps,
+  type GaugeDotsProps,
+} from "./dot"
 export {
   GaugeTooltip,
   type GaugeTooltipPosition,
@@ -114,4 +119,7 @@ export {
   type GaugeTransition,
   type GaugeTweenTransition,
 } from "./transition"
-export { useAnimatedValue } from "./use-animated-value"
+export {
+  useAnimatedValue,
+  type AnimatedValueOptions,
+} from "./use-animated-value"

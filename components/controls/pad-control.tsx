@@ -4,14 +4,13 @@ import { useRef } from "react"
 
 import { Row } from "@/components/controls/field-controls"
 import {
+  DEFAULT_PAD_AXIS,
   snapToStep,
   stepDecimals,
-  type PadAxis,
   type PadConfig,
   type PadValue,
 } from "@/lib/controls"
 
-const DEFAULT_AXIS: PadAxis = [0, -1, 1, 0.01]
 const DOT_COLUMNS = 21
 const DOT_ROWS = 7
 
@@ -31,8 +30,8 @@ export const PadControl = ({
   value,
   onChange,
 }: PadControlProps) => {
-  const [, minX, maxX, stepX = 0.01] = pad?.x ?? DEFAULT_AXIS
-  const [, minY, maxY, stepY = 0.01] = pad?.y ?? DEFAULT_AXIS
+  const [, minX, maxX, stepX = 0.01] = pad?.x ?? DEFAULT_PAD_AXIS
+  const [, minY, maxY, stepY = 0.01] = pad?.y ?? DEFAULT_PAD_AXIS
 
   const area = useRef<HTMLDivElement>(null)
   const dragging = useRef(false)

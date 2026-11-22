@@ -26,6 +26,7 @@ import {
   LinearGauge,
   LinearGaugeInset,
   fadeColor,
+  useGauge,
   type GaugeTransition,
 } from "@/components/gauge"
 import { Button } from "@/components/ui/button"
@@ -81,6 +82,8 @@ type Voice = {
   centre: number
   spread: number
 }
+
+const PAN = 50
 
 type Channel = {
   id: string
@@ -168,19 +171,31 @@ const EQ_BANDS = [
   { label: "10k", gain: 3.5 },
   { label: "15k", gain: 1 },
 ]
-const SPECTRUM = EQ_BANDS.length * 3
+const BANDS_PER_EQ = 3
+const SPECTRUM = EQ_BANDS.length * BANDS_PER_EQ
+const EMPHASIS = 0.8
+const FALLOFF = 14
+const ANALYSER_GAIN = 6
 
 type Dynamics = { threshold: number; ratio: number; makeup: number }
+
+const ALWAYS_COMPRESSING = -18
+const DYNAMICS: Dynamics = {
+  threshold: ALWAYS_COMPRESSING,
+  ratio: 3,
+  makeup: 4,
+}
 
 const GR_RANGE = 20
 
 const SONG_BARS = 64
 const SONG_LENGTH = 640
 const VERSE = ["kick", "snare", "hats", "bass", "vox"]
+const CHORUS = 24
 const SECTIONS = [
   { at: 0, name: "Intro", plays: ["kick", "hats", "keys"] },
   { at: 8, name: "Verse", plays: VERSE },
-  { at: 24, name: "Chorus", plays: CHANNELS.map((c) => c.id) },
+  { at: CHORUS, name: "Chorus", plays: CHANNELS.map((c) => c.id) },
   { at: 40, name: "Verse", plays: VERSE },
   { at: 56, name: "Outro", plays: ["hats", "keys", "vox"] },
 ]
@@ -196,6 +211,15 @@ const hitsIn = (voice: Voice, bar: number) =>
       : voice.hits
 
 type Transport = { playing: boolean; bpm: number; bar: number; step: number }
+
+const STEPS = 16
+
+const START: Transport = {
+  playing: true,
+  bpm: 124,
+  bar: CHORUS - 3,
+  step: STEPS - 1,
+}
 
 const useInterval = (tick: () => void, ms: number, active: boolean) => {
   const latest = useRef(tick)
@@ -235,10 +259,7 @@ const Knob = ({
     <GaugeControl
       value={value}
       onChange={onChange}
-      min={min}
-      max={max}
       step={step}
-      {...SWEEP}
       knob
       label={label}
       valueText={format(value)}
@@ -271,29 +292,26 @@ const Knob = ({
   </div>
 )
 
-const FaderCap = ({ stops, size }: { stops: number; size: number }) => (
-  <>
-    <GaugeTickFill
-      count={stops}
-      mode="nearest"
-      length={0}
-      litLength={size * 1.8}
-      width={size}
-      color={INK}
-      dimColor="transparent"
-    />
-    <GaugeTickFill
-      count={stops}
-      mode="nearest"
-      length={0}
-      litLength={size * 1.8}
-      width={2}
-      cap="butt"
-      color={CUT}
-      dimColor="transparent"
-    />
-  </>
-)
+const FaderCap = ({ size }: { size: number }) => {
+  const { value } = useGauge()
+  return (
+    <>
+      <GaugeMarks
+        values={[value]}
+        length={size * 1.8}
+        width={size}
+        color={INK}
+      />
+      <GaugeMarks
+        values={[value]}
+        length={size * 1.8}
+        width={2}
+        cap="butt"
+        color={CUT}
+      />
+    </>
+  )
+}
 
 const Meter = () => (
   <GaugeTickFill
@@ -320,10 +338,6 @@ const Fader = ({
   <GaugeControl
     value={value}
     onChange={onChange}
-    orientation="vertical"
-    length={FADER_LENGTH}
-    min={FLOOR}
-    max={CEIL}
     step={FADER_STEP}
     label={label}
     valueText={`${dbText(value)} dB`}
@@ -366,7 +380,7 @@ const Fader = ({
           <Meter />
         </LinearGaugeInset>
       ))}
-      <FaderCap stops={(CEIL - FLOOR) / FADER_STEP} size={16} />
+      <FaderCap size={16} />
     </LinearGauge>
   </GaugeControl>
 )
@@ -384,10 +398,6 @@ const EqFader = ({
     <GaugeControl
       value={gain}
       onChange={onChange}
-      orientation="vertical"
-      length={200}
-      min={-EQ_RANGE}
-      max={EQ_RANGE}
       step={FADER_STEP}
       label={`${band} Hz`}
       valueText={`${dbText(gain)} dB`}
@@ -410,7 +420,7 @@ const EqFader = ({
         />
         <GaugeTrack width={4} color={INK} opacity={0.12} />
         <GaugeArc from={0} width={4} color={INK} cap="butt" />
-        <FaderCap stops={(2 * EQ_RANGE) / FADER_STEP} size={12} />
+        <FaderCap size={12} />
       </LinearGauge>
     </GaugeControl>
     <span className="text-[10px] text-muted-foreground tabular-nums">
@@ -538,6 +548,8 @@ const Latch = ({
   </Button>
 )
 
+const KnobSpacer = () => <div className="aspect-square w-full" />
+
 const panText = (pan: number) =>
   pan === 0 ? "C" : pan < 0 ? `L${-pan}` : `R${pan}`
 
@@ -569,8 +581,8 @@ const Mixer = ({
             <Knob
               value={c.pan}
               onChange={(pan) => onChannel(c.id, { pan })}
-              min={-50}
-              max={50}
+              min={-PAN}
+              max={PAN}
               label={`${c.name} pan`}
               format={panText}
               bipolar
@@ -605,7 +617,7 @@ const Mixer = ({
       <div className="flex flex-col items-center gap-3 sm:border-l">
         <span className="text-xs font-semibold">Master</span>
         <div className="flex w-12 flex-col items-center gap-1.5">
-          <div className="aspect-square w-full" />
+          <KnobSpacer />
           <Caption>L · R</Caption>
         </div>
         <Fader
@@ -653,6 +665,30 @@ const Equaliser = ({
     </div>
   </Panel>
 )
+
+const GainReductionMeter = ({ reduction }: { reduction: number }) => {
+  const gain = -reduction
+  return (
+    <LinearGauge
+      value={gain}
+      min={-GR_RANGE}
+      max={0}
+      transition={METER}
+      padding={{ top: 12, bottom: 36, left: 10, right: 10 }}
+    >
+      <GaugeTrack width={12} color={INK} opacity={0.12} cap="butt" />
+      <GaugeArc from={0} width={12} color={INK} cap="butt" />
+      <GaugeTicks count={20} offset={-14} length={4} color={MUTED} />
+      <GaugeTickLabels
+        count={4}
+        offset={-30}
+        fontSize={14}
+        color={MUTED}
+        format={(v) => `${v}`}
+      />
+    </LinearGauge>
+  )
+}
 
 const DynamicsPanel = ({
   dynamics,
@@ -704,24 +740,7 @@ const DynamicsPanel = ({
           className="text-lg"
         />
       </div>
-      <LinearGauge
-        value={-reduction}
-        min={-GR_RANGE}
-        max={0}
-        transition={METER}
-        padding={{ top: 12, bottom: 36, left: 10, right: 10 }}
-      >
-        <GaugeTrack width={12} color={INK} opacity={0.12} cap="butt" />
-        <GaugeArc from={0} width={12} color={INK} cap="butt" />
-        <GaugeTicks count={20} offset={-14} length={4} color={MUTED} />
-        <GaugeTickLabels
-          count={4}
-          offset={-30}
-          fontSize={14}
-          color={MUTED}
-          format={(v) => `${v}`}
-        />
-      </LinearGauge>
+      <GainReductionMeter reduction={reduction} />
     </div>
   </Panel>
 )
@@ -771,11 +790,11 @@ const TransportPanel = ({
           </div>
           <LinearGauge
             value={step}
-            max={15}
+            max={STEPS - 1}
             padding={{ top: 14, bottom: 14, left: 14, right: 14 }}
           >
             <GaugeTickFill
-              count={15}
+              count={STEPS - 1}
               mode="nearest"
               length={0}
               width={16}
@@ -784,7 +803,7 @@ const TransportPanel = ({
             />
           </LinearGauge>
           <LinearGauge
-            value={bar + step / 16}
+            value={bar + step / STEPS}
             max={SONG_BARS}
             length={SONG_LENGTH}
             padding={{ top: 12, bottom: 34, left: 4, right: 4 }}
@@ -825,23 +844,14 @@ export const MusicStudio = () => {
   const [channels, setChannels] = useState(CHANNELS)
   const [master, setMaster] = useState(-8)
   const [eq, setEq] = useState(() => EQ_BANDS.map((b) => b.gain))
-  const [dynamics, setDynamics] = useState<Dynamics>({
-    threshold: -18,
-    ratio: 3,
-    makeup: 4,
-  })
-  const [transport, setTransport] = useState<Transport>({
-    playing: true,
-    bpm: 124,
-    bar: 21,
-    step: 15,
-  })
+  const [dynamics, setDynamics] = useState(DYNAMICS)
+  const [transport, setTransport] = useState(START)
   const [voices, setVoices] = useState(() => CHANNELS.map((c) => c.voice.rest))
   const [air, setAir] = useState<number[]>(() => Array(SPECTRUM).fill(0))
 
   useInterval(
     () => {
-      const step = (transport.step + 1) % 16
+      const step = (transport.step + 1) % STEPS
       const bar = step === 0 ? (transport.bar + 1) % SONG_BARS : transport.bar
       const { plays } = sectionAt(bar)
       setTransport((t) => ({ ...t, step, bar }))
@@ -885,11 +895,11 @@ export const MusicStudio = () => {
   )
   const left = sumDb(
     post,
-    channels.map((c) => Math.min(1, (50 - c.pan) / 50))
+    channels.map((c) => Math.min(1, (PAN - c.pan) / PAN))
   )
   const right = sumDb(
     post,
-    channels.map((c) => Math.min(1, (50 + c.pan) / 50))
+    channels.map((c) => Math.min(1, (PAN + c.pan) / PAN))
   )
 
   const input = Math.max(left, right)
@@ -907,16 +917,18 @@ export const MusicStudio = () => {
     const heard = post.map((db, i) => {
       const { centre, spread, peak } = channels[i].voice
       return (
-        db + 0.8 * (voices[i] - peak) - 14 * ((band - centre) / spread) ** 2
+        db +
+        EMPHASIS * (voices[i] - peak) -
+        FALLOFF * ((band - centre) / spread) ** 2
       )
     })
     const db =
       sumDb(heard, []) +
-      6 -
+      ANALYSER_GAIN -
       reduction +
       dynamics.makeup +
       master +
-      eq[Math.floor(band / 3)] +
+      eq[Math.floor(band / BANDS_PER_EQ)] +
       drift
     return clampTo(db, SPECTRUM_FLOOR, 0)
   })

@@ -519,12 +519,13 @@ const AirQualityDial = ({ aqi }: { aqi: number }) => (
 )
 
 const BAROMETER_WORDS = ["Stormy", "Rain", "Change", "Fair", "Dry"]
+const BAROMETER = { min: 960, max: 1040 } as const
+const WORD_STEP = (BAROMETER.max - BAROMETER.min) / (BAROMETER_WORDS.length - 1)
 
 const Barometer = ({ hpa, set }: { hpa: number; set: number }) => (
   <Gauge
     value={hpa}
-    min={960}
-    max={1040}
+    {...BAROMETER}
     startAngle={45}
     endAngle={315}
     padding={20}
@@ -551,12 +552,14 @@ const Barometer = ({ hpa, set }: { hpa: number; set: number }) => (
       color={INK}
     />
     <GaugeTickLabels
-      count={4}
+      count={BAROMETER_WORDS.length - 1}
       offset={-58}
       fontSize={21}
       weight="semibold"
       color={MUTED}
-      format={(v) => BAROMETER_WORDS[Math.round((v - 960) / 20)]}
+      format={(v) =>
+        BAROMETER_WORDS[Math.round((v - BAROMETER.min) / WORD_STEP)]
+      }
     />
     <GaugeMarks values={[set]} length={30} width={5} cap="butt" color={INK} />
     <GaugeNeedle

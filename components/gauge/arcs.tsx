@@ -85,25 +85,27 @@ export const GaugeArc = ({
   const lo = Math.min(tail, head)
   const hi = Math.max(tail, head)
 
-  let a0: number
-  let a1: number
+  let d: string
   if (wrap || forward) {
     const span = max - min
     if (span <= 0) return null
-    const sweep = scale.end - scale.start
-    const perUnit = sweep / span
-    a0 = scale.start + ((((lo - min) % span) + span) % span) * perUnit
-    a1 = a0 + Math.min((hi - lo) * perUnit, sweep)
+    const perUnit = (scale.end - scale.start) / span
+    d = scale.wrappedPath(
+      scale.start + foldValue(lo - min, 0, span) * perUnit,
+      (hi - lo) * perUnit,
+      offset
+    )
   } else {
-    ;[a0, a1] = reverse
+    const [a0, a1] = reverse
       ? [positionOf(max - (hi - lo)), positionOf(max)]
       : [positionOf(lo), positionOf(hi)]
+    d = scale.path(a0, a1, offset)
   }
-  if (a1 <= a0) return null
+  if (!d) return null
 
   return (
     <path
-      d={scale.path(a0, a1, offset)}
+      d={d}
       fill="none"
       stroke={color}
       strokeOpacity={opacity}

@@ -153,6 +153,9 @@ const STAGES: { stage: Stage; label: string; color: string }[] = [
 const stageColor = (stage: Stage) =>
   STAGES.find((s) => s.stage === stage)!.color
 
+const DAY = 24
+const NOON_TO_NOON = { min: -DAY / 2, max: DAY / 2 } as const
+
 const BEDTIME = -50 / 60
 
 const NIGHT: [Stage, number][] = [
@@ -289,8 +292,7 @@ const HeartDial = ({ bpm }: { bpm: number }) => (
 const SleepDial = () => (
   <Gauge
     value={WAKE}
-    min={-12}
-    max={12}
+    {...NOON_TO_NOON}
     startAngle={0}
     endAngle={360}
     padding={20}
@@ -321,7 +323,7 @@ const SleepDial = () => (
       fontSize={22}
       weight="semibold"
       color={MUTED}
-      format={(v) => pad((v + 24) % 24)}
+      format={(v) => pad((v + DAY) % DAY)}
     />
     <GaugeText y={-8} fontSize={56} font="rounded" weight="bold">
       {durationLabel(ASLEEP)}

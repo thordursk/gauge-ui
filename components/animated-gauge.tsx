@@ -1,11 +1,11 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useEffectEvent, useState } from "react"
 
 import { GaugePreview } from "@/components/gauge-preview"
 import { clamp, type GaugeTransition } from "@/components/gauge"
 import type { PlayMode } from "@/lib/gauge-panels"
-import type { GaugeSpec } from "@/lib/gauge-spec"
+import type { GaugeSpec, BaseGaugeSpec } from "@/lib/gauge-spec"
 
 export type AnimatedGaugeProps = {
   spec: GaugeSpec
@@ -13,13 +13,14 @@ export type AnimatedGaugeProps = {
   mode: PlayMode
   period: number
   amplitude: number
-  sweepIn?: boolean
+  playIn?: number
 }
 
-type Driven = { min: number; max: number; target: number }
+type Play = { host?: number; insets: Record<string, number> }
 
 const legOf = (
-  { min, max, target }: Driven,
+  { domain: { min, max } }: BaseGaugeSpec,
+  target: number,
   from: number,
   mode: PlayMode,
   amplitude: number
@@ -36,33 +37,32 @@ export const AnimatedGauge = ({
   mode,
   period,
   amplitude,
-  sweepIn = false,
+  playIn,
 }: AnimatedGaugeProps) => {
   const insets = spec.insets ?? []
-  const driven: Driven[] = [
-    { min: spec.domain.min, max: spec.domain.max, target: value },
-    ...insets.map((inset) => ({
-      min: inset.spec.domain.min,
-      max: inset.spec.domain.max,
-      target: inset.value,
-    })),
-  ]
+  const [play, setPlay] = useState<Play>({ insets: {} })
 
-  const latest = useRef(driven)
-  useEffect(() => {
-    latest.current = driven
-  })
-
-  const [play, setPlay] = useState<number[]>([])
+  const step = useEffectEvent((mode: PlayMode, amplitude: number) =>
+    setPlay((prev) => ({
+      host: legOf(spec, value, prev.host ?? value, mode, amplitude),
+      insets: Object.fromEntries(
+        insets.map((inset) => [
+          inset.name,
+          legOf(
+            inset.spec,
+            inset.value,
+            prev.insets[inset.name] ?? inset.value,
+            mode,
+            amplitude
+          ),
+        ])
+      ),
+    }))
+  )
 
   useEffect(() => {
     if (mode === "manual") return
-    const next = () =>
-      setPlay((prev) =>
-        latest.current.map((gauge, i) =>
-          legOf(gauge, prev[i] ?? gauge.target, mode, amplitude)
-        )
-      )
+    const next = () => step(mode, amplitude)
     const first = window.setTimeout(next, 0)
     const id = window.setInterval(next, period * 1000)
     return () => {
@@ -77,29 +77,25 @@ export const AnimatedGauge = ({
     ease: "easeInOut",
   }
   const settles = mode === "manual" || mode === "jump"
-  const shown = (i: number) =>
-    mode === "manual" ? driven[i].target : (play[i] ?? driven[i].target)
+  const playing = mode !== "manual"
 
-  const played =
-    mode === "manual"
-      ? spec
-      : {
-          ...spec,
-          insets: insets.map((inset, i) => ({
-            ...inset,
-            value: shown(i + 1),
-            spec: settles
-              ? inset.spec
-              : { ...inset.spec, transition: glide as GaugeTransition },
-          })),
-        }
+  const played = playing
+    ? {
+        ...spec,
+        insets: insets.map((inset) => ({
+          ...inset,
+          value: play.insets[inset.name] ?? inset.value,
+          spec: settles ? inset.spec : { ...inset.spec, transition: glide },
+        })),
+      }
+    : spec
 
   return (
     <GaugePreview
       spec={played}
-      value={shown(0)}
+      value={playing ? (play.host ?? value) : value}
       transition={settles ? spec.transition : glide}
-      sweepIn={sweepIn}
+      playIn={playIn}
     />
   )
 }

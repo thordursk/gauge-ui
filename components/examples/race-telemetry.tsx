@@ -33,6 +33,7 @@ import { cn } from "@/lib/utils"
 
 import {
   CORNERS,
+  KMH,
   LAP_LENGTH,
   SECTOR_STARTS,
   useLapSimulation,
@@ -59,6 +60,14 @@ const ERS_MAX = 120
 
 const SHORT = 240
 
+const REDLINE = 12000
+const SHIFT_POINT = 11000
+const LIMITER = 11800
+const LIGHTS_FROM = REDLINE - 3000
+const LIGHT_TIERS = [10200, 11200] as const
+
+const krpm = (rpm: number) => rpm / 1000
+
 const pad = (n: number, width = 2) => String(n).padStart(width, "0")
 
 const lapClock = (seconds: number) => {
@@ -70,15 +79,27 @@ const gapText = (seconds: number) =>
   `${seconds < 0 ? "−" : "+"}${Math.abs(seconds).toFixed(3)}`
 
 const ShiftLights = ({ rpm, clock }: { rpm: number; clock: number }) => {
-  const limiter = rpm >= 11.8 && Math.floor(clock * 10) % 2 === 0
+  const limiter = rpm >= LIMITER && Math.floor(clock * 10) % 2 === 0
   return (
-    <LinearGauge value={rpm} min={9} max={12} length={600} padding={14}>
+    <LinearGauge
+      value={rpm}
+      min={LIGHTS_FROM}
+      max={REDLINE}
+      length={600}
+      padding={14}
+    >
       <GaugeTickFill
         count={14}
         length={0}
         width={22}
         color={(v) =>
-          limiter ? fade(15) : v < 10.2 ? fade(45) : v < 11.2 ? fade(70) : INK
+          limiter
+            ? fade(15)
+            : v < LIGHT_TIERS[0]
+              ? fade(45)
+              : v < LIGHT_TIERS[1]
+                ? fade(70)
+                : INK
         }
         dimColor={fade(8)}
       />
@@ -118,12 +139,19 @@ const Pedal = ({
 const RevTape = ({ rpm }: { rpm: number }) => (
   <LinearGauge
     value={rpm}
-    min={4}
-    max={12}
+    min={4000}
+    max={REDLINE}
     transition={FOLLOW}
     padding={{ top: 14, bottom: 30, left: 8, right: 8 }}
   >
-    <GaugeArc from={11} to={12} width={4} offset={13} color={INK} cap="butt" />
+    <GaugeArc
+      from={SHIFT_POINT}
+      to={REDLINE}
+      width={4}
+      offset={13}
+      color={INK}
+      cap="butt"
+    />
     <GaugeTrack width={12} cap="butt" color={INK} opacity={0.1} />
     <GaugeArc width={12} cap="butt" color={INK} />
     <GaugeTicks count={16} offset={-12} length={4} width={1.5} color={MUTED} />
@@ -132,7 +160,7 @@ const RevTape = ({ rpm }: { rpm: number }) => (
       offset={-24}
       fontSize={12}
       color={MUTED}
-      format={(v) => `${v}k`}
+      format={(v) => `${krpm(v)}k`}
     />
   </LinearGauge>
 )
@@ -378,8 +406,8 @@ const Lap = ({ t }: { t: Telemetry }) => {
               {t.gear}
             </span>
             <div className="flex flex-col pb-1">
-              <Figure value={Math.round(t.speed)} unit="km/h" />
-              <Caption>{t.rpm.toFixed(1)}k rpm</Caption>
+              <Figure value={Math.round(t.speed * KMH)} unit="km/h" />
+              <Caption>{krpm(t.rpm).toFixed(1)}k rpm</Caption>
             </div>
           </div>
           <RevTape rpm={t.rpm} />

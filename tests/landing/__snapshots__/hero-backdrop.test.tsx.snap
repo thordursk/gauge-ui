@@ -2173,16 +2173,6 @@ exports[`HeroBackdrop > renders the marquee rows of template previews 1`] = `
 <svg viewBox="-256 -256 512 512" preserveAspectRatio="xMidYMid meet" class="overflow-visible h-full w-full">
 <path d="M 0 -200 A 200 200 0 0 1 0 200 A 200 200 0 0 1 0 -200" fill="none" stroke="var(--muted)" stroke-opacity="1" stroke-width="30" stroke-linecap="butt">
 </path>
-<g opacity="0">
-<g>
-<path d="M 0 -200 A 200 200 0 0 1 117.557 161.803 A 200 200 0 0 1 -190.211 -61.803" fill="none" stroke="var(--muted)" stroke-width="30" stroke-linecap="butt">
-</path>
-</g>
-<g>
-<path d="M -190.211 -61.803 A 200 200 0 0 1 0 -200" fill="none" stroke="var(--muted)" stroke-width="30" stroke-linecap="butt">
-</path>
-</g>
-</g>
 <path d="M 0 -200 A 200 200 0 0 1 180.965 85.156 A 200 200 0 0 1 -154.103 127.485" fill="none" stroke="var(--foreground)" stroke-opacity="1" stroke-width="30" stroke-linecap="butt">
 </path>
 <g stroke="var(--foreground)" stroke-opacity="1" stroke-width="5" stroke-linecap="butt">
@@ -2499,16 +2489,6 @@ exports[`HeroBackdrop > renders the marquee rows of template previews 1`] = `
 <svg viewBox="-256 -256 512 512" preserveAspectRatio="xMidYMid meet" class="overflow-visible h-full w-full">
 <path d="M 0 -200 A 200 200 0 0 1 0 200 A 200 200 0 0 1 0 -200" fill="none" stroke="var(--muted)" stroke-opacity="1" stroke-width="30" stroke-linecap="butt">
 </path>
-<g opacity="0">
-<g>
-<path d="M 0 -200 A 200 200 0 0 1 117.557 161.803 A 200 200 0 0 1 -190.211 -61.803" fill="none" stroke="var(--muted)" stroke-width="30" stroke-linecap="butt">
-</path>
-</g>
-<g>
-<path d="M -190.211 -61.803 A 200 200 0 0 1 0 -200" fill="none" stroke="var(--muted)" stroke-width="30" stroke-linecap="butt">
-</path>
-</g>
-</g>
 <path d="M 0 -200 A 200 200 0 0 1 180.965 85.156 A 200 200 0 0 1 -154.103 127.485" fill="none" stroke="var(--foreground)" stroke-opacity="1" stroke-width="30" stroke-linecap="butt">
 </path>
 <g stroke="var(--foreground)" stroke-opacity="1" stroke-width="5" stroke-linecap="butt">
@@ -2684,16 +2664,6 @@ exports[`HeroBackdrop > renders the marquee rows of template previews 1`] = `
 <svg viewBox="-256 -256 512 512" preserveAspectRatio="xMidYMid meet" class="overflow-visible h-full w-full">
 <path d="M 0 -200 A 200 200 0 0 1 0 200 A 200 200 0 0 1 0 -200" fill="none" stroke="var(--muted)" stroke-opacity="1" stroke-width="30" stroke-linecap="butt">
 </path>
-<g opacity="0">
-<g>
-<path d="M 0 -200 A 200 200 0 0 1 117.557 161.803 A 200 200 0 0 1 -190.211 -61.803" fill="none" stroke="var(--muted)" stroke-width="30" stroke-linecap="butt">
-</path>
-</g>
-<g>
-<path d="M -190.211 -61.803 A 200 200 0 0 1 0 -200" fill="none" stroke="var(--muted)" stroke-width="30" stroke-linecap="butt">
-</path>
-</g>
-</g>
 <path d="M 0 -200 A 200 200 0 0 1 180.965 85.156 A 200 200 0 0 1 -154.103 127.485" fill="none" stroke="var(--foreground)" stroke-opacity="1" stroke-width="30" stroke-linecap="butt">
 </path>
 <g stroke="var(--foreground)" stroke-opacity="1" stroke-width="5" stroke-linecap="butt">
@@ -3605,16 +3575,6 @@ exports[`HeroBackdrop > renders the marquee rows of template previews 1`] = `
 <svg viewBox="-256 -256 512 512" preserveAspectRatio="xMidYMid meet" class="overflow-visible h-full w-full">
 <path d="M 0 -200 A 200 200 0 0 1 0 200 A 200 200 0 0 1 0 -200" fill="none" stroke="var(--muted)" stroke-opacity="1" stroke-width="30" stroke-linecap="butt">
 </path>
-<g opacity="0">
-<g>
-<path d="M 0 -200 A 200 200 0 0 1 117.557 161.803 A 200 200 0 0 1 -190.211 -61.803" fill="none" stroke="var(--muted)" stroke-width="30" stroke-linecap="butt">
-</path>
-</g>
-<g>
-<path d="M -190.211 -61.803 A 200 200 0 0 1 0 -200" fill="none" stroke="var(--muted)" stroke-width="30" stroke-linecap="butt">
-</path>
-</g>
-</g>
 <path d="M 0 -200 A 200 200 0 0 1 180.965 85.156 A 200 200 0 0 1 -154.103 127.485" fill="none" stroke="var(--foreground)" stroke-opacity="1" stroke-width="30" stroke-linecap="butt">
 </path>
 <g stroke="var(--foreground)" stroke-opacity="1" stroke-width="5" stroke-linecap="butt">

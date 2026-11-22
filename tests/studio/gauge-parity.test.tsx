@@ -7,7 +7,7 @@ import * as gaugeModule from "@/components/gauge"
 import type { GaugeTooltipProps } from "@/components/gauge"
 import { GaugePreview } from "@/components/gauge-preview"
 import { gaugeToCode } from "@/lib/gauge-code"
-import type { GaugeSpec } from "@/lib/gauge-spec"
+import type { BaseGaugeSpec, GaugeSpec } from "@/lib/gauge-spec"
 import { gaugeTemplates, templatePreview } from "@/lib/gauge-templates"
 import { markup, stableIds } from "@/tests/markup"
 
@@ -47,7 +47,7 @@ const compile = (code: string) => {
   return exports.CustomGauge
 }
 
-const valueOf = (spec: GaugeSpec, value: number) =>
+const valueOf = (spec: BaseGaugeSpec, value: number) =>
   spec.rangeFrom === undefined ? value : [spec.rangeFrom, value]
 
 const rootSvg = (html: string) =>
@@ -91,14 +91,14 @@ const previewed = (spec: GaugeSpec, value: number) =>
     rootSvg(markup(<GaugePreview spec={printed(spec)} value={value} />))
   )
 
-const showEverything = (spec: GaugeSpec): GaugeSpec => {
+const showParts = <S extends BaseGaugeSpec>(spec: S): S => {
   const shown = Object.fromEntries(
     Object.entries(spec).map(([key, part]) =>
       part && typeof part === "object" && "show" in part
         ? [key, { ...part, show: true }]
         : [key, part]
     )
-  ) as GaugeSpec
+  ) as S
   return {
     ...shown,
     arc: { ...shown.arc, colorByZone: true },
@@ -107,12 +107,16 @@ const showEverything = (spec: GaugeSpec): GaugeSpec => {
       ...shown.needles,
       show: spec.domain.shape === "round",
     },
-    insets: spec.insets?.map((inset) => ({
-      ...inset,
-      spec: showEverything(inset.spec),
-    })),
   }
 }
+
+const showEverything = (spec: GaugeSpec): GaugeSpec => ({
+  ...showParts(spec),
+  insets: spec.insets?.map((inset) => ({
+    ...inset,
+    spec: showParts(inset.spec),
+  })),
+})
 
 const plusOne = <T,>(value: T): T => {
   if (typeof value === "number") return (value + 1) as T
@@ -124,18 +128,26 @@ const plusOne = <T,>(value: T): T => {
   return value
 }
 
-const offDefaults = (spec: GaugeSpec): GaugeSpec => {
-  const { domain, insets, control, transition, rangeFrom, ...parts } = spec
+const moveParts = (spec: BaseGaugeSpec): BaseGaugeSpec => {
+  const { domain, transition, rangeFrom, ...parts } = spec
   return {
     ...plusOne(parts),
     arc: { ...plusOne(parts.arc), reverse: !parts.arc.reverse },
     domain,
-    control,
     transition,
     rangeFrom,
+  }
+}
+
+const offDefaults = (spec: GaugeSpec): GaugeSpec => {
+  const { insets, control, ...host } = spec
+  return {
+    ...moveParts(host),
+    domain: spec.domain,
+    control,
     insets: insets?.map((inset) => ({
       ...inset,
-      spec: offDefaults(inset.spec),
+      spec: moveParts(inset.spec),
     })),
   }
 }

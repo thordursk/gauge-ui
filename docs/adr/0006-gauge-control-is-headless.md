@@ -1,6 +1,6 @@
 # GaugeControl is headless and keyboard-first
 
-`GaugeControl` (`components/gauge/control.tsx`) turns any gauge drawing into a slider without drawing anything itself.
+`GaugeControl` (`components/gauge/control.tsx`) turns any gauge drawing into a slider without drawing anything itself. The gauge root renders the slider element on the control's behalf, using its own geometry (ADR 0017).
 
 - **Hidden thumbs.** It renders one visually hidden `role="slider"` element per value (two for a range). The visible handle is whatever the gauge draws, `GaugeDot` for example. Those empty-looking divs are the accessible thumbs: each one is tabbable and announced.
 - **Pointer focus versus keyboard focus.** Browsers treat `focus()` called from script as keyboard focus and match `:focus-visible`. When the control focuses a thumb on pointer-down, it tags it `data-pointer` until a key is pressed. The focus ring (`has-[:focus-visible:not([data-pointer])]`) and `GaugeTooltip`'s focus check both skip tagged thumbs. The tooltip also treats any keydown as keyboard use, because the browser may not have flipped `:focus-visible` yet. This is a contract between `control.tsx` and `tooltip.tsx`.

@@ -43,6 +43,8 @@ export type GaugeNeedleProps = {
   end?: GaugeEnd
 }
 
+const TIP = 0.2
+
 const pts = (points: { x: number; y: number }[]) =>
   points.map((p) => `${p.x},${p.y}`).join(" ")
 
@@ -166,7 +168,7 @@ const NeedleShape = ({
 
   const left = polar(width / 2, angle - 90)
   const right = polar(width / 2, angle + 90)
-  const endRadius = width * 0.2
+  const endRadius = width * TIP
   const endLeft = polar(endRadius, angle - 90)
   const endRight = polar(endRadius, angle + 90)
   const blade = (end: { x: number; y: number }) =>
@@ -205,7 +207,11 @@ export type GaugeHubProps = {
   color?: string
 }
 
-/** The pivot disc at the centre, drawn once however many needles there are. */
+/**
+ * A disc at the centre: the pivot under the needles, drawn once however many
+ * there are. It needs no needle, so alone it is a dial's centre cap or a sun
+ * for a `GaugeDot` to orbit.
+ */
 export const GaugeHub = ({
   radius = 12,
   color = "currentColor",
