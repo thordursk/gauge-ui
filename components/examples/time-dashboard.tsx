@@ -46,14 +46,12 @@ import { cn } from "@/lib/utils"
 
 const MUTED = "var(--muted-foreground)"
 
-/** A reset refills a timer's ring with a sweep rather than a jump. */
 const REFILL: GaugeTransition = {
   type: "spring",
   visualDuration: 0.6,
   bounce: 0,
 }
 
-/** Every full-circle dial here starts at twelve o'clock and goes round once. */
 const ring = { startAngle: 180, endAngle: 540 } as const
 
 const pad = (n: number) => String(n).padStart(2, "0")
@@ -61,9 +59,6 @@ const pad = (n: number) => String(n).padStart(2, "0")
 const prefersReducedMotion = () =>
   window.matchMedia("(prefers-reduced-motion: reduce)").matches
 
-/* ---------- time sources ---------- */
-
-/** Fires on every whole second of the wall clock, so every face ticks together. */
 const subscribeSeconds = (onTick: () => void) => {
   let id = 0
   const schedule = () => {
@@ -81,20 +76,9 @@ const subscribeSeconds = (onTick: () => void) => {
 
 const currentSecond = () => Math.floor(Date.now() / 1000) * 1000
 
-/**
- * The wall clock to the second. The server has no "now" the visitor's
- * browser would agree with, so it renders null and the faces come up bare.
- */
 const useNow = () =>
   useSyncExternalStore(subscribeSeconds, currentSecond, () => null)
 
-/**
- * The animation frame's timestamp, on the `performance.now()` clock, for as
- * long as `active` holds. Stopwatch and timers keep their own start times and
- * only read this to know how far they have got, so a frozen frame costs them
- * nothing but smoothness. `active` can be a test of the latest frame, for a
- * loop that should stop itself once it has run its course.
- */
 const useFrameTime = (active: boolean | ((time: number) => boolean)) => {
   const [time, setTime] = useState(0)
   const on = typeof active === "function" ? active(time) : active
@@ -111,11 +95,6 @@ const useFrameTime = (active: boolean | ((time: number) => boolean)) => {
   return time
 }
 
-/**
- * Runs `start` once, the first time `visible` turns true, unless the visitor
- * prefers reduced motion. It goes through a frame so the start time is on the
- * same clock as `useFrameTime`, and so it survives a strict-mode remount.
- */
 const useStartOnView = (visible: boolean, start: (at: number) => void) => {
   const started = useRef(false)
   const latest = useRef(start)
@@ -134,8 +113,6 @@ const useStartOnView = (visible: boolean, start: (at: number) => void) => {
   }, [visible])
 }
 
-/* ---------- world clock ---------- */
-
 type City = { name: string; zone: string }
 
 const CITIES: City[] = [
@@ -147,7 +124,6 @@ const CITIES: City[] = [
   { name: "Sydney", zone: "Australia/Sydney" },
 ]
 
-/** A wall-clock reading somewhere, broken into its fields. */
 type WallTime = {
   year: number
   month: number
@@ -169,7 +145,6 @@ const fields = {
 
 const formatters = new Map<string, Intl.DateTimeFormat>()
 
-/** What the clocks on the wall in `zone` read at `ms`. */
 const wallTime = (ms: number, zone: string): WallTime => {
   let format = formatters.get(zone)
   if (!format) {
@@ -201,11 +176,9 @@ const localWallTime = (ms: number): WallTime => {
   }
 }
 
-/** A wall time as if it were UTC, so two of them can be subtracted. */
 const asUtc = (t: WallTime) =>
   Date.UTC(t.year, t.month - 1, t.day, t.hour, t.minute)
 
-/** How a city's clock stands against the visitor's own: "Tomorrow, +9h". */
 const relativeLabel = (city: WallTime, local: WallTime) => {
   const minutes = Math.round((asUtc(city) - asUtc(local)) / 60000)
   const days = Math.round(
@@ -220,13 +193,6 @@ const relativeLabel = (city: WallTime, local: WallTime) => {
   return `${day}, ${minutes > 0 ? "+" : "−"}${hours}`
 }
 
-/**
- * The Clock template, weighted up to read at a sixth of the width: the same
- * sixty and twelve ticks and clock numerals, the hour and minute hands, and a
- * sweep hand for the seconds. All three hands read one value, the hour of the
- * half day; the minute hand goes round twelve times as often and the second
- * hand seven hundred and twenty.
- */
 const ClockFace = ({ time }: { time: WallTime | null }) => {
   const hours = time
     ? (time.hour % 12) + time.minute / 60 + time.second / 3600
@@ -311,39 +277,25 @@ const WorldClock = ({ city, now }: { city: City; now: number | null }) => {
   )
 }
 
-/* ---------- stopwatch ---------- */
-
 type StopwatchState = {
-  /** When the current run began, on the frame clock; null while stopped. */
   startedAt: number | null
-  /** Milliseconds from earlier runs, before the last stop. */
   banked: number
-  /** Total elapsed at each press of Lap, oldest first. */
   laps: number[]
 }
 
 const STOPPED: StopwatchState = { startedAt: null, banked: 0, laps: [] }
 
-/** A run already under way, so the lap list has something in it at first. */
 const DEMO: StopwatchState = {
   startedAt: null,
   banked: 229_870,
   laps: [72_340, 141_870, 214_050],
 }
 
-/** 01:23.45 */
 const formatSplit = (ms: number) => {
   const cs = Math.floor(ms / 10)
   return `${pad(Math.floor(cs / 6000))}:${pad(Math.floor(cs / 100) % 60)}.${pad(cs % 100)}`
 }
 
-/**
- * A stopwatch face: sixty seconds round the rim with the sweep hand, and a
- * thirty-minute register inset above six, as on a mechanical chronograph.
- * The split reads out above the centre, clear of the numerals.
- * Neither follows with a transition, since both wrap back to zero and a
- * spring would send them the long way round.
- */
 const StopwatchDial = ({ ms }: { ms: number }) => {
   const seconds = ms / 1000
 
@@ -433,7 +385,6 @@ const Stopwatch = ({ visible }: { visible: boolean }) => {
     )
   }
 
-  /* Newest first, each with its own time as well as the running total. */
   const laps = watch.laps
     .map((total, i) => ({
       n: i + 1,
@@ -474,7 +425,6 @@ const Stopwatch = ({ visible }: { visible: boolean }) => {
           {running ? "Stop" : "Start"}
         </Button>
       </div>
-      {/* Three rows are always there, so a lap never moves the card. */}
       <ol className="grid grid-rows-3 divide-y divide-dashed text-xs tabular-nums">
         {[0, 1, 2].map((row) => {
           const lap = laps[row]
@@ -501,14 +451,10 @@ const Stopwatch = ({ visible }: { visible: boolean }) => {
   )
 }
 
-/* ---------- alarms ---------- */
-
 type Alarm = {
   id: string
-  /** Hour of the day, with minutes as its fraction. */
   at: number
   label: string
-  /** Days it rings on, 0 for Sunday. */
   days: number[]
   on: boolean
 }
@@ -532,7 +478,6 @@ const repeatLabel = (days: number[]) =>
           .map((d) => ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][d])
           .join(", ")
 
-/** Minutes from `now` until `alarm` next rings, looking a week ahead. */
 const minutesUntil = (alarm: Alarm, now: Date) => {
   const hour = now.getHours() + now.getMinutes() / 60 + now.getSeconds() / 3600
   for (let ahead = 0; ahead <= 7; ahead++) {
@@ -551,11 +496,6 @@ const formatWait = (minutes: number) => {
   return hours > 0 ? `in ${hours}h ${m % 60}m` : `in ${m % 60}m`
 }
 
-/**
- * A twenty-four hour dial with midnight at the top. Every alarm is a dot on
- * the rim, dimmed while it is off, and the arc runs
- * from now to the next one to ring, if that falls within the day.
- */
 const AlarmDial = ({
   hour,
   alarms,
@@ -567,7 +507,6 @@ const AlarmDial = ({
 }) => (
   <Gauge value={hour ?? 0} min={0} max={24} {...ring} padding={16}>
     <GaugeTrack width={10} cap="butt" />
-    {/* From now to the next alarm, carrying on past midnight in one piece. */}
     {hour !== null && next && next.minutes <= 24 * 60 && (
       <GaugeArc
         from={hour}
@@ -680,22 +619,16 @@ const Alarms = ({ now }: { now: number | null }) => {
   )
 }
 
-/* ---------- timers ---------- */
-
 type Timer = {
   id: string
   label: string
-  /** Full length, ms. */
   duration: number
-  /** Time left as of the last pause, ms. */
   left: number
-  /** When it runs out, on the frame clock; null while paused. */
   endsAt: number | null
 }
 
 const minutes = (m: number) => m * 60_000
 
-/** Three kitchen-drawer timers, each caught partway through. */
 const TIMERS: Timer[] = [
   {
     id: "tea",
@@ -723,17 +656,11 @@ const TIMERS: Timer[] = [
 const timeLeft = (timer: Timer, frame: number) =>
   timer.endsAt === null ? timer.left : Math.max(0, timer.endsAt - frame)
 
-/** Counts down in whole seconds, as a kitchen timer does: 6:24. */
 const formatCountdown = (ms: number) => {
   const s = Math.ceil(ms / 1000)
   return `${Math.floor(s / 60)}:${pad(s % 60)}`
 }
 
-/**
- * The Timer template: the ring of what is left inside a sixty-tick bezel, a
- * mono countdown in the middle, and the timer's name above it. When it runs
- * out the face pulses until it is reset or started again.
- */
 const TimerDial = ({ timer, left }: { timer: Timer; left: number }) => {
   const done = left === 0
 
@@ -766,8 +693,6 @@ const TimerDial = ({ timer, left }: { timer: Timer; left: number }) => {
 
 const Timers = ({ visible }: { visible: boolean }) => {
   const [timers, setTimers] = useState(TIMERS)
-  /* Frames run only while something is counting down, so a timer that has
-     run out stops asking for more. */
   const frame = useFrameTime(
     (time) =>
       visible && timers.some((t) => t.endsAt !== null && t.endsAt > time)
@@ -788,7 +713,6 @@ const Timers = ({ visible }: { visible: boolean }) => {
     update(id, (t, at) => {
       if (t.endsAt !== null) {
         const left = Math.max(0, t.endsAt - at)
-        /* Pausing a finished timer is resetting it. */
         return { ...t, left: left || t.duration, endsAt: null }
       }
       const left = t.left || t.duration
@@ -836,8 +760,6 @@ const Timers = ({ visible }: { visible: boolean }) => {
   )
 }
 
-/* ---------- layout ---------- */
-
 const Panel = ({
   title,
   action,
@@ -860,12 +782,6 @@ const Panel = ({
   </Card>
 )
 
-/**
- * Everything a clock app does, on gauges: a row of world clocks from the
- * Clock template, a chronograph stopwatch, alarms on a twenty-four hour dial,
- * and a bank of countdowns from the Timer template. The clocks tell the real
- * time; the stopwatch and timers start themselves when the tab opens.
- */
 export const TimeDashboard = () => {
   const frame = useRef<HTMLDivElement>(null)
   const visible = useInView(frame)

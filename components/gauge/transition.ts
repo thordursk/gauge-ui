@@ -1,10 +1,3 @@
-/**
- * Dependency-free value animation for the gauge: a damped spring and a
- * cubic-bezier tween, both stepped per frame. Pure functions only; the hook
- * that drives them lives in `use-animated-value.ts`.
- */
-
-/** A named curve, CSS-style cubic-bezier control points, or your own function. */
 export type GaugeEasing =
   | "linear"
   | "easeIn"
@@ -15,22 +8,16 @@ export type GaugeEasing =
 
 export type GaugeSpringTransition = {
   type: "spring"
-  /** Physics parameters. When any is given they take precedence over the
-      perceptual `visualDuration` and `bounce` pair. */
   stiffness?: number
   damping?: number
   mass?: number
-  /** Seconds the spring visibly takes to reach the target. Default 0.5. */
   visualDuration?: number
-  /** 0 settles without overshoot, 1 rings freely. Default 0.1. */
   bounce?: number
 }
 
 export type GaugeTweenTransition = {
   type: "tween"
-  /** Seconds. Default 0.5. */
   duration?: number
-  /** Default "easeInOut". */
   ease?: GaugeEasing
 }
 
@@ -42,7 +29,6 @@ export const DEFAULT_TRANSITION: GaugeSpringTransition = {
   bounce: 0.1,
 }
 
-/** Turns the `transition` prop into a concrete config, or null when off. */
 export const resolveTransition = (
   transition: GaugeTransition | boolean | undefined
 ): GaugeTransition | null => {
@@ -50,15 +36,8 @@ export const resolveTransition = (
   return transition === true ? DEFAULT_TRANSITION : transition
 }
 
-/* ---------- spring ---------- */
-
 export type SpringPhysics = { stiffness: number; damping: number; mass: number }
 
-/**
- * Physics for a spring config. The perceptual pair maps onto stiffness and
- * damping the same way the motion library does, so a spring tuned against
- * that library feels the same here.
- */
 export const springPhysics = (t: GaugeSpringTransition): SpringPhysics => {
   const hasPhysics =
     t.stiffness !== undefined || t.damping !== undefined || t.mass !== undefined
@@ -81,11 +60,6 @@ export type SpringState = { value: number; velocity: number }
 
 const SUBSTEP = 1 / 240
 
-/**
- * Advances a spring by `dt` seconds towards `target` with semi-implicit
- * Euler in small substeps, which stays stable for stiff springs. Returns the
- * new state and whether it has come to rest within `precision`.
- */
 export const stepSpring = (
   state: SpringState,
   target: number,
@@ -110,8 +84,6 @@ export const stepSpring = (
     : { state: { value, velocity }, done }
 }
 
-/* ---------- tween ---------- */
-
 const namedCurves: Record<
   Exclude<
     GaugeEasing,
@@ -125,7 +97,6 @@ const namedCurves: Record<
   easeInOut: [0.42, 0, 0.58, 1],
 }
 
-/** A CSS-compatible cubic-bezier easing function. */
 export const cubicBezier = (x1: number, y1: number, x2: number, y2: number) => {
   const bezier = (t: number, p1: number, p2: number) => {
     const u = 1 - t
@@ -138,7 +109,6 @@ export const cubicBezier = (x1: number, y1: number, x2: number, y2: number) => {
   return (x: number) => {
     if (x <= 0) return 0
     if (x >= 1) return 1
-    // Newton's method, falling back to bisection where the curve is flat.
     let t = x
     for (let i = 0; i < 8; i++) {
       const dx = bezier(t, x1, x2) - x
@@ -159,7 +129,6 @@ export const cubicBezier = (x1: number, y1: number, x2: number, y2: number) => {
   }
 }
 
-/** Resolves any `GaugeEasing` into a function of progress. */
 export const easingFunction = (ease: GaugeEasing = "easeInOut") => {
   if (typeof ease === "function") return ease
   const [x1, y1, x2, y2] = Array.isArray(ease) ? ease : namedCurves[ease]

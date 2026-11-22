@@ -20,14 +20,12 @@ const fontRounded = Nunito({
   variable: "--font-rounded",
 })
 
-/* The site's own face, for text and headings alike, on every page. */
 const fontGeist = Geist({
   subsets: ["latin"],
   variable: "--font-geist",
 })
 
 export const metadata: Metadata = {
-  /* Absolute URLs for the social card, wherever the page is served from. */
   metadataBase: new URL(siteUrl),
   title: {
     default: "Gauge UI — composable gauge components for React",
@@ -55,13 +53,9 @@ export const metadata: Metadata = {
     description: siteDescription,
     locale: "en_US",
   },
-  /* The card itself comes from app/opengraph-image.png; this only asks
-     Twitter for the full-width layout instead of the small square one. */
   twitter: { card: "summary_large_image" },
 }
 
-/* The studio is exactly one screen tall, so it paints into the safe areas
-   and the elements that reach them pad themselves back out. */
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
@@ -90,8 +84,6 @@ export default function RootLayout({
       <body>
         <ThemeProvider>{children}</ThemeProvider>
         <Analytics />
-        {/* Click-to-annotate feedback for coding agents, under `next dev`
-            only: the toolbar sits in the bottom-right corner. */}
         {process.env.NODE_ENV === "development" && <Agentation />}
       </body>
     </html>

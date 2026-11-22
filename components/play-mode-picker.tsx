@@ -27,7 +27,6 @@ type PlayModePickerProps = {
   className?: string
 }
 
-/** How each mode reads in the list, in the order the picker shows them. */
 const modes: Record<PlayMode, { label: string; icon: typeof RepeatIcon }> = {
   manual: { label: "Manual", icon: FilterHorizontalIcon },
   sweep: { label: "Sweep", icon: RepeatIcon },
@@ -35,10 +34,6 @@ const modes: Record<PlayMode, { label: string; icon: typeof RepeatIcon }> = {
   jump: { label: "Jump", icon: ShuffleIcon },
 }
 
-/**
- * How the gauge's value moves, as a dropdown alongside the layer picker,
- * which is what keeps the bar's top row to one line however narrow it gets.
- */
 export const PlayModePicker = ({
   mode,
   onModeChange,
@@ -71,9 +66,6 @@ export const PlayModePicker = ({
       <PopoverContent
         align="end"
         side="top"
-        /* Pointer opens leave focus on the trigger so the first row does not
-           light up with a focus ring; keyboard opens keep the default hop
-           into the list. */
         initialFocus={(openType) => openType === "keyboard"}
         className="w-[min(12rem,calc(100vw-1.5rem))] gap-2 bg-card p-2"
       >

@@ -2,7 +2,6 @@
 
 import { useEffect, useState, type RefObject } from "react"
 
-/** Whether `target` is on screen, for pausing work nobody can see. */
 export const useInView = (target: RefObject<Element | null>) => {
   const [visible, setVisible] = useState(false)
 

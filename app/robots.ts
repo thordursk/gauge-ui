@@ -7,7 +7,6 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      // The /og page only exists for a headless browser to screenshot.
       disallow: "/og",
     },
     sitemap: `${siteUrl}/sitemap.xml`,

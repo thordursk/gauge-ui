@@ -6,7 +6,6 @@ import { GaugePreview } from "@/components/gauge-preview"
 import { gaugeTemplates, templatePreview } from "@/lib/gauge-templates"
 import { cn } from "@/lib/utils"
 
-/** Every template once, previewed at rest, for the rows to draw from. */
 const previews = gaugeTemplates.map((template) => ({
   id: template.id,
   ...templatePreview(template),
@@ -15,7 +14,6 @@ const previews = gaugeTemplates.map((template) => ({
 const ROWS = 5
 const PER_ROW = 7
 
-/** Each row starts further along the templates, so no two line up. */
 const rows = Array.from({ length: ROWS }, (_, row) =>
   Array.from(
     { length: PER_ROW },
@@ -23,11 +21,6 @@ const rows = Array.from({ length: ROWS }, (_, row) =>
   )
 )
 
-/**
- * Template gauges laid out on a plane tipped back into the page, each row
- * sliding the opposite way to the one before it. Faded towards the middle,
- * where the hero's text sits, and off at the section's top and bottom.
- */
 export const HeroBackdrop = ({ className }: { className?: string }) => (
   <div
     aria-hidden
@@ -58,7 +51,6 @@ export const HeroBackdrop = ({ className }: { className?: string }) => (
             } as CSSProperties
           }
         >
-          {/* Twice over, so the track can slide one copy along and loop. */}
           {[...row, ...row].map((preview, j) => (
             <div key={j} className="size-52 shrink-0 p-5 sm:size-80">
               <GaugePreview

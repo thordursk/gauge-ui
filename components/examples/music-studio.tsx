@@ -40,42 +40,29 @@ import { useInView } from "@/hooks/use-in-view"
 import { cn } from "@/lib/utils"
 
 const MUTED = "var(--muted-foreground)"
-/** Drawn in the card's own colour, to cut a groove across a fader cap. */
 const CUT = "var(--card)"
 
-/** The one ink every mark is drawn in, as the studio templates keep to. */
 const INK = "var(--foreground)"
 
-/** The ink thinned towards transparent, for the quieter tones. */
 const fade = (percent: number) => fadeColor(INK, percent)
 
-/** The sweep every knob here turns through, open at the bottom. */
 const SWEEP = { startAngle: 40, endAngle: 320 } as const
 
-/** Meters move fast but never jump, as a peak meter's ballistics do. The
-    controls themselves are never animated, so they stay under the finger. */
 const METER: GaugeTransition = { type: "tween", duration: 0.09, ease: "linear" }
 
 const clampTo = (value: number, lo: number, hi: number) =>
   Math.min(hi, Math.max(lo, value))
 
-/* ---------- levels ---------- */
-
-/** A fader's travel in dB, from near silence up to a little gain. */
 const FLOOR = -48
 const CEIL = 6
-/** Faders move in half-dB steps, which is also where their cap can stop. */
 const FADER_STEP = 0.5
 const FADER_LENGTH = 300
 
-/** The analyser reads from here up to full scale. */
 const SPECTRUM_FLOOR = -60
 
-/** A level in dB as a console prints it. */
 const dbText = (db: number) =>
   db <= FLOOR ? "−∞" : `${db > 0 ? "+" : ""}${db.toFixed(1)}`
 
-/** dB summed as power, so two equal signals read 3 dB louder, not double. */
 const sumDb = (levels: number[], weights: number[]) => {
   const power = levels.reduce(
     (sum, db, i) => sum + 10 ** (db / 10) * (weights[i] ?? 1),
@@ -84,22 +71,13 @@ const sumDb = (levels: number[], weights: number[]) => {
   return power > 0 ? 10 * Math.log10(power) : -Infinity
 }
 
-/* ---------- channels ---------- */
-
 type Voice = {
-  /** Sixteenth notes in the bar this voice plays on. */
   hits: number[]
-  /** Its level the moment it is struck, in dBFS. */
   peak: number
-  /** dB it falls each meter frame after a hit. */
   decay: number
-  /** Where it falls to and holds while it plays. */
   rest: number
-  /** Extra hits in the last bar of every four, leading into the next. */
   fill?: number[]
-  /** Hits for every other bar, so a part answers itself. */
   alt?: number[]
-  /** Analyser band the voice is loudest in, and how widely it spreads. */
   centre: number
   spread: number
 }
@@ -107,9 +85,7 @@ type Voice = {
 type Channel = {
   id: string
   name: string
-  /** Fader, in dB. */
   gain: number
-  /** -50 hard left to 50 hard right. */
   pan: number
   mute: boolean
   solo: boolean
@@ -181,8 +157,6 @@ const CHANNELS: Channel[] = [
   }),
 ]
 
-/* ---------- eq ---------- */
-
 const EQ_RANGE = 12
 const EQ_BANDS = [
   { label: "60", gain: 3 },
@@ -194,24 +168,14 @@ const EQ_BANDS = [
   { label: "10k", gain: 3.5 },
   { label: "15k", gain: 1 },
 ]
-/** Analyser bands, three to every EQ band. */
 const SPECTRUM = EQ_BANDS.length * 3
-
-/* ---------- dynamics ---------- */
 
 type Dynamics = { threshold: number; ratio: number; makeup: number }
 
-/** The most gain reduction the meter shows, in dB. */
 const GR_RANGE = 20
 
-/* ---------- transport ---------- */
-
 const SONG_BARS = 64
-/** The song bar's length, long enough that it draws near its own size
-    across a wide panel. */
 const SONG_LENGTH = 640
-/** The song's sections and which parts play in each, so the mix fills and
-    thins as it goes. */
 const VERSE = ["kick", "snare", "hats", "bass", "vox"]
 const SECTIONS = [
   { at: 0, name: "Intro", plays: ["kick", "hats", "keys"] },
@@ -224,8 +188,6 @@ const SECTIONS = [
 const sectionAt = (bar: number) =>
   SECTIONS.findLast((section) => bar >= section.at) ?? SECTIONS[0]
 
-/** The hits a voice plays in a bar: a fill to close every fourth bar, its
-    answering pattern on every other one, its own otherwise. */
 const hitsIn = (voice: Voice, bar: number) =>
   bar % 4 === 3 && voice.fill
     ? [...voice.hits, ...voice.fill]
@@ -235,12 +197,6 @@ const hitsIn = (voice: Voice, bar: number) =>
 
 type Transport = { playing: boolean; bpm: number; bar: number; step: number }
 
-/* ---------- ticking ---------- */
-
-/**
- * Runs `tick` every `ms` while `active`, always calling the latest one so it
- * can read fresh state. Reduced motion holds everything where it is.
- */
 const useInterval = (tick: () => void, ms: number, active: boolean) => {
   const latest = useRef(tick)
   useEffect(() => {
@@ -254,14 +210,6 @@ const useInterval = (tick: () => void, ms: number, active: boolean) => {
   }, [ms, active])
 }
 
-/* ---------- gauges ---------- */
-
-/**
- * A rotary knob: a scale of ticks outside a thin ring, a cap with the
- * pointer dot on it, and the value in the middle. A bipolar knob fills from
- * the centre of its travel, as pan and gain do. Small ones drop the readout
- * and print it underneath instead.
- */
 const Knob = ({
   value,
   onChange,
@@ -323,11 +271,6 @@ const Knob = ({
   </div>
 )
 
-/**
- * A fader's cap, as two tick fills that light only the stop nearest the
- * value: a pill across the track, and a groove cut through its middle. One
- * stop per fader step, so the cap lands exactly where the value is.
- */
 const FaderCap = ({ stops, size }: { stops: number; size: number }) => (
   <>
     <GaugeTickFill
@@ -352,7 +295,6 @@ const FaderCap = ({ stops, size }: { stops: number; size: number }) => (
   </>
 )
 
-/** A segmented peak meter, for the inset beside a fader. */
 const Meter = () => (
   <GaugeTickFill
     count={27}
@@ -364,11 +306,6 @@ const Meter = () => (
   />
 )
 
-/**
- * A channel fader in dB: its scale and unity mark on the left, the track and
- * cap, and one meter per signal beside it on the right, each a bar of its
- * own drawn as an inset so it follows its level rather than the fader.
- */
 const Fader = ({
   value,
   onChange,
@@ -434,7 +371,6 @@ const Fader = ({
   </GaugeControl>
 )
 
-/** One band of the graphic EQ: a short fader filling either way from 0 dB. */
 const EqFader = ({
   band,
   gain,
@@ -483,16 +419,9 @@ const EqFader = ({
   </div>
 )
 
-/** The analyser's three tiers in rising shades of the ink, as a hardware
-    meter's segments change colour: a short quiet stretch at the foot, the
-    body of a column and its loud top. */
 const tierShade = (db: number) =>
   db < -48 ? fade(35) : db < -18 ? fade(65) : INK
 
-/**
- * One band of the analyser, a column of segments in three shades: the few
- * at the foot faint, the body stronger and the loud top in the full ink.
- */
 const SpectrumBand = ({ db }: { db: number }) => (
   <LinearGauge
     value={db}
@@ -515,13 +444,10 @@ const SpectrumBand = ({ db }: { db: number }) => (
   </LinearGauge>
 )
 
-/* ---------- layout ---------- */
-
 const Caption = ({ children }: { children: ReactNode }) => (
   <span className="text-xs text-muted-foreground tabular-nums">{children}</span>
 )
 
-/** A reading set as a bold rounded figure with a small unit. */
 const Figure = ({
   value,
   unit,
@@ -546,7 +472,6 @@ const Figure = ({
   </span>
 )
 
-/** A section heading, its icon in the muted tone. */
 const Category = ({
   icon,
   children,
@@ -590,7 +515,6 @@ const Panel = ({
   </Card>
 )
 
-/** A small latching button, filled while it is on. */
 const Latch = ({
   on,
   label,
@@ -613,8 +537,6 @@ const Latch = ({
     {children}
   </Button>
 )
-
-/* ---------- sections ---------- */
 
 const panText = (pan: number) =>
   pan === 0 ? "C" : pan < 0 ? `L${-pan}` : `R${pan}`
@@ -682,7 +604,6 @@ const Mixer = ({
       ))}
       <div className="flex flex-col items-center gap-3 sm:border-l">
         <span className="text-xs font-semibold">Master</span>
-        {/* Holds the room a pan knob takes, so the faders line up. */}
         <div className="flex w-12 flex-col items-center gap-1.5">
           <div className="aspect-square w-full" />
           <Caption>L · R</Caption>
@@ -783,7 +704,6 @@ const DynamicsPanel = ({
           className="text-lg"
         />
       </div>
-      {/* Reduction grows leftward from 0 dB, as on a console's GR meter. */}
       <LinearGauge
         value={-reduction}
         min={-GR_RANGE}
@@ -849,8 +769,6 @@ const TransportPanel = ({
               <HugeiconsIcon icon={playing ? PauseIcon : PlayIcon} />
             </Button>
           </div>
-          {/* Sixteen steps as dots, the downbeats a shade stronger and the
-              one playing lit. */}
           <LinearGauge
             value={step}
             max={15}
@@ -865,7 +783,6 @@ const TransportPanel = ({
               dimColor={(v) => (Math.round(v) % 4 === 0 ? fade(32) : fade(12))}
             />
           </LinearGauge>
-          {/* Where the song is, with its sections marked. */}
           <LinearGauge
             value={bar + step / 16}
             max={SONG_BARS}
@@ -901,15 +818,6 @@ const TransportPanel = ({
   )
 }
 
-/* ---------- studio ---------- */
-
-/**
- * A small studio session: a mixer of six channels and a master, a graphic
- * EQ over a live analyser, a bus compressor and the transport. A toy step
- * sequencer plays a bar of drums, bass, keys and vocal, and every meter is
- * worked out from it: through each channel's fader and pan, summed on the
- * bus, squeezed by the compressor and shaped by the EQ.
- */
 export const MusicStudio = () => {
   const frame = useRef<HTMLDivElement>(null)
   const visible = useInView(frame)
@@ -918,8 +826,6 @@ export const MusicStudio = () => {
   const [master, setMaster] = useState(-8)
   const [eq, setEq] = useState(() => EQ_BANDS.map((b) => b.gain))
   const [dynamics, setDynamics] = useState<Dynamics>({
-    /* Low enough that the bus is always being worked, so the gain
-       reduction moves with the beat. */
     threshold: -18,
     ratio: 3,
     makeup: 4,
@@ -927,16 +833,12 @@ export const MusicStudio = () => {
   const [transport, setTransport] = useState<Transport>({
     playing: true,
     bpm: 124,
-    /* Two bars of verse to go, the second a fill into the chorus. */
     bar: 21,
     step: 15,
   })
-  /* Each voice's level before its fader, in dBFS, and a little air for
-     every analyser band. */
   const [voices, setVoices] = useState(() => CHANNELS.map((c) => c.voice.rest))
   const [air, setAir] = useState<number[]>(() => Array(SPECTRUM).fill(0))
 
-  /* The sequencer, a sixteenth note at a time. */
   useInterval(
     () => {
       const step = (transport.step + 1) % 16
@@ -949,8 +851,6 @@ export const MusicStudio = () => {
           if (!plays.includes(id) || !hitsIn(voice, bar).includes(step)) {
             return v
           }
-          /* Played by hand: every hit a little different, the beat
-             leaned on. */
           const accent = step % 4 === 0 ? 1.5 : 0
           return voice.peak + accent - Math.random() * 6
         })
@@ -960,8 +860,6 @@ export const MusicStudio = () => {
     visible && transport.playing
   )
 
-  /* The meters' frames: every voice dies away towards its rest, or to
-     silence once the song stops. */
   useInterval(
     () => {
       const { plays } = sectionAt(transport.bar)
@@ -975,20 +873,16 @@ export const MusicStudio = () => {
           )
         })
       )
-      /* A drift rather than a flicker: each band wanders a little from
-         where it was. */
       setAir((a) => a.map((v) => v * 0.7 + (Math.random() * 2 - 1) * 8))
     },
     80,
     visible
   )
 
-  /* A channel is heard unless it is muted, or another is soloed. */
   const soloing = channels.some((c) => c.solo)
   const post = channels.map((c, i) =>
     !c.mute && (!soloing || c.solo) ? voices[i] + c.gain : -Infinity
   )
-  /* Pan sends a channel to one side by turning the other down. */
   const left = sumDb(
     post,
     channels.map((c) => Math.min(1, (50 - c.pan) / 50))
@@ -1009,11 +903,6 @@ export const MusicStudio = () => {
   const out = (db: number) =>
     clampTo(db - reduction + dynamics.makeup + master, FLOOR, CEIL)
 
-  /* Every voice is heard loudest in its own band and falls away steeply
-     either side of it, so the kick thumps at the bottom and the hats flicker
-     at the top. Below its peak a voice reads quieter than it is, as a
-     display tuned for movement does, so hits jump out of the sustain. The
-     bus then goes through the compressor and the EQ. */
   const spectrum = air.map((drift, band) => {
     const heard = post.map((db, i) => {
       const { centre, spread, peak } = channels[i].voice

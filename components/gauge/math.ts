@@ -1,18 +1,6 @@
-/**
- * Pure geometry for the gauge primitives.
- *
- * Angles are "gauge degrees": 0 points straight down (six o'clock) and
- * values increase clockwise, so a sweep from 40° to 320° leaves an opening
- * at the bottom. Coordinates are SVG units centred on the gauge origin.
- */
-
 export const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value))
 
-/**
- * A value folded back inside [min, max) modulo the span, as on a closed ring:
- * 370° on a compass reads as 10°, and 25 o'clock as 1.
- */
 export const foldValue = (value: number, min: number, max: number) => {
   const lo = Math.min(min, max)
   const span = Math.abs(max - min)
@@ -21,10 +9,6 @@ export const foldValue = (value: number, min: number, max: number) => {
 
 export const degreesToRadians = (degrees: number) => (degrees * Math.PI) / 180
 
-/**
- * Point on a circle of `radius` at a gauge angle. Coordinates are rounded so
- * server and client render identical attributes and hydration stays clean.
- */
 export const polar = (radius: number, angle: number) => {
   const theta = degreesToRadians(angle + 90)
   return {
@@ -35,7 +19,6 @@ export const polar = (radius: number, angle: number) => {
 
 const round = (n: number) => Math.round(n * 1000) / 1000
 
-/** Linear map of a value in [min, max] onto the arc [startAngle, endAngle]. */
 export const valueToAngle = (
   value: number,
   min: number,
@@ -48,12 +31,6 @@ export const valueToAngle = (
   return startAngle + t * (endAngle - startAngle)
 }
 
-/**
- * Angle for a value that wraps the arc more than once. A single turn maps the
- * domain onto the sweep exactly as `valueToAngle` does; past that each turn
- * runs the sweep again from its start, which is how a clock's minute hand
- * gets round twelve times while the hour hand goes round once.
- */
 export const valueToTurnedAngle = (
   value: number,
   min: number,
@@ -68,11 +45,6 @@ export const valueToTurnedAngle = (
   return startAngle + ((t * turns) % 1) * (endAngle - startAngle)
 }
 
-/**
- * SVG path for an arc of `radius` from `from` to `to` gauge degrees. Sweeps
- * over 180° are split so a single `A` command never has to disambiguate a
- * large arc, which also makes a full 360° circle render correctly.
- */
 export const arcPath = (radius: number, from: number, to: number) => {
   const sweep = Math.min(to - from, 360)
   if (sweep <= 0 || radius <= 0) return ""
@@ -90,12 +62,6 @@ export const arcPath = (radius: number, from: number, to: number) => {
   return parts.join(" ")
 }
 
-/**
- * Tight bounding box of an arc sweep, inflated by `padding`. Takes the two
- * endpoints, every quarter turn the sweep crosses, and the origin, so a gauge
- * that pivots a needle keeps its hub inside the box. A sweep that closes on
- * itself crosses all four quarters and lands back on the full square.
- */
 export const arcBox = (
   radius: number,
   from: number,
@@ -122,25 +88,14 @@ export const arcBox = (
   }
 }
 
-/** Evenly spaced values across the domain, inclusive of both ends. */
 export const stepValues = (min: number, max: number, intervals: number) => {
   const n = Math.max(1, Math.round(intervals))
   return Array.from({ length: n + 1 }, (_, i) => min + ((max - min) * i) / n)
 }
 
-/**
- * The cutoffs that split the domain into `segments` equal parts: the values
- * between the segments, none at the two ends. Ten glasses of water make nine
- * cuts.
- */
 export const cutValues = (min: number, max: number, segments: number) =>
   stepValues(min, max, segments).slice(1, -1)
 
-/**
- * Inverse of `valueToAngle`: the domain value under a gauge angle. An angle
- * in the opening outside the sweep goes to whichever end is nearer, so a
- * pointer dragged past an end holds there rather than jumping to the other.
- */
 export const angleToValue = (
   angle: number,
   min: number,

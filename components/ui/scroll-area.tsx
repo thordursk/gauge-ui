@@ -11,9 +11,7 @@ function ScrollArea({
   orientation = "vertical",
   ...props
 }: ScrollAreaPrimitive.Root.Props & {
-  /** Keep the scrollbar out of sight until the area is hovered or scrolled. */
   revealOnHover?: boolean
-  /** Which way the content scrolls. */
   orientation?: "vertical" | "horizontal"
 }) {
   return (

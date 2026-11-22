@@ -8,57 +8,25 @@ import type { GaugeEnd, NeedleStyle } from "./utils"
 import { useRoundGauge } from "./context"
 
 export type GaugeNeedleProps = {
-  /**
-   * `line` is a stroke with round ends, `pointer` a tapered blade that is
-   * widest at the centre and ends in a rounded tip, and `compass` a lozenge
-   * whose two halves can take different colours. `arrow` is a shaft ending in
-   * a triangular arrowhead, sized from the width, for wind or flow direction.
-   */
   style?: NeedleStyle
-  /** Length as a fraction of the reference radius. */
   length?: number
-  /** Stroke width for `line`; width at the centre for the filled styles. */
   width?: number
   color?: string
-  /** How far the needle extends behind the centre, in SVG units. */
   tail?: number
-  /** Colour of the tail half of a `pointer`, `compass` or `arrow`. Defaults to `color`. */
   tailColor?: string
-  /**
-   * Radius of a disc drawn at the end of the tail in `tailColor`, like the
-   * counterweight on a wind vane. 0 leaves the tail plain.
-   */
   tailDot?: number
-  /**
-   * Sweeps of the arc the needle makes across the domain. A clock's minute
-   * hand turns 12 times while the hour hand turns once.
-   */
   turns?: number
-  /**
-   * Radius of a clear circle around the centre, in SVG units, that splits the
-   * needle in two so a readout can sit between the halves. 0 draws it whole.
-   */
   gap?: number
-  /** Which end of a range the needle points at. */
   end?: GaugeEnd
 }
 
 const pts = (points: { x: number; y: number }[]) =>
   points.map((p) => `${p.x},${p.y}`).join(" ")
 
-/**
- * A needle pointing at the current value. Add a `GaugeHub` for the pivot, or
- * a `gap` to clear the centre for a readout instead.
- */
 export const GaugeNeedle = ({ gap = 0, ...props }: GaugeNeedleProps) => {
-  /* useId's output is not a safe fragment identifier, so keep word
-     characters only. */
   const maskId = `gauge-needle-gap${useId().replace(/\W/g, "")}`
   if (gap <= 0) return <NeedleShape {...props} />
 
-  /* A mask rather than geometry, so every style splits the same way. The
-     cut edges follow the circle, which on a gap this much wider than the
-     needle reads as straight. */
   return (
     <g>
       <mask
@@ -104,10 +72,6 @@ const NeedleShape = ({
     ) : null
 
   if (style === "arrow") {
-    /* A shaft of `width` capped by a triangular head that scales with it,
-       never longer than the needle itself. The shaft stops where the head
-       begins so the two never overlap, and the tail is the shaft carried on
-       behind the centre in its own colour, rounded off at the end. */
     const reach = radius * length
     const headLength = Math.min(width * 4, reach)
     const base = polar(reach - headLength, angle)
@@ -173,10 +137,6 @@ const NeedleShape = ({
     )
   }
 
-  /* The filled styles are two polygons meeting at the centre, so the tail can
-     take its own colour. Their shared base runs across the pivot. Both ends
-     keep a fifth of the width and are rounded off with a disc of that size,
-     as a round cap would, so a thin needle never vanishes to a point. */
   const left = polar(width / 2, angle - 90)
   const right = polar(width / 2, angle + 90)
   const endRadius = width * 0.2
@@ -190,7 +150,6 @@ const NeedleShape = ({
       left,
     ])
 
-  /* A pointer's tail is a blunt stub; a compass tapers the same both ways. */
   const rear =
     style === "compass"
       ? blade(back)
@@ -219,7 +178,6 @@ export type GaugeHubProps = {
   color?: string
 }
 
-/** The pivot disc at the centre, drawn once however many needles there are. */
 export const GaugeHub = ({
   radius = 12,
   color = "currentColor",

@@ -7,7 +7,6 @@ import { gaugeTemplates, templatePreview } from "@/lib/gauge-templates"
 
 const HERO_TEMPLATE = "speed-fuel"
 
-/** A studio template left wandering, so the hero shows the gauge in motion. */
 export const HeroGauge = () => {
   const { spec, value } = useMemo(() => {
     const template =

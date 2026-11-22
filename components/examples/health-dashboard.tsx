@@ -51,15 +51,12 @@ import {
 import { useInView } from "@/hooks/use-in-view"
 import { cn } from "@/lib/utils"
 
-/** Every gauge sweeps up from the foot of its domain as the tab opens. */
 const ARRIVE: GaugeTransition = { type: "spring", visualDuration: 1, bounce: 0 }
-/** Soft and without overshoot, for the live heart rate. */
 const FOLLOW: GaugeTransition = {
   type: "spring",
   visualDuration: 0.6,
   bounce: 0,
 }
-/** A glass poured or taken back tops the ring up with a short sweep. */
 const POUR: GaugeTransition = {
   type: "spring",
   visualDuration: 0.5,
@@ -67,33 +64,21 @@ const POUR: GaugeTransition = {
 }
 
 const MUTED = "var(--muted-foreground)"
-/** Cuts drawn in the card's own colour, to split a band into segments. */
 const CUT = "var(--card)"
 
-/** The one ink every mark is drawn in, as the studio templates keep to. */
 const INK = "var(--foreground)"
 
-/** The ink thinned towards transparent, for the quieter tones. */
 const fade = (percent: number) => fadeColor(INK, percent)
 
-/**
- * The three Activity rings, told apart by weight rather than colour, as the
- * Nested rings template does, so they hold apart in either theme.
- */
 const RING_TONE = { move: INK, exercise: fade(62), stand: fade(34) }
 
-/** Every full ring here starts at twelve o'clock and goes round once. */
 const ring = { startAngle: 180, endAngle: 540 } as const
-/** The top half of a dial, left to right. */
 const half = { startAngle: 90, endAngle: 270, fit: "content" } as const
 
 const pad = (n: number) => String(n).padStart(2, "0")
 
 const thousands = (n: number) => Math.round(n).toLocaleString("en-US")
 
-/* ---------- today ---------- */
-
-/** The last full hour of data; the day's charts stop here. */
 const NOW_HOUR = 16
 
 type Rings = { move: number; exercise: number; stand: number }
@@ -104,7 +89,6 @@ const RINGS = [
   { key: "stand", label: "Stand", goal: 12, unit: "hr" },
 ] as const
 
-/** Monday to today, a Sunday that is not over yet. */
 const WEEK: Rings[] = [
   { move: 612, exercise: 34, stand: 12 },
   { move: 480, exercise: 22, stand: 10 },
@@ -126,7 +110,6 @@ const DAY_NAMES = [
 ]
 const TODAY = WEEK[WEEK.length - 1]
 
-/** Lowest and highest bpm in each hour so far: asleep, a run at seven, a desk. */
 const HEART_HOURS: [number, number][] = [
   [54, 61],
   [52, 58],
@@ -156,18 +139,11 @@ const STEP_HOURS = [
 ]
 const STEPS = STEP_HOURS.reduce((sum, n) => sum + n, 0)
 
-/** 250 ml a glass, ten to the goal. */
 const GLASS = 0.25
 const GLASSES = 10
 
-/* ---------- last night ---------- */
-
 type Stage = "awake" | "rem" | "core" | "deep"
 
-/**
- * Top to bottom as the hypnogram stacks them, lightest sleep first. The
- * deeper the sleep, the stronger the tone.
- */
 const STAGES: { stage: Stage; label: string; color: string }[] = [
   { stage: "awake", label: "Awake", color: fade(22) },
   { stage: "rem", label: "REM", color: fade(42) },
@@ -177,10 +153,8 @@ const STAGES: { stage: Stage; label: string; color: string }[] = [
 const stageColor = (stage: Stage) =>
   STAGES.find((s) => s.stage === stage)!.color
 
-/** 23:10, in hours from midnight. */
 const BEDTIME = -50 / 60
 
-/** The night as it was scored: each stage and how many minutes it lasted. */
 const NIGHT: [Stage, number][] = [
   ["core", 20],
   ["deep", 45],
@@ -199,7 +173,6 @@ const NIGHT: [Stage, number][] = [
   ["rem", 39],
 ]
 
-/** The night laid end to end from bedtime, in hours from midnight. */
 const SEGMENTS = NIGHT.reduce<{ stage: Stage; from: number; to: number }[]>(
   (acc, [stage, minutes]) => {
     const from = acc.at(-1)?.to ?? BEDTIME
@@ -217,12 +190,6 @@ const stageHours = (stage: Stage) =>
   )
 const ASLEEP = IN_BED - stageHours("awake")
 
-/* ---------- live heart rate ---------- */
-
-/**
- * Drifts the heart rate around a resting-at-a-desk 72 every second and a half
- * while the dashboard is on screen. Reduced motion leaves it where it starts.
- */
 const useHeartRate = (visible: boolean) => {
   const [bpm, setBpm] = useState(72)
 
@@ -243,13 +210,6 @@ const useHeartRate = (visible: boolean) => {
   return bpm
 }
 
-/* ---------- gauges ---------- */
-
-/**
- * The Nested rings template, one tone per ring. Each ring is an inset
- * with its own goal, pulled in by `offset` rather than scaled, so all three
- * keep the same stroke however small the rings are drawn.
- */
 const ActivityRings = ({
   day,
   width,
@@ -288,11 +248,6 @@ const ActivityRings = ({
   </Gauge>
 )
 
-/**
- * The Heart rate template: a 40–200 bpm sweep over a band of training zones.
- * The arc is today's range rather than a fill, and the dot rides it at the
- * current reading.
- */
 const HeartDial = ({ bpm }: { bpm: number }) => (
   <Gauge
     value={bpm}
@@ -331,10 +286,6 @@ const HeartDial = ({ bpm }: { bpm: number }) => (
   </Gauge>
 )
 
-/**
- * A twenty-four hour dial with midnight at the top: noon to noon, so a night
- * that crosses midnight is one unbroken arc.
- */
 const SleepDial = () => (
   <Gauge
     value={WAKE}
@@ -347,8 +298,6 @@ const SleepDial = () => (
     initialValue={BEDTIME}
   >
     <GaugeTrack width={28} color={INK} opacity={0.12} cap="butt" />
-    {/* The night's stages, clipped to the animated value so they draw on in
-        order from bedtime as the dial sweeps in. */}
     <GaugeStack
       from={BEDTIME}
       width={28}
@@ -383,7 +332,6 @@ const SleepDial = () => (
   </Gauge>
 )
 
-/** Steps on a half dial that fills to the day's goal, a tick a thousand. */
 const StepsDial = () => (
   <Gauge
     value={STEPS}
@@ -416,7 +364,6 @@ const StepsDial = () => (
   </Gauge>
 )
 
-/** A ring cut into one segment per glass, filling as they are logged. */
 const WaterDial = ({ glasses }: { glasses: number }) => (
   <Gauge
     value={glasses}
@@ -438,11 +385,6 @@ const WaterDial = ({ glasses }: { glasses: number }) => (
   </Gauge>
 )
 
-/**
- * The small half dial on the vitals tiles: the whole scale as a track, the
- * normal range picked out on it, and a dot at the reading, ringed in the
- * card's colour so it stands off the band.
- */
 const RangeDial = ({
   value,
   min,
@@ -476,9 +418,6 @@ const RangeDial = ({
   </Gauge>
 )
 
-/* ---------- charts ---------- */
-
-/** One column per hour of the day, with a clock under every sixth. */
 const Hours = ({ children }: { children: (hour: number) => ReactNode }) => (
   <div className="flex flex-col gap-1.5">
     <div className="grid h-14 grid-cols-24 gap-0.5">
@@ -496,11 +435,9 @@ const Hours = ({ children }: { children: (hour: number) => ReactNode }) => (
   </div>
 )
 
-/** Where a value sits between `lo` and `hi`, as a percentage. */
 const share = (value: number, lo: number, hi: number) =>
   `${((value - lo) / (hi - lo)) * 100}%`
 
-/** Each hour's lowest to highest bpm, as the Health app's range chart. */
 const HeartRange = () => (
   <Hours>
     {(hour) => {
@@ -522,7 +459,6 @@ const HeartRange = () => (
 
 const STEP_PEAK = Math.max(...STEP_HOURS)
 
-/** Steps taken in each hour, a faint dot for an hour spent still. */
 const StepBars = () => (
   <Hours>
     {(hour) => {
@@ -542,7 +478,6 @@ const StepBars = () => (
   </Hours>
 )
 
-/** The night stage by stage, one lane each, lightest sleep on top. */
 const Hypnogram = () => (
   <div className="flex flex-col gap-1.5">
     <div className="relative h-14">
@@ -569,13 +504,10 @@ const Hypnogram = () => (
   </div>
 )
 
-/* ---------- layout ---------- */
-
 const Caption = ({ children }: { children: ReactNode }) => (
   <span className="text-xs text-muted-foreground tabular-nums">{children}</span>
 )
 
-/** A reading the way Health sets it: a bold rounded figure, a small unit. */
 const Figure = ({
   value,
   unit,
@@ -600,7 +532,6 @@ const Figure = ({
   </span>
 )
 
-/** A category heading, its icon in the muted tone, as each Health section has. */
 const Category = ({
   icon,
   children,
@@ -649,7 +580,6 @@ const Panel = ({
   </Card>
 )
 
-/** A swatch in one of the dial's tones. */
 const Swatch = ({ color }: { color: string }) => (
   <span
     className="size-2 shrink-0 rounded-full"
@@ -673,7 +603,6 @@ const Readouts = ({ rows }: { rows: Row[] }) => (
   </dl>
 )
 
-/** A vitals tile: the category, the figure, a small dial and its range. */
 const Vital = ({
   icon,
   label,
@@ -703,7 +632,6 @@ const Vital = ({
   </Card>
 )
 
-/** A day's three rings against their goals, for a tooltip. */
 const DaySummary = ({ name, day }: { name: string; day: Rings }) => (
   <div className="flex flex-col gap-1.5">
     <span className="font-medium">{name}</span>
@@ -722,8 +650,6 @@ const DaySummary = ({ name, day }: { name: string; day: Rings }) => (
     </dl>
   </div>
 )
-
-/* ---------- sections ---------- */
 
 const Activity = () => (
   <Panel
@@ -760,8 +686,6 @@ const Activity = () => (
             return (
               <div key={i} className="flex flex-col items-center gap-1.5">
                 <ActivityRings day={day} width={56} gap={8}>
-                  {/* The week's rings are too small to carry figures, so
-                      hovering one brings up the day's totals above it. */}
                   <GaugeTooltip
                     position="top"
                     className="bg-popover text-popover-foreground ring-1 ring-border"
@@ -953,12 +877,6 @@ const Vitals = () => (
   </div>
 )
 
-/**
- * A day in the Health app, on gauges: the Activity rings with the week beside
- * them, heart rate on the Heart rate template with the day's range under it,
- * last night's sleep round a twenty-four hour dial, steps and water filling
- * to their goals, and a row of vitals, each a dot on its normal range.
- */
 export const HealthDashboard = () => {
   const frame = useRef<HTMLDivElement>(null)
   const bpm = useHeartRate(useInView(frame))

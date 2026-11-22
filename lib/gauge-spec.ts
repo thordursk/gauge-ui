@@ -1,10 +1,3 @@
-/**
- * A normalised description of a gauge. The studio turns control panel values
- * into a `GaugeSpec`; the preview renders it with the gauge primitives and the
- * code generator prints the equivalent JSX. Keeping one shape in the middle
- * guarantees the copied code matches what is on screen.
- */
-
 import type {
   FontFamily,
   FontWeight,
@@ -19,8 +12,6 @@ import type {
   Zone,
 } from "@/components/gauge"
 
-// The primitive vocabulary and formatters live with the gauge component so
-// they ship with it; the studio re-exports them for convenience.
 export {
   clockLabel,
   compassLabel,
@@ -40,15 +31,12 @@ export {
   type Zone,
 } from "@/components/gauge"
 
-/** A dial, drawn by `Gauge`, or a straight bar, drawn by `LinearGauge`. */
 export type GaugeShape = "round" | "linear"
 
-/** How tick labels print a value: as a number, a compass point, or an hour. */
 export type LabelFormat = "number" | "compass" | "clock"
 
 export type TextSpec = {
   show: boolean
-  /** Position in SVG units relative to the gauge centre. Positive y is down. */
   x: number
   y: number
   fontSize: number
@@ -60,7 +48,6 @@ export type TextSpec = {
 
 export type TickSpec = {
   show: boolean
-  /** Number of intervals; there is one more tick than intervals. */
   count: number
   length: number
   width: number
@@ -72,50 +59,34 @@ export type TickSpec = {
 
 export type NeedleSpec = {
   style: NeedleStyle
-  /** Fraction of the radius. */
   length: number
   width: number
   color: string
   tail: number
   tailColor: string
-  /** Radius of the disc at the end of the tail; 0 for none. */
   tailDot: number
-  /** Radius of the clear circle that splits the needle at the centre; 0 for none. */
   gap: number
-  /** Sweeps of the arc across the domain; 1 follows the value directly. */
   turns: number
 }
 
 export type GaugeSpec = {
-  /** How the gauge settles on a new value. Absent means instant. */
   transition?: GaugeTransition
-  /** Where a range starts, making the value `[rangeFrom, value]`. Absent
-      means a single value. */
   rangeFrom?: number
-  /** Set by hand through `GaugeControl`: dragged round the ring, and with
-      `knob`, turned by the face as well. Absent means it only shows a value. */
   control?: { knob: boolean; step: number }
-  /** Whole gauges drawn inside this one, such as a fuel dial under a speedo. */
   insets?: GaugeInsetSpec[]
   domain: {
     shape: GaugeShape
     min: number
     max: number
-    /* A dial's sweep and reference circle. */
     startAngle: number
     endAngle: number
     radius: number
-    /** Room round a dial; on a bar, the room either side of it. */
     padding: number
-    /** Square box, or one fitted to the arc's sweep. See `GaugeProps.fit`. */
     fit: GaugeFit
-    /* A bar's direction and length, in SVG units end to end. */
     orientation: GaugeOrientation
     length: number
-    /** Room past a bar's two ends, for its caps, a dot or an end label. */
     ends: number
   }
-  /** A disc filling the middle, under everything else: a knob's face. */
   face: { show: boolean; radius: number; color: string }
   track: {
     show: boolean
@@ -132,12 +103,8 @@ export type GaugeSpec = {
     opacity: number
     cap: StrokeCap
     offset: number
-    /** Take the colour of whichever zone the value currently sits in. */
     colorByZone: boolean
-    /** Fill back from the end of the sweep rather than forward from the start. */
     reverse: boolean
-    /** Where the fill is anchored when not at the start: 0, on a domain
-        either side of it, so the arc grows whichever way the value goes. */
     from?: number
   }
   zones: {
@@ -146,9 +113,7 @@ export type GaugeSpec = {
     width: number
     offset: number
     gap: number
-    /** Cap at the joints between zones. */
     cap: StrokeCap
-    /** Cap at the two outer ends of the band. */
     endCap: StrokeCap
     opacity: number
   }
@@ -162,7 +127,6 @@ export type GaugeSpec = {
   }
   majorTicks: TickSpec
   minorTicks: TickSpec
-  /** Ticks that are the fill. See `GaugeTickFill`. */
   tickFill: {
     show: boolean
     mode: "fill" | "nearest"
@@ -191,32 +155,24 @@ export type GaugeSpec = {
     list: NeedleSpec[]
     hub: { radius: number; color: string }
   }
-  /** A disc riding the arc at the value. See `GaugeDot`. */
   dot: {
     show: boolean
-    /** Radius of the dot itself, not the gauge's. */
     radius: number
     color: string
     opacity: number
     offset: number
     turns: number
-    /** A second dot on the start of a range, so each end has one. */
     both: boolean
   }
-  /** An HTML tooltip shown on hover. See `GaugeTooltip`. */
   tooltip: {
     show: boolean
-    /** Held open rather than shown on hover, to see it while designing. */
     open: boolean
-    /** The small line over the value; empty for none. */
     label: string
-    /** Printed after the value; empty for none. */
     unit: string
     decimals: number
     position: GaugeTooltipPosition
     side: GaugeTooltipSide
     offset: number
-    /** CSS pixels between the point and the bubble. */
     gap: number
   }
   value: TextSpec & { decimals: number }
@@ -224,10 +180,6 @@ export type GaugeSpec = {
   title: TextSpec & { text: string }
 }
 
-/**
- * A bar's padding as `LinearGauge` takes it: `padding` either side of the
- * bar, `ends` past its two ends.
- */
 export const barPadding = ({
   orientation,
   padding,
@@ -237,21 +189,11 @@ export const barPadding = ({
     ? { top: ends, right: padding, bottom: ends, left: padding }
     : { top: padding, right: ends, bottom: padding, left: ends }
 
-/**
- * A second gauge placed inside the first. The nested spec is a whole gauge in
- * its own right, drawn at `scale` around (`x`, `y`); only its `domain.padding`
- * and `domain.fit` go unused, since an inset shares the host's viewport.
- */
 export type GaugeInsetSpec = {
-  /** Identifies the inset, and names the prop the generated code reads it from. */
   name: string
-  /** Centre in SVG units relative to the host gauge. Positive y is down. */
   x: number
   y: number
-  /** Size relative to the host gauge. */
   scale: number
-  /** The value on show, or a range's far end when the spec has `rangeFrom`.
-      The studio's own controls drive the host gauge only. */
   value: number
   spec: GaugeSpec
 }

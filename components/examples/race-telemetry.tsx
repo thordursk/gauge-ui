@@ -39,7 +39,6 @@ import {
   type Telemetry,
 } from "./lap-simulation"
 
-/** Quick and without overshoot, so twenty readings a second glide together. */
 const FOLLOW: GaugeTransition = {
   type: "spring",
   visualDuration: 0.15,
@@ -47,46 +46,29 @@ const FOLLOW: GaugeTransition = {
 }
 
 const MUTED = "var(--muted-foreground)"
-/** Drawn in the card's own colour, to cut a band into segments. */
 const CUT = "var(--card)"
 
-/** The one ink every mark is drawn in, as the studio templates keep to. */
 const INK = "var(--foreground)"
 
-/** The ink thinned towards transparent, for the quieter tones. */
 const fade = (percent: number) => fadeColor(INK, percent)
 
-/** The tyres' working window, °C. */
 const WINDOW = [90, 105] as const
-/** kg a lap burns, for the laps-left estimate. */
 const FUEL_PER_LAP = 2.4
 const FULL_TANK = 40
-/** kW the hybrid deploys or harvests at most. */
 const ERS_MAX = 120
 
-/** Bar length for the narrow columns, so their bars and labels draw near
-    their own size rather than scaled down from the default 400. */
 const SHORT = 240
 
 const pad = (n: number, width = 2) => String(n).padStart(width, "0")
 
-/** Seconds as a lap time, "1:19.950". */
 const lapClock = (seconds: number) => {
   const ms = Math.round(seconds * 1000)
   return `${Math.floor(ms / 60000)}:${pad(Math.floor(ms / 1000) % 60)}.${pad(ms % 1000, 3)}`
 }
 
-/** A gap in seconds, signed: "+0.214" behind, "−0.088" ahead. */
 const gapText = (seconds: number) =>
   `${seconds < 0 ? "−" : "+"}${Math.abs(seconds).toFixed(3)}`
 
-/* ---------- gauges ---------- */
-
-/**
- * The shift lights across the top of the wheel, lighting up through the
- * last three thousand revs in rising shades. At the limiter the whole strip
- * flashes.
- */
 const ShiftLights = ({ rpm, clock }: { rpm: number; clock: number }) => {
   const limiter = rpm >= 11.8 && Math.floor(clock * 10) % 2 === 0
   return (
@@ -104,7 +86,6 @@ const ShiftLights = ({ rpm, clock }: { rpm: number; clock: number }) => {
   )
 }
 
-/** A pedal's travel as a tall bar, cut into quarters. */
 const Pedal = ({
   value,
   label,
@@ -134,7 +115,6 @@ const Pedal = ({
   </div>
 )
 
-/** The revs on a tape, with the band past the shift point marked above it. */
 const RevTape = ({ rpm }: { rpm: number }) => (
   <LinearGauge
     value={rpm}
@@ -157,7 +137,6 @@ const RevTape = ({ rpm }: { rpm: number }) => (
   </LinearGauge>
 )
 
-/** Steering lock either way from straight ahead, the wheel's angle a dot. */
 const SteeringBar = ({ degrees }: { degrees: number }) => (
   <LinearGauge
     value={degrees}
@@ -173,7 +152,6 @@ const SteeringBar = ({ degrees }: { degrees: number }) => (
   </LinearGauge>
 )
 
-/** Time against the best lap: ahead fills left of centre, behind right. */
 const DeltaBar = ({ delta }: { delta: number }) => (
   <LinearGauge
     value={Math.max(-1, Math.min(1, delta))}
@@ -196,8 +174,6 @@ const DeltaBar = ({ delta }: { delta: number }) => (
   </LinearGauge>
 )
 
-/** One tyre's temperature, its working window shaded behind it. The bar
-    fades when the tyre is out of the window, cold or overheating. */
 const TyreBar = ({ temp, label }: { temp: number; label: string }) => {
   const working = temp >= WINDOW[0] && temp <= WINDOW[1]
   return (
@@ -232,7 +208,6 @@ const TyreBar = ({ temp, label }: { temp: number; label: string }) => {
   )
 }
 
-/** A plain level bar, cut into quarters. */
 const LevelBar = ({ value, max }: { value: number; max: number }) => (
   <LinearGauge
     value={value}
@@ -247,7 +222,6 @@ const LevelBar = ({ value, max }: { value: number; max: number }) => (
   </LinearGauge>
 )
 
-/** The hybrid either way from idle: harvesting left, deploying right. */
 const ErsBar = ({ kw }: { kw: number }) => (
   <LinearGauge
     value={kw}
@@ -269,11 +243,8 @@ const ErsBar = ({ kw }: { kw: number }) => (
   </LinearGauge>
 )
 
-/** The car's place on the lap, with every corner ticked and the sector
-    boundaries marked tall. */
 const LapPosition = ({ distance }: { distance: number }) => {
   const bounds = [0, ...SECTOR_STARTS, LAP_LENGTH]
-  /* Where a distance sits along the bar. */
   const x = (d: number) => (d / LAP_LENGTH - 0.5) * SHORT
   return (
     <LinearGauge
@@ -302,13 +273,10 @@ const LapPosition = ({ distance }: { distance: number }) => {
   )
 }
 
-/* ---------- layout ---------- */
-
 const Caption = ({ children }: { children: ReactNode }) => (
   <span className="text-xs text-muted-foreground tabular-nums">{children}</span>
 )
 
-/** A reading set as a bold rounded figure with a small unit. */
 const Figure = ({
   value,
   unit,
@@ -333,7 +301,6 @@ const Figure = ({
   </span>
 )
 
-/** A section heading, its icon in the muted tone. */
 const Category = ({
   icon,
   children,
@@ -390,9 +357,6 @@ const Readouts = ({ rows }: { rows: Row[] }) => (
   </dl>
 )
 
-/* ---------- sections ---------- */
-
-/** The wheel's display: shift lights, pedals, gear and speed, timing. */
 const Lap = ({ t }: { t: Telemetry }) => {
   const degrees = t.steer * 180
   return (
@@ -473,7 +437,6 @@ const Tyres = ({ tyres }: { tyres: Telemetry["tyres"] }) => (
 
 const Energy = ({ t }: { t: Telemetry }) => (
   <Panel heading={<Category icon={EnergyIcon}>Energy</Category>} action="ERS">
-    {/* Held to a narrow column on a phone, so the bars keep their size. */}
     <div className="mx-auto flex w-full max-w-xs flex-col gap-5">
       <div className="flex flex-col gap-1">
         <div className="flex items-baseline justify-between">
@@ -504,8 +467,6 @@ const Energy = ({ t }: { t: Telemetry }) => (
   </Panel>
 )
 
-/** Each sector's time this lap against the best lap's: done, running or to
-    come. */
 const Circuit = ({ t }: { t: Telemetry }) => {
   const done = t.sectors.reduce((sum, s) => sum + s, 0)
   return (
@@ -556,13 +517,6 @@ const Circuit = ({ t }: { t: Telemetry }) => {
   )
 }
 
-/**
- * A race car's telemetry on a flying lap: shift lights, pedals, gear,
- * revs and steering, the lap timed against the best one,
- * tyre temperatures against their window, the hybrid and fuel, and the
- * car's place on the circuit sector by sector. A toy car laps a toy circuit, so every bar
- * moves the way it would on a real lap.
- */
 export const RaceTelemetry = () => {
   const frame = useRef<HTMLDivElement>(null)
   const t = useLapSimulation(frame)

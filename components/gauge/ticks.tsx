@@ -16,10 +16,6 @@ import {
 
 import { useGauge } from "./context"
 
-/**
- * Evenly spaced domain values for ticks. On a closed ring the last step lands
- * on the first, so it is dropped rather than drawn twice.
- */
 const tickValues = ({ min, max, scale }: GaugeContextValue, count: number) => {
   const values = stepValues(min, max, count)
   if (scale.closed) values.pop()
@@ -27,19 +23,14 @@ const tickValues = ({ min, max, scale }: GaugeContextValue, count: number) => {
 }
 
 type CrossLineProps = {
-  /** Length of each line across the scale: along the radius of a dial. */
   length?: number
   width?: number
-  /** One colour, or a function of each line's value to colour some apart:
-      the ticks inside a range, or each in the colour of its zone. */
   color?: ValueColor
   opacity?: number
   cap?: StrokeCap
-  /** Offset of the line's midpoint from the scale's reference line. */
   offset?: number
 }
 
-/** Lines standing across the scale at domain values, as ticks do. */
 const CrossLines = ({
   values,
   length = 12,
@@ -51,7 +42,6 @@ const CrossLines = ({
   offset = 0,
 }: CrossLineProps & {
   values: number[]
-  /** A length per line, in place of `length`. */
   lengthOf?: (value: number) => number
 }) => {
   const { scale, positionOf } = useGauge()
@@ -84,50 +74,24 @@ const CrossLines = ({
 }
 
 export type GaugeTicksProps = CrossLineProps & {
-  /** Number of intervals across the domain; renders `count + 1` ticks. */
   count?: number
 }
 
-/** Evenly spaced tick marks along the whole scale. */
 export const GaugeTicks = ({ count = 10, ...props }: GaugeTicksProps) => {
   const gauge = useGauge()
   return <CrossLines values={tickValues(gauge, count)} {...props} />
 }
 
 export type GaugeTickFillProps = Omit<CrossLineProps, "color"> & {
-  /** Number of intervals across the domain; renders `count + 1` ticks. */
   count?: number
-  /** Where the lit stretch starts. Defaults to the start of the gauge's
-      range, or `min` on a single value. */
   from?: number
-  /** Where it ends. Defaults to the current value, or a range's far end. */
   to?: number
-  /**
-   * `fill` lights every tick from `from` to `to`, as an arc would fill.
-   * `nearest` lights only the tick nearest each end: on a single value a
-   * pointer made of ticks, on a range one at either end.
-   */
   mode?: "fill" | "nearest"
-  /** Colour of the lit ticks: one, or a function of each tick's value, so a
-      fill can run through zones or a gradient. */
   color?: ValueColor
-  /** Colour of the ticks left unlit. Defaults to a faint `currentColor`. */
   dimColor?: ValueColor
-  /** Length of a lit tick, for meters whose live segments stand out.
-      Defaults to `length`. */
   litLength?: number
 }
 
-/**
- * Ticks that are the fill: the whole sweep is ticked, and those between the
- * ends of the value are lit while the rest stay dim. It follows the value
- * frame by frame as `GaugeArc` does, fills a range between its ends, and on
- * a wrapped gauge runs forward from the start across the seam. With
- * `mode="nearest"` it lights a single tick at each end instead, for a
- * pointer drawn in ticks. Lit and dim colours can each be a function of the
- * tick's value, so one primitive covers segmented meters, LED rings, zoned
- * dials and dot-matrix pointers.
- */
 export const GaugeTickFill = ({
   count = 40,
   from,
@@ -144,18 +108,14 @@ export const GaugeTickFill = ({
   const tail = from ?? gauge.from
   const head = to ?? gauge.value
   const span = Math.abs(gauge.max - gauge.min)
-  /* Slack for ticks that land on an end, whose step values carry float
-     error. */
   const eps = span * 1e-6
 
-  /* How far round from the start a value sits, on a closed ring. */
   const ahead = (v: number) => foldValue(v - tail + eps, 0, span)
   const between = (v: number) =>
     gauge.wrap
       ? ahead(v) <= ahead(head) + eps
       : v >= Math.min(tail, head) - eps && v <= Math.max(tail, head) + eps
 
-  /* The tick nearest a value, measured round the seam on a ring. */
   const nearestTo = (target: number) => {
     const gap = (v: number) => {
       const d = Math.abs(v - target)
@@ -190,20 +150,10 @@ export const GaugeTickFill = ({
 }
 
 export type GaugeMarksProps = CrossLineProps & {
-  /** Domain values to mark, for example the cutoffs between zones. */
   values?: number[]
-  /**
-   * Cut the domain into this many equal segments instead: the marks fall
-   * between the segments, none at the two ends. On a closed ring the seam is
-   * cut too, since the last segment meets the first there. Drawn in the
-   * surface's colour over a band, they slice it the way a water ring is cut
-   * into glasses.
-   */
   count?: number
 }
 
-/** Marks across the scale at arbitrary domain values, or at equal cuts of
-    the domain. */
 export const GaugeMarks = ({ values, count, ...props }: GaugeMarksProps) => {
   const { min, max, scale } = useGauge()
   const marks =
@@ -216,13 +166,9 @@ export const GaugeMarks = ({ values, count, ...props }: GaugeMarksProps) => {
 
 export type GaugeTickLabelsProps = {
   count?: number
-  /** Offset of the label from the scale's reference line. */
   offset?: number
-  /** Which edge of each label sits at its point: `end` lines labels up
-      against the left of a vertical bar. */
   anchor?: TextAnchor
   fontSize?: number
-  /** One colour, or a function of each label's value. */
   color?: ValueColor
   font?: FontFamily
   weight?: FontWeight
@@ -230,7 +176,6 @@ export type GaugeTickLabelsProps = {
   format?: (value: number) => string
 }
 
-/** Numeric labels at evenly spaced values along the scale. */
 export const GaugeTickLabels = ({
   count = 10,
   offset = -48,

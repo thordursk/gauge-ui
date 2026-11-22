@@ -33,7 +33,6 @@ function ThemeToggle({ variant = "secondary" }: ThemeToggleProps) {
           />
         }
       >
-        {/* Both icons render so the server and client markup match; CSS picks one. */}
         <HugeiconsIcon
           icon={Sun03Icon}
           className="dark:hidden"

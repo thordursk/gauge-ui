@@ -7,11 +7,6 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        /* Depth stays monochrome: a faint top-lit gradient, a hairline highlight
-           along the top edge, a darker bottom edge and a short drop shadow.
-           Pressing swaps the lift for an inset. Dark mode flips the button to a
-           light face, so it needs a brighter gradient to read and a heavier,
-           tighter shadow to lift off the page. */
         default:
           "border-primary bg-primary bg-linear-to-b from-white/15 to-transparent text-primary-foreground shadow-[inset_0_1px_0_0_rgb(255_255_255/0.2),inset_0_-1px_0_0_rgb(0_0_0/0.2),0_1px_2px_0_rgb(0_0_0/0.3)] hover:bg-primary/90 active:not-aria-[haspopup]:shadow-[inset_0_1px_2px_0_rgb(0_0_0/0.25)] dark:border-white/60 dark:from-white/70 dark:shadow-[inset_0_1px_0_0_rgb(255_255_255/0.9),inset_0_-1px_0_0_rgb(0_0_0/0.12),0_1px_2px_0_rgb(0_0_0/0.6),0_2px_6px_-1px_rgb(0_0_0/0.5)] dark:hover:bg-primary/85 dark:active:not-aria-[haspopup]:shadow-[inset_0_1px_2px_0_rgb(0_0_0/0.3)]",
         outline:

@@ -20,16 +20,11 @@ export type SegmentedControlProps<T extends string> = {
   itemClassName?: string
 }
 
-/* The pill slides rather than jumps between options. */
 const pillTransition = {
   duration: 0.2,
   ease: [0.25, 1, 0.5, 1] as const,
 }
 
-/**
- * A single-select ToggleGroup styled as a segmented control: a
- * transparent strip with a pill that slides behind the active option.
- */
 export function SegmentedControl<T extends string>({
   options,
   value,
@@ -49,8 +44,6 @@ export function SegmentedControl<T extends string>({
       value={[value]}
       onValueChange={(next) => {
         const [selected] = next
-        /* Base UI empties the array when the active item is clicked again;
-           a segmented control always keeps one option selected. */
         if (typeof selected === "string" && values.has(selected)) {
           onValueChange(selected as T)
         }

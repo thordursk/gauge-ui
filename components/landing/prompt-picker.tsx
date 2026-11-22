@@ -14,7 +14,6 @@ import {
 
 type Prompt = { title: string; prompt: string }
 
-/** One prompt at a time, chosen from a dropdown, with a floating copy button. */
 export const PromptPicker = ({ prompts }: { prompts: Prompt[] }) => {
   const [title, setTitle] = useState(prompts[0].title)
   const current = prompts.find((item) => item.title === title) ?? prompts[0]

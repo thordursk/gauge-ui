@@ -32,7 +32,6 @@ import { GaugeControl, clamp } from "@/components/gauge"
 import { css, stepFor, type PlayMode } from "@/lib/gauge-panels"
 import { storageKeys, writeStored } from "@/lib/storage"
 
-/** Matches Tailwind's `md` breakpoint, the narrowest screen the panels fit. */
 const SIDEBAR_QUERY = "(min-width: 48rem)"
 
 export const GaugeStudio = () => {
@@ -59,8 +58,6 @@ export const GaugeStudio = () => {
   const code = useMemo(() => gaugeToCode(spec), [spec])
   const [showCode, setShowCode] = useState(false)
   const hasSidebar = useMediaQuery(SIDEBAR_QUERY)
-  /* Whether the controls were left open last visit; open is where everyone
-     starts, and the first render is given that either way. */
   const showControls =
     useStoredValue(storageKeys.controls, "shown") !== "hidden"
 
@@ -69,12 +66,8 @@ export const GaugeStudio = () => {
 
   const current = clamp(val.value, min, max)
   const mode = val.mode as PlayMode
-  /* The slider drives whichever gauge is selected, so the gauge itself takes
-     the slider only while it is the one being edited. */
   const shown = selected === 0 ? current : hostValue
 
-  /* Keyed on the composition, so loading a template or resetting remounts
-     the gauges and sweeps them in. */
   const gauge = (
     <AnimatedGauge
       key={sweepKey}
@@ -87,9 +80,6 @@ export const GaugeStudio = () => {
     />
   )
 
-  /* What the stage's control takes whether it sets a value or a range. A
-     dial is the largest square the stage holds; a bar fills its length of
-     it and lets its ratio settle the rest. */
   const controlProps = (control: NonNullable<typeof spec.control>) => ({
     min: spec.domain.min,
     max: spec.domain.max,
@@ -125,8 +115,6 @@ export const GaugeStudio = () => {
             onSelect={selectTemplate}
             className="w-auto"
           />
-          {/* One provider for the header, so the icon buttons share a single
-              hover delay and hand off to each other without re-arming it. */}
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger
@@ -194,13 +182,7 @@ export const GaugeStudio = () => {
           style={{ background: css(stage) }}
         >
           <div className="flex min-h-0 w-full flex-1 items-center justify-center py-1 sm:py-4">
-            {/* No aspect ratio here: a square gauge fills the stage and centres
-                itself, a fitted one takes its height from its own ratio. */}
             {spec.control ? (
-              /* A gauge set by hand is measured round the middle of its box,
-                 so the control is the largest square the stage holds. It
-                 sets the host's value, so it waits while an inset is in the
-                 panels and the value slider is busy with that instead. */
               <div className="[container-type:size] flex h-full w-full items-center justify-center">
                 {spec.rangeFrom === undefined ? (
                   <GaugeControl
@@ -212,8 +194,6 @@ export const GaugeStudio = () => {
                   </GaugeControl>
                 ) : (
                   <GaugeControl
-                    /* In order, since the far end can be slid below the
-                       start; the thumbs hold apart from there. */
                     value={
                       [
                         Math.min(spec.rangeFrom, shown),
@@ -250,11 +230,6 @@ export const GaugeStudio = () => {
         </section>
         <CodeDrawer code={code} open={showCode} onOpenChange={setShowCode} />
       </main>
-      {/* The controls only ever appear as a sidebar. Building a composition
-          insert by insert is not something anyone does on a phone, so below
-          the breakpoint they are left out and the bar under the gauge is the
-          whole of it. Above it, the header toggle hides them to give the
-          stage the full width. */}
       {hasSidebar && showControls && (
         <aside className="flex h-full w-72 shrink-0 flex-col overflow-hidden p-2 lg:w-80 xl:w-88">
           <div className="flex min-h-0 w-full flex-1 flex-col overflow-hidden rounded-xl bg-card ring ring-foreground/10">

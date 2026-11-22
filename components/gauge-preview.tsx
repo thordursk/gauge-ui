@@ -29,42 +29,13 @@ import { barPadding, type GaugeSpec } from "@/lib/gauge-spec"
 type GaugePreviewProps = {
   spec: GaugeSpec
   value: number
-  /** Overrides the spec's transition, for play modes that drive their own. */
   transition?: GaugeTransition | boolean
-  /**
-   * Start every gauge in the composition at the bottom of its own domain and
-   * let it animate up to the value it was given, so a whole composition
-   * arrives with some movement in it rather than snapping into place. Each
-   * gauge reads it once, as it mounts, so playing it again takes a remount.
-   *
-   * Nothing to do with the `sweep` play mode, which drives one value back and
-   * forth for as long as it is on.
-   */
   sweepIn?: boolean
-  /**
-   * Whether a tooltip in the spec shows on hover. Thumbnails turn it off, so
-   * pointing at a card in a picker does not bring one up over the picker.
-   */
   tooltips?: boolean
 }
 
-/**
- * How far round a wrapping part is let travel as its gauge is played in. Well
- * under half a turn, so it arrives from near where it settles rather than
- * spinning across the dial to get there.
- */
 const SWEEP_TURNS = 0.4
 
-/**
- * Where a gauge starts when it is played in: the foot of its domain, so the
- * arc fills and the needle swings up from the bottom.
- *
- * Except that a part turning more than once over the domain would have to
- * spin all those times to get there, so a gauge carrying one is started
- * within reach instead — a clock's minute hand comes round a part of the way
- * rather than twelve times over. Nothing wrapping means nothing to rein in,
- * and the run stays the whole domain.
- */
 const sweepFrom = (spec: GaugeSpec, value: number) => {
   const { min, max } = spec.domain
   const span = max - min
@@ -77,14 +48,9 @@ const sweepFrom = (spec: GaugeSpec, value: number) => {
   return Math.max(min, value - reach)
 }
 
-/** The value a spec's gauge is given: the value, or a range ending at it. */
 const valueOf = (spec: GaugeSpec, value: number) =>
   spec.rangeFrom === undefined ? value : ([spec.rangeFrom, value] as const)
 
-/**
- * Renders a `GaugeSpec` with the gauge primitives. The generated code in
- * `lib/gauge-code.ts` mirrors this composition, so keep the two in step.
- */
 export const GaugePreview = ({
   spec,
   value,
@@ -148,8 +114,6 @@ export const GaugePreview = ({
     </>
   )
 
-  /* A bar fills the width it is given, or the height when it stands up,
-     and never more of the other than its ratio asks. */
   return domain.shape === "linear" ? (
     <LinearGauge
       {...root}
@@ -176,11 +140,6 @@ export const GaugePreview = ({
   )
 }
 
-/**
- * Everything a spec draws inside its own gauge root, so an inset renders the
- * same way the host does. `value` is only needed for the zone the arc takes
- * its colour from; the parts themselves read the animated value from context.
- */
 const GaugeParts = ({
   spec,
   value,

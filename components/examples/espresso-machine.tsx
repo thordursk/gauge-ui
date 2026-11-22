@@ -49,7 +49,6 @@ import {
 import HL from "./hairline/kernel"
 import { pour } from "./hairline/pour"
 
-/** Quick and without overshoot, so twenty readings a second glide together. */
 const FOLLOW: GaugeTransition = {
   type: "spring",
   visualDuration: 0.15,
@@ -57,33 +56,18 @@ const FOLLOW: GaugeTransition = {
 }
 
 const MUTED = "var(--muted-foreground)"
-/** Drawn in the colour the cards are painted in, the page background, to
-    cut a band into segments or a ring round a dot. */
 const CUT = "var(--background)"
-/** The one ink every mark is drawn in, thinned for the quieter tones. */
 const INK = "var(--foreground)"
 const fade = (percent: number) => fadeColor(INK, percent)
 
-/** The pressure dial's scale and the shot timer's, bar and s. */
 const PRESSURE_MAX = 12
 const SHOT_MAX = 40
 
-/** The sweep every knob here turns through, open at the bottom. */
 const SWEEP = { startAngle: 40, endAngle: 320 } as const
 
-/** The grind's travel, finest to coarsest. */
 const GRIND_MIN = 1
 const GRIND_MAX = 20
 
-/* ---------- dials ---------- */
-
-/**
- * The group head's pressure on a classic manometer: a pointer over a bar a
- * tick, with the band a shot should brew in drawn strong on the rim and the
- * pre-infusion band faint. The shot timer runs on a bar set into the open
- * foot of the dial, the window it should finish in shaded, so the pressure
- * and the time read as one instrument.
- */
 const PressureDial = ({
   pressure,
   time,
@@ -158,8 +142,6 @@ const PressureDial = ({
   </Gauge>
 )
 
-/** The brew boiler on a ring, its setpoint marked outside it, so a shot
-    pulling it down shows as the gap between the two. */
 const BrewDial = ({ temp, set }: { temp: number; set: number }) => (
   <Gauge value={temp} min={85} max={100} {...SWEEP} padding={24}>
     <GaugeTrack width={16} color={INK} opacity={0.12} />
@@ -178,8 +160,6 @@ const BrewDial = ({ temp, set }: { temp: number; set: number }) => (
   </Gauge>
 )
 
-/** The steam boiler on a half dial, the band its element holds it in shaded
-    under the pointer. */
 const SteamDial = ({ steam }: { steam: number }) => (
   <Gauge
     value={steam}
@@ -203,19 +183,10 @@ const SteamDial = ({ steam }: { steam: number }) => (
   </Gauge>
 )
 
-/* ---------- cup ---------- */
-
-/** How far up the cup the target fills it, so every recipe ends a little
-    under the brim and a shot that overruns shows above it. */
 const CUP_TARGET = 0.8
 
-/** The part of Hairline's 400 × 320 frame the cup is drawn in, with a little
-    room round it: the figure leaves wide margins for its own page, which
-    a column this narrow would draw it at half the size. */
 const CUP_BOX = [74, 18, 252, 248] as const
 
-/** The figure drawn in the example's own ink on the card, in place of
-    Hairline's grey palette, and boxed to the drawing. */
 const CUP_INK = {
   aspectRatio: `${CUP_BOX[2]} / ${CUP_BOX[3]}`,
   "--hairline-plate": CUT,
@@ -226,13 +197,6 @@ const CUP_INK = {
   "--hairline-stroke": "1",
 } as CSSProperties
 
-/**
- * The cup filling as the shot runs, beside the timer: a Hairline figure,
- * the coffee rising with the yield towards the target's height and running
- * from the nozzle while the pump runs. Driven like this the figure leaves
- * the pointer alone. It mounts once, before paint, and every reading after
- * reaches it through `pourTo`.
- */
 const Cup = ({
   grams,
   target,
@@ -282,18 +246,9 @@ const Cup = ({
   )
 }
 
-/* ---------- bars ---------- */
-
-/** Bar lengths in SVG units, near the width their column draws them, so
-    their labels keep their size. */
 const LONG = 440
 const SHORT = 360
 
-/**
- * The cup filling towards the shot's target, which is marked across the
- * bar. The scale runs a little past the target, so a shot that overruns it
- * shows by how much.
- */
 const YieldBar = ({ grams, target }: { grams: number; target: number }) => {
   const max = Math.ceil((target * 1.25) / 10) * 10
   return (
@@ -317,7 +272,6 @@ const YieldBar = ({ grams, target }: { grams: number; target: number }) => {
   )
 }
 
-/** The flow into the cup on a segmented meter. */
 const FlowBar = ({ flow }: { flow: number }) => (
   <LinearGauge
     value={flow}
@@ -336,7 +290,6 @@ const FlowBar = ({ flow }: { flow: number }) => (
   </LinearGauge>
 )
 
-/** The water tank as a column, cut into quarters, low water marked. */
 const Tank = ({ level }: { level: number }) => (
   <LinearGauge
     value={level * 100}
@@ -353,12 +306,6 @@ const Tank = ({ level }: { level: number }) => (
   </LinearGauge>
 )
 
-/* ---------- controls ---------- */
-
-/**
- * A rotary knob: a scale of ticks outside a thin ring, a cap with the
- * pointer dot on it, and the value in the middle.
- */
 const Knob = ({
   value,
   onChange,
@@ -414,10 +361,6 @@ const Knob = ({
   </div>
 )
 
-/**
- * The grinder's setting as a slider: a step a tick, the burrs closing to
- * the left. Drag along it, or Tab to it and use the arrow keys.
- */
 const GrindSlider = ({
   value,
   onChange,
@@ -458,13 +401,10 @@ const GrindSlider = ({
   </GaugeControl>
 )
 
-/* ---------- layout ---------- */
-
 const Caption = ({ children }: { children: ReactNode }) => (
   <span className="text-xs text-muted-foreground tabular-nums">{children}</span>
 )
 
-/** A reading set as a bold rounded figure with a small unit. */
 const Figure = ({
   value,
   unit,
@@ -520,7 +460,6 @@ const Panel = ({
   </Card>
 )
 
-/** A label over a reading on the right, above the bar it belongs to. */
 const Row = ({
   label,
   value,
@@ -539,7 +478,6 @@ const Row = ({
   </div>
 )
 
-/** A gauge with its name in small capitals under it. */
 const Labelled = ({
   label,
   children,
@@ -555,10 +493,6 @@ const Labelled = ({
   </div>
 )
 
-/* ---------- sections ---------- */
-
-/** What the shot is doing, and once it stops, how it went against the
-    window and which way to turn the grinder. */
 const shotStatus = ({ phase, time, yield: grams }: Espresso) => {
   if (phase === "ready") return "Ready for the next shot"
   if (phase === "preinfusion") return "Pre-infusion"
@@ -705,14 +639,6 @@ const RecipePanel = ({
   </Panel>
 )
 
-/**
- * An espresso machine pulling shots on a loop: the group's pressure on a
- * manometer with the shot timer set into its foot, the cup filling towards
- * its target and the flow on a meter, the boilers on their dials beside the
- * water tank, and the recipe on a grinder slider and three knobs. The
- * controls feed the shot, so grinding finer slows the next one down and a
- * coarse grind gushes without building pressure.
- */
 export const EspressoMachine = () => {
   const frame = useRef<HTMLDivElement>(null)
   const [recipe, setRecipe] = useState(DEFAULT_RECIPE)

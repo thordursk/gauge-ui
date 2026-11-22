@@ -4,62 +4,35 @@ import { useEffect, useState, type RefObject } from "react"
 
 import { useInView } from "@/hooks/use-in-view"
 
-/**
- * A toy race car lapping a toy circuit, for the race telemetry example. The
- * driver brakes for every corner, carries speed through it and gets back on
- * the throttle on the way out; the gearbox, tyres, hybrid battery and fuel
- * follow along, and every lap is timed against the best one. Nothing here is
- * physically accurate; it only has to move the gauges the way a real lap
- * does, with each lap a little faster or slower than the last.
- */
-
 export type Telemetry = {
-  /** km/h */
   speed: number
-  /** Thousands of rpm. */
   rpm: number
-  /** 1–8. */
   gear: number
-  /** Pedal travel, 0 to 1. */
   throttle: number
   brake: number
-  /** Steering lock, -1 full left to 1 full right. */
   steer: number
-  /** Metres into the lap. */
   distance: number
   lap: number
-  /** Seconds into the lap. */
   lapTime: number
   lastLap: number
   bestLap: number
-  /** Seconds behind the best lap at this point of it; negative is ahead. */
   delta: number
-  /** Times of the sectors done so far this lap. */
   sectors: number[]
-  /** The best lap's sector times, to compare against. */
   bestSectors: number[]
-  /** °C, front left, front right, rear left, rear right. */
   tyres: [number, number, number, number]
-  /** Hybrid battery charge, percent. */
   battery: number
-  /** kW out of the hybrid system: deploying positive, harvesting negative. */
   ers: number
-  /** kg left in the tank. */
   fuel: number
-  /** Seconds since the session started, for anything that blinks. */
   clock: number
 }
 
 type Corner = {
-  /** The speed the corner is taken at, km/h. */
   speed: number
-  /** 1 for a right-hander, -1 for a left. */
   turn: 1 | -1
 }
 
 type Segment = { length: number; corner?: Corner }
 
-/** The circuit: straights and corners, starting at the line. */
 const TRACK: Segment[] = [
   { length: 820 },
   { length: 120, corner: { speed: 95, turn: 1 } },
@@ -78,7 +51,6 @@ const TRACK: Segment[] = [
   { length: 340 },
 ]
 
-/** Where each segment starts, metres from the line. */
 const STARTS = TRACK.reduce<number[]>(
   (acc, s, i) => [...acc, i === 0 ? 0 : acc[i - 1] + TRACK[i - 1].length],
   []
@@ -87,40 +59,27 @@ const STARTS = TRACK.reduce<number[]>(
 export const LAP_LENGTH =
   STARTS[STARTS.length - 1] + TRACK[TRACK.length - 1].length
 
-/** Where each sector after the first begins. */
 export const SECTOR_STARTS = [1500, 3000]
 
-/** Where every corner begins, for marking them on the lap. */
 export const CORNERS = TRACK.flatMap((s, i) => (s.corner ? [STARTS[i]] : []))
 
-/** Top speed, m/s. */
 const VMAX = 340 / 3.6
-/** The deceleration the driver plans braking points around, m/s². */
 const BRAKE_PLAN = 30
-/** What the brakes give at full pressure, m/s². */
 const MAX_BRAKE = 36
-/** Shift points, thousands of rpm. */
 const UPSHIFT = 11.9
 const DOWNSHIFT = 8
-/** rpm per km/h in each gear, first to eighth, spaced evenly in ratio. */
 const RATIOS = Array.from(
   { length: 8 },
   (_, g) => 120 * (35.8 / 120) ** (g / 7)
 )
-/** Metres between the timing samples a lap is compared on. */
 const SAMPLE = 25
 const FULL_TANK = 40
 
 const clamp = (v: number, lo: number, hi: number) =>
   Math.min(hi, Math.max(lo, v))
-/** Moves `from` towards `to` by at most `rate * dt`. */
 const approach = (from: number, to: number, rate: number, dt: number) =>
   from + clamp(to - from, -rate * dt, rate * dt)
 
-/**
- * A small seeded generator, so the session plays out the same on the server
- * and the client and the first frame hydrates cleanly.
- */
 const seeded = (seed: number) => () => {
   seed = (seed + 0x6d2b79f5) | 0
   let t = Math.imul(seed ^ (seed >>> 15), 1 | seed)
@@ -139,7 +98,6 @@ const rpmIn = (gear: number, speed: number) =>
 
 type Car = {
   distance: number
-  /** m/s */
   speed: number
   throttle: number
   brake: number
@@ -155,19 +113,14 @@ type Car = {
   lapTime: number
   lastLap: number
   bestLap: number
-  /** This lap's time at every sample point. */
   samples: number[]
   sectors: number[]
-  /** The best lap's samples and sectors. */
   reference: number[]
   bestSectors: number[]
-  /** How hard the driver is pushing this lap: corner speeds scale by it. */
   pace: number
-  /** The corner the driver is on the brakes for, by segment, if any. */
   braking: number | null
 }
 
-/** Seconds into the best lap at a distance, between its samples. */
 const referenceAt = (reference: number[], distance: number) => {
   const at = distance / SAMPLE
   const i = Math.floor(at)
@@ -175,15 +128,12 @@ const referenceAt = (reference: number[], distance: number) => {
   return reference[i] + (reference[i + 1] - reference[i]) * (at - i)
 }
 
-/** One step of the driver, the car and the timing. */
 const step = (car: Car, dt: number, random: () => number) => {
   const v = car.speed
   const index = segmentAt(car.distance)
   const segment = TRACK[index]
   const progress = (car.distance - STARTS[index]) / segment.length
 
-  /* The deceleration each corner ahead asks for, to be down to its speed
-     by the time it starts. */
   const needs = new Map<number, number>()
   let ahead = STARTS[index] + segment.length - car.distance
   for (let k = 1; k <= 4; k++) {
@@ -195,10 +145,6 @@ const step = (car: Car, dt: number, random: () => number) => {
     }
     ahead += next.length
   }
-  /* On the brakes once a corner needs more than the planned rate, and
-     committed to them until turning in. Deciding afresh every step would
-     have the driver stab between the pedals as the need dips under the
-     plan and back over it. */
   if (car.braking !== null && !needs.has(car.braking)) car.braking = null
   if (car.braking === null) {
     for (const [j, need] of needs) {
@@ -207,13 +153,9 @@ const step = (car: Car, dt: number, random: () => number) => {
   }
   const limit = segment.corner ? (segment.corner.speed / 3.6) * car.pace : VMAX
 
-  /* Off the throttle and hard on the brake into a corner, a balanced
-     throttle through its apex, and building it back on the way out. */
   let throttleTo = 1
   let brakeTo = 0
   if (car.braking !== null) {
-    /* Pressure in proportion to what is still needed, so the brake eases
-       off as the speed comes down to the corner's. */
     throttleTo = 0
     brakeTo = clamp((needs.get(car.braking) ?? 0) / MAX_BRAKE, 0, 1)
   } else if (v > limit + 1) {
@@ -228,12 +170,10 @@ const step = (car: Car, dt: number, random: () => number) => {
   const accel =
     car.throttle * 13 * (1 - (v / VMAX) ** 2) - car.brake * MAX_BRAKE - 0.5
   car.speed = Math.max(12, v + accel * dt)
-  /* Grip holds the car to the corner's speed. */
   if (segment.corner && car.speed > limit) {
     car.speed = approach(car.speed, limit, 20, dt)
   }
 
-  /* Lock grows the slower the corner, easing in and out of it. */
   const lock = segment.corner
     ? segment.corner.turn *
       clamp((300 - segment.corner.speed) / 230, 0.15, 0.95) *
@@ -241,7 +181,6 @@ const step = (car: Car, dt: number, random: () => number) => {
     : 0
   car.steer = approach(car.steer, lock, 4, dt) + (random() - 0.5) * 0.01
 
-  /* Up a gear at the top of the revs, down when they sag. */
   if (car.gear < 8 && rpmIn(car.gear, car.speed) > UPSHIFT) car.gear += 1
   if (
     car.gear > 1 &&
@@ -256,8 +195,6 @@ const step = (car: Car, dt: number, random: () => number) => {
     12.2
   )
 
-  /* Tyres warm with work: the fronts under braking, the rears under power,
-     the outside pair through a corner; and cool back on the straights. */
   const lateral = car.steer * (car.speed / 70)
   const right = Math.max(0, lateral)
   const left = Math.max(0, -lateral)
@@ -272,8 +209,6 @@ const step = (car: Car, dt: number, random: () => number) => {
     (t, i) => t + (targets[i] - t) * 0.25 * dt
   ) as Car["tyres"]
 
-  /* The hybrid deploys on the straights at full throttle and harvests
-     under braking. */
   if (car.throttle > 0.95 && car.speed * 3.6 > 140 && car.battery > 2) {
     car.ers = 120
     car.battery -= 1.5 * dt
@@ -284,11 +219,9 @@ const step = (car: Car, dt: number, random: () => number) => {
     car.ers = 0
   }
 
-  /* A short stint, so the tank visibly drains; refuelled when it is low. */
   car.fuel -= (0.008 + car.throttle * 0.03) * dt
   if (car.fuel < 3) car.fuel = FULL_TANK
 
-  /* Timing. */
   car.clock += dt
   car.lapTime += dt
   car.distance += car.speed * dt
@@ -314,7 +247,6 @@ const step = (car: Car, dt: number, random: () => number) => {
     car.lapTime = 0
     car.samples = []
     car.sectors = []
-    /* Some laps the driver finds time, some they lose it. */
     car.pace = 0.98 + random() * 0.045
   }
 }
@@ -343,10 +275,6 @@ const readings = (car: Car): Telemetry => ({
 
 const TICK = 1 / 20
 
-/**
- * A session already under way: one flying lap at an even pace sets the
- * reference, and the car is a little way into the next when the page opens.
- */
 const startSession = () => {
   const random = seeded(7)
   const car: Car = {
@@ -378,11 +306,6 @@ const startSession = () => {
   return { car, random }
 }
 
-/**
- * Runs the session while `target` is on screen and returns the latest
- * readings, twenty times a second. Visitors who prefer reduced motion see
- * the car held where the session starts.
- */
 export const useLapSimulation = (target: RefObject<Element | null>) => {
   const [session] = useState(startSession)
   const [telemetry, setTelemetry] = useState(() => readings(session.car))

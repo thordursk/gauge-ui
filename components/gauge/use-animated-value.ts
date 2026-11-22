@@ -11,24 +11,11 @@ import {
   type SpringState,
 } from "./transition"
 
-/** Folds a change into [-span/2, span/2), the short way round a circle. */
 const shortestDelta = (delta: number, span: number) => {
   const s = Math.max(span, 1e-9)
   return ((((delta + s / 2) % s) + s) % s) - s / 2
 }
 
-/**
- * Follows `target` with the given transition and returns the value to draw
- * this frame. With no transition it returns `target` as is and renders
- * nothing extra. Honours `prefers-reduced-motion` by snapping.
- *
- * `span` is the size of the domain and sets the rest threshold. `initial` is
- * where the value starts on mount, for a sweep-in from the minimum. `wrap`
- * treats the domain as circular: every change is followed the shortest way
- * round, so a heading crossing north never swings the long way back. The
- * returned value may then sit outside the domain mid-flight; map it back
- * with a modulo.
- */
 export const useAnimatedValue = (
   target: number,
   transition: GaugeTransition | boolean | undefined,
@@ -40,11 +27,6 @@ export const useAnimatedValue = (
   const [display, setDisplay] = useState(initial ?? target)
   const spring = useRef<SpringState>({ value: initial ?? target, velocity: 0 })
 
-  /* With `wrap` the target is folded into a continuous series so the spring
-     crosses the seam instead of doubling back. Each change is folded in as
-     it renders — the sanctioned way to adjust state to a new prop — and the
-     series snaps back to the canonical target at rest, so turning forever
-     never drifts far. */
   const start = initial ?? target
   const [series, setSeries] = useState(() => ({
     raw: target,
@@ -57,23 +39,17 @@ export const useAnimatedValue = (
             raw: target,
             goal: series.goal + shortestDelta(target - series.raw, span),
           }
-        : /* Without a transition the series just shadows the target, so
-             re-enabling one starts from what is on screen. */
-          { raw: target, goal: target }
+        : { raw: target, goal: target }
     )
   }
   const goal = wrap ? series.goal : target
 
-  // The config is read through a ref so an inline object or easing function
-  // does not restart the animation every render; only its content matters.
   const transitionRef = useRef(transition)
   useEffect(() => {
     transitionRef.current = transition
   })
   const configKey = JSON.stringify(transition)
 
-  // While disabled, keep the spring state in step so re-enabling animates
-  // from what is on screen rather than from a stale value.
   useEffect(() => {
     if (!enabled) spring.current = { value: target, velocity: 0 }
   }, [enabled, target])
@@ -83,8 +59,6 @@ export const useAnimatedValue = (
     if (!config) return
     const precision = Math.max(span, 1e-6) * 1e-4
     const snap = prefersReducedMotion()
-    /* Where the value comes to rest: the canonical target, so a wrapped
-       series that has gone round a few times folds back into the domain. */
     const restAt = target
 
     let frame = 0

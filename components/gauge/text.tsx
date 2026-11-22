@@ -15,7 +15,6 @@ import {
 import { useGauge } from "./context"
 
 export type GaugeTextProps = {
-  /** Position relative to the gauge centre in SVG units. Positive y is down. */
   x?: number
   y?: number
   fontSize?: number
@@ -27,7 +26,6 @@ export type GaugeTextProps = {
   children: ReactNode
 }
 
-/** A free-standing label anywhere on the gauge. */
 export const GaugeText = ({
   x = 0,
   y = 0,
@@ -54,15 +52,11 @@ export const GaugeText = ({
 
 export type GaugeValueProps = Omit<GaugeTextProps, "children"> & {
   decimals?: number
-  /** Formats each number shown; a range formats its two ends apart. */
   format?: (value: number) => string
-  /** Placed between the two ends of a range. */
   separator?: string
-  /** Show only one end of a range rather than both. */
   end?: GaugeEnd
 }
 
-/** The current value as text, or a range as its two ends. */
 export const GaugeValue = ({
   decimals = 0,
   format,

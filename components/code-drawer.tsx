@@ -20,7 +20,6 @@ type CodeDrawerProps = {
   onOpenChange: (open: boolean) => void
 }
 
-/** A side drawer with the generated component source, highlighted, and a copy button. */
 export const CodeDrawer = ({ code, open, onOpenChange }: CodeDrawerProps) => {
   const [copied, setCopied] = useState(false)
   const html = useHighlighted(open ? code : null)
@@ -92,11 +91,6 @@ export const CodeDrawer = ({ code, open, onOpenChange }: CodeDrawerProps) => {
   )
 }
 
-/**
- * Highlights `code` off the render path. Returns the previous markup while a
- * new version is being produced so the drawer never flashes to plain text,
- * and null until the first highlight lands or while `code` is null.
- */
 const useHighlighted = (code: string | null) => {
   const [html, setHtml] = useState<string | null>(null)
 

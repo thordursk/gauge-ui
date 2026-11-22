@@ -4,7 +4,6 @@ import {
   type GaugeSpec,
 } from "@/lib/gauge-spec"
 
-/** A prop value emitted verbatim as a JSX expression. */
 class Raw {
   constructor(public readonly code: string) {}
 }
@@ -13,7 +12,6 @@ type PropValue = string | number | boolean | Raw | undefined
 
 const num = (n: number) => Number(n.toFixed(2)).toString()
 
-/** An object or array as a JS literal with unquoted keys. */
 const literal = (value: unknown): string => {
   if (Array.isArray(value)) return `[${value.map(literal).join(", ")}]`
   if (typeof value === "number") return num(value)
@@ -53,7 +51,6 @@ const element = (
   return `${indent}<${tag}\n${inner}\n${indent}>\n${indent}  ${children}\n${indent}</${tag}>`
 }
 
-/** An element wrapped around elements of its own, already indented. */
 const container = (
   tag: string,
   props: Record<string, PropValue>,
@@ -68,11 +65,9 @@ const container = (
     `${indent}</${tag}>`,
   ].join("\n")
 
-/** Whether a spec refers to its zone list, by band, marks or arc colour. */
 const usesZones = (spec: GaugeSpec) =>
   spec.zones.show || spec.marks.show || (spec.arc.show && spec.arc.colorByZone)
 
-/** The zone list as a `const`, named so insets can each have their own. */
 const zonesConst = (spec: GaugeSpec, name: string) =>
   `const ${name} = [\n${spec.zones.list
     .map((zone, i) => {
@@ -82,25 +77,17 @@ const zonesConst = (spec: GaugeSpec, name: string) =>
     })
     .join("\n")}\n]\n`
 
-/** The type of the prop a gauge's value arrives on. */
 const valueType = (spec: GaugeSpec) =>
   spec.rangeFrom === undefined ? "number" : "[number, number]"
 
-/** The value as a single number, for a range its far end. */
 const reading = (spec: GaugeSpec, name: string) =>
   spec.rangeFrom === undefined ? name : `${name}[1]`
 
 type Names = {
-  /** The variable holding this gauge's zone list. */
   zones: string
-  /** The prop this gauge's value comes in on. */
   value: string
 }
 
-/**
- * Everything a spec draws inside its gauge root, mirroring `GaugeParts` in
- * `components/gauge-preview.tsx`. Adds the components it uses to `used`.
- */
 const parts = (
   spec: GaugeSpec,
   indent: string,
@@ -386,16 +373,11 @@ const parts = (
   return body
 }
 
-/** A bar's padding: one number when every side takes the same. */
 const paddingProp = (domain: GaugeSpec["domain"]) =>
   domain.padding === domain.ends
     ? domain.padding
     : new Raw(literal(barPadding(domain)))
 
-/**
- * What places a gauge's scale: a dial's sweep, or a bar's direction and
- * length. A horizontal bar is the default, so it says nothing of it.
- */
 const geometry = (domain: GaugeSpec["domain"]) =>
   domain.shape === "linear"
     ? {
@@ -408,7 +390,6 @@ const geometry = (domain: GaugeSpec["domain"]) =>
         endAngle: domain.endAngle,
       }
 
-/** The nested gauge for one inset, with all of its own parts inside it. */
 const insetElement = (
   inset: GaugeInsetSpec,
   indent: string,
@@ -427,8 +408,6 @@ const insetElement = (
       min: domain.min,
       max: domain.max,
       ...geometry(domain),
-      /* The inset keeps the host's reference radius and takes its size from
-         `scale`, so the radius is only worth printing when it differs. */
       radius:
         domain.shape === "linear" || domain.radius === 200
           ? undefined
@@ -445,19 +424,16 @@ const insetElement = (
   )
 }
 
-/** JSX for a component that renders `spec` with the gauge primitives. */
 export const gaugeToCode = (spec: GaugeSpec) => {
   const { domain, control } = spec
   const linear = domain.shape === "linear"
   const root = linear ? "LinearGauge" : "Gauge"
   const used = new Set<string>([root])
   const insets = spec.insets ?? []
-  /* A gauge that can be set by hand sits one level down, inside its control. */
   const outer = control ? "      " : "    "
   const pad = `${outer}  `
   if (control) used.add("GaugeControl")
 
-  /* Each gauge gets its own zone list, named after the inset it belongs to. */
   const consts = [usesZones(spec) ? zonesConst(spec, "zones") : null]
   const body = parts(spec, pad, used, { zones: "zones", value: "value" })
 
@@ -467,10 +443,6 @@ export const gaugeToCode = (spec: GaugeSpec) => {
     body.push(insetElement(inset, pad, used))
   }
 
-  /* Every gauge in the tree takes its value from a prop of its own, and one
-     that can be set by hand hands the new value back. A gauge on its own
-     keeps the one-line signature; a list of them is broken up the way
-     prettier would. */
   const params = [
     ["value", valueType(spec)],
     ...(control ? [["onChange", `(value: ${valueType(spec)}) => void`]] : []),
@@ -513,8 +485,6 @@ export const gaugeToCode = (spec: GaugeSpec) => {
     `${outer}</${root}>`,
   ]
 
-  /* The control takes the same domain and sweep as the gauge it turns, or
-     the bar's direction and length, which are what make it drag along. */
   const wrapped = control
     ? [
         `    <GaugeControl`,

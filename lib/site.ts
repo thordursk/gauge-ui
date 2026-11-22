@@ -1,4 +1,3 @@
-/** Where the site lives, for metadata, robots, sitemap and structured data. */
 export const siteUrl = "https://gauge-ui.dev"
 
 export const siteName = "Gauge UI"

@@ -7,8 +7,6 @@ import { Separator } from "@/components/ui/separator"
 import { getRepoStars } from "@/lib/github"
 import { siteDescription, siteName, siteUrl } from "@/lib/site"
 
-/* Tells search engines what the site is: free developer tooling, one author,
-   MIT licensed. Rendered as JSON-LD on the landing page only. */
 const structuredData = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",

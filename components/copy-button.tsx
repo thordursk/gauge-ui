@@ -7,14 +7,11 @@ import { HugeiconsIcon } from "@hugeicons/react"
 import { Button } from "@/components/ui/button"
 
 type CopyButtonProps = {
-  /** The text put on the clipboard. */
   value: string
-  /** What is being copied, for the accessible name. */
   label?: string
   className?: string
 }
 
-/** An icon button that copies a string and ticks for a moment once it has. */
 export const CopyButton = ({
   value,
   label = "Copy",

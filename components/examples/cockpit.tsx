@@ -22,7 +22,6 @@ import {
 
 import { useFlightSimulation } from "./flight-simulation"
 
-/** Soft and without overshoot, so a dozen readings a second glide together. */
 const FOLLOW: GaugeTransition = {
   type: "spring",
   visualDuration: 0.3,
@@ -31,10 +30,8 @@ const FOLLOW: GaugeTransition = {
 
 const MUTED = "var(--muted-foreground)"
 
-/** Every dial fills its pod edge to edge, bar a thin margin inside the rim. */
 const dial = { padding: 24, transition: FOLLOW } as const
 
-/** Fine minor ticks, heavier majors and numerals inside them. */
 const Scale = ({
   minor,
   major,
@@ -45,7 +42,6 @@ const Scale = ({
   minor: number
   major: number
   labels?: number
-  /** Three-digit numerals need a smaller size to clear the ticks. */
   labelSize?: number
   format?: (value: number) => string
 }) => (
@@ -74,7 +70,6 @@ const Caption = ({ y, children }: { y: number; children: ReactNode }) => (
   </GaugeText>
 )
 
-/** A slim needle on a small pivot, capped in the face colour. */
 const Pointer = () => (
   <>
     <GaugeNeedle style="line" length={0.88} width={5} tail={28} />
@@ -83,11 +78,6 @@ const Pointer = () => (
   </>
 )
 
-/**
- * Airspeed in knots, with the operating ranges banded under the scale: the
- * flap range inside, normal operation, the caution range, and the never
- * exceed speed as a heavy line. The gap at the top is where the sweep wraps.
- */
 const AirspeedIndicator = ({ airspeed }: { airspeed: number }) => (
   <Gauge
     value={airspeed}
@@ -128,16 +118,9 @@ const AirspeedIndicator = ({ airspeed }: { airspeed: number }) => (
   </Gauge>
 )
 
-/** Pixels of horizon travel per degree of pitch. */
 const PITCH_SCALE = 5
 const HORIZON_RADIUS = 172
 
-/**
- * The horizon behind the aircraft symbol: ground below a line, and a pitch
- * ladder every five degrees, rolled by the gauge's (animated) value and
- * shifted by the pitch. It reads the roll from the gauge so the bank pointer
- * and the horizon can never disagree.
- */
 const Horizon = ({ pitch }: { pitch: number }) => {
   const { value: roll } = useGauge()
   const shown = useAnimatedValue(pitch, FOLLOW, 40)
@@ -185,11 +168,6 @@ const Horizon = ({ pitch }: { pitch: number }) => {
   )
 }
 
-/**
- * Pitch and bank. The bank scale is fixed to the case along the top; the
- * horizon and the dot riding inside the scale roll against it, and the
- * aircraft symbol stays level in front of them all.
- */
 const AttitudeIndicator = ({
   bank,
   pitch,
@@ -197,8 +175,6 @@ const AttitudeIndicator = ({
   bank: number
   pitch: number
 }) => (
-  /* The value is the roll of the horizon, which turns the opposite way to
-     the aircraft, and the domain puts zero straight up. */
   <Gauge
     value={-bank}
     min={-90}
@@ -232,10 +208,6 @@ const AttitudeIndicator = ({
   </Gauge>
 )
 
-/**
- * Two dials on one needle: thousands on the short hand and hundreds on the
- * long one, which goes round ten times for the short hand's once.
- */
 const Altimeter = ({ altitude }: { altitude: number }) => (
   <Gauge
     value={altitude}
@@ -247,7 +219,6 @@ const Altimeter = ({ altitude }: { altitude: number }) => (
   >
     <Scale minor={50} major={10} format={(v) => String(v / 1000)} />
     <Caption y={-72}>ALT</Caption>
-    {/* The pressure setting, in a window at three o'clock. */}
     <GaugeText x={96} fontSize={18} color={MUTED} className="tabular-nums">
       29.92
     </GaugeText>
@@ -258,19 +229,12 @@ const Altimeter = ({ altitude }: { altitude: number }) => (
   </Gauge>
 )
 
-/** Where a wing tip sits for a turn of `rate`: level is nine o'clock. */
 const LEFT_WING = { startAngle: 60, endAngle: 120 }
 const RIGHT_WING = { startAngle: 240, endAngle: 300 }
-/** The tail fin, straight up when the wings are level. */
 const FIN = { startAngle: 150, endAngle: 210 }
 
 const TURN = { min: -1.5, max: 1.5, transition: FOLLOW } as const
 
-/**
- * One side of the rate scale: graduations every half rate, the sector from
- * wings level down to a standard-rate turn shaded, and heavy marks at both
- * ends of it.
- */
 const TurnScale = ({ standard }: { standard: number }) => (
   <>
     <GaugeArc
@@ -299,12 +263,6 @@ const TurnScale = ({ standard }: { standard: number }) => (
   </>
 )
 
-/**
- * Rate of turn and the slip ball. The aircraft is drawn from behind: two
- * tapered wings and a fin, each a needle on its own dial sharing one value,
- * so together they bank as one symbol; the marks are wings level and a
- * standard-rate turn each way. The ball rides a glass tube at the foot.
- */
 const TurnCoordinator = ({ rate, slip }: { rate: number; slip: number }) => {
   const label = (angle: number) => polar(180, angle)
   const l = label(56)
@@ -327,8 +285,6 @@ const TurnCoordinator = ({ rate, slip }: { rate: number; slip: number }) => {
       <GaugeText y={-78} fontSize={16} weight="semibold">
         2 MIN
       </GaugeText>
-      {/* Clockwise runs right to left along the bottom, so the ball is fed
-          the slip reversed to swing the way it would. */}
       <GaugeInset
         value={-slip}
         min={-1}
@@ -370,13 +326,6 @@ const TurnCoordinator = ({ rate, slip }: { rate: number; slip: number }) => {
 
 const cardinal = ["N", "E", "S", "W"]
 
-/**
- * The compass card turns under a fixed lubber line, so the heading is always
- * read at the top. The card is the whole gauge turned by `rotate`, which the
- * transition swings the short way round; a fixed inset over it carries the
- * lubber line and the case marks, and the autopilot's heading bug rides the
- * card.
- */
 const HeadingIndicator = ({
   heading,
   target,
@@ -429,12 +378,6 @@ const HeadingIndicator = ({
   )
 }
 
-/**
- * Climb and descent in hundreds of feet a minute, level at nine o'clock and
- * reading up over the top for a climb and down under it for a descent. The
- * two halves meet at a single 20 at three o'clock, and level is a heavy
- * index rather than a numeral, since the needle rests on it.
- */
 const VerticalSpeedIndicator = ({
   verticalSpeed,
 }: {
@@ -465,7 +408,6 @@ const VerticalSpeedIndicator = ({
   </Gauge>
 )
 
-/** A round instrument in a flat rim, set into the panel. */
 const Pod = ({ children }: { children: ReactNode }) => (
   <div className="aspect-square rounded-full border bg-muted p-[2.5%]">
     <div className="aspect-square w-full rounded-full border bg-background text-foreground [&>svg]:h-auto">
@@ -474,12 +416,6 @@ const Pod = ({ children }: { children: ReactNode }) => (
   </div>
 )
 
-/**
- * The six-pack of a light aircraft: airspeed, attitude and altitude across
- * the top, turn, heading and vertical speed beneath. A toy autopilot flies
- * to a new altitude or heading every so often, so every instrument moves
- * together the way it would in the air.
- */
 export const Cockpit = () => {
   const frame = useRef<HTMLDivElement>(null)
   const flight = useFlightSimulation(frame)

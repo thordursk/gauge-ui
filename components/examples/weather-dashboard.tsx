@@ -48,9 +48,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { useInView } from "@/hooks/use-in-view"
 import { cn } from "@/lib/utils"
 
-/** Every gauge sweeps up from the foot of its domain as the tab opens. */
 const ARRIVE: GaugeTransition = { type: "spring", visualDuration: 1, bounce: 0 }
-/** A vane swings into the wind and settles with a little overshoot. */
 const VANE: GaugeTransition = {
   type: "spring",
   visualDuration: 0.9,
@@ -58,25 +56,18 @@ const VANE: GaugeTransition = {
 }
 
 const MUTED = "var(--muted-foreground)"
-/** Cuts drawn in the card's own colour, to split a band into segments. */
 const CUT = "var(--card)"
 
-/** The one ink every mark is drawn in, as the studio templates keep to. */
 const INK = "var(--foreground)"
 
-/** The ink thinned towards transparent, for the quieter tones. */
 const fade = (percent: number) => fadeColor(INK, percent)
 
-/** The top half of a dial, left to right. */
 const half = { startAngle: 90, endAngle: 270, fit: "content" } as const
-/** A full ring from twelve o'clock. */
 const ring = { startAngle: 180, endAngle: 540 } as const
 
 const pad = (n: number) => String(n).padStart(2, "0")
 
 const degrees = (t: number) => `${Math.round(t)}°`
-
-/* ---------- the forecast ---------- */
 
 type Sky = "partly" | "cloud" | "rain" | "night"
 
@@ -88,32 +79,21 @@ const SKY: Record<Sky, { icon: IconSvgElement; label: string }> = {
 }
 
 type Hour = {
-  /** Hour of the day, 0–23. */
   hour: number
   sky: Sky
-  /** °C */
   temp: number
   feels: number
   dew: number
-  /** Chance of rain, % */
   rain: number
-  /** m/s, and the bearing it blows from */
   wind: number
   gust: number
   from: number
-  /** % */
   humidity: number
   cloud: number
   uv: number
-  /** km */
   visibility: number
 }
 
-/**
- * A Reykjavík afternoon at the end of September: a south-easterly freshening
- * ahead of a band of rain that comes through in the evening and clears after
- * midnight as the wind backs south.
- */
 const HOURS: Hour[] = [
   {
     hour: 14,
@@ -297,19 +277,15 @@ const HOURS: Hour[] = [
   },
 ]
 
-/** Minutes into the current hour, for the clock and the sun. */
 const NOW_MINUTES = 20
 
-/** Today's extremes, for the marks on the temperature dial. */
 const LOW = 4.8
 const HIGH = 10.3
 
-/** Reykjavík on the 27th of September, in hours from midnight. */
 const SUNRISE = 7 + 31 / 60
 const SUNSET = 19 + 9 / 60
 const TOMORROW_SUNRISE = 7 + 34 / 60
 
-/** hPa: now, and where the set hand was left three hours ago. */
 const PRESSURE = 1003.6
 const PRESSURE_SET = 1008.9
 
@@ -321,7 +297,6 @@ const POLLUTANTS = [
   { label: "NO₂", value: "7 µg/m³" },
 ]
 
-/** The Beaufort scale's upper bounds in m/s, force 0 to 11; 12 is the rest. */
 const BEAUFORT = [
   0.5, 1.5, 3.3, 5.5, 7.9, 10.7, 13.8, 17.1, 20.7, 24.4, 28.4, 32.6,
 ]
@@ -348,16 +323,8 @@ const beaufort = (speed: number) => {
 const uvLabel = (uv: number) =>
   uv < 3 ? "Low" : uv < 6 ? "Moderate" : uv < 8 ? "High" : "Very high"
 
-/* ---------- live wind ---------- */
-
 type Wind = { speed: number; from: number }
 
-/**
- * Gusts the wind around the hour's forecast every second and a half while
- * the dashboard is on screen and showing the present: the speed drifts
- * between the mean and the gusts, and the vane hunts either side of the
- * bearing. A forecast hour holds still, and so does reduced motion.
- */
 const useLiveWind = (visible: boolean, hour: Hour, live: boolean) => {
   const [wind, setWind] = useState<Wind>({
     speed: HOURS[0].wind,
@@ -388,13 +355,6 @@ const useLiveWind = (visible: boolean, hour: Hour, live: boolean) => {
   return live ? wind : { speed: hour.wind, from: hour.from }
 }
 
-/* ---------- gauges ---------- */
-
-/**
- * The Temperature template in one ink: the reading fills the track, the band
- * inside it runs freezing, mild and warm, and the day's low and high are
- * notched across that band.
- */
 const TemperatureDial = ({ temp }: { temp: number }) => (
   <Gauge
     value={temp}
@@ -456,12 +416,6 @@ const TemperatureDial = ({ temp }: { temp: number }) => (
   </Gauge>
 )
 
-/**
- * The Wind direction template: the arrowhead points at the bearing the wind
- * blows from, the counterweight rides the far rim, and the speed sits in the
- * gap the arrow leaves round the centre. Hovering it names the point of the
- * compass at the arrowhead, following the vane as it swings.
- */
 const WindDial = ({ speed, from }: { speed: number; from: number }) => (
   <Gauge
     value={from}
@@ -507,11 +461,6 @@ const WindDial = ({ speed, from }: { speed: number; from: number }) => (
   </Gauge>
 )
 
-/**
- * The Sun path template: a half circle standing on the horizon from sunrise
- * to sunset, with the sun as a dot on the head of the daylight already spent.
- * Once it has set, the dot goes and the middle counts down to tomorrow's.
- */
 const SunDial = ({ at }: { at: number }) => {
   const up = at >= SUNRISE && at <= SUNSET
   const untilRise = (TOMORROW_SUNRISE + 24 - at) % 24
@@ -539,10 +488,6 @@ const SunDial = ({ at }: { at: number }) => {
   )
 }
 
-/**
- * The Air quality template: a half dial on the 0–500 index, the good,
- * moderate and unhealthy bands inside it with a mark at each cutoff.
- */
 const AirQualityDial = ({ aqi }: { aqi: number }) => (
   <Gauge
     value={aqi}
@@ -573,16 +518,8 @@ const AirQualityDial = ({ aqi }: { aqi: number }) => (
   </Gauge>
 )
 
-/** The words round an aneroid barometer, at 960, 980, 1000, 1020 and 1040 hPa. */
 const BAROMETER_WORDS = ["Stormy", "Rain", "Change", "Fair", "Dry"]
 
-/**
- * An aneroid barometer: a pointer on the pressure, a hectopascal a tick, the
- * old weather words round the face, and the set hand as a mark on the rim
- * where the pressure stood three hours ago. The stretch between is the fall,
- * and the pointer swings down it as the dial opens. Hovering it explains the
- * set hand with a tooltip pinned to it.
- */
 const Barometer = ({ hpa, set }: { hpa: number; set: number }) => (
   <Gauge
     value={hpa}
@@ -595,8 +532,6 @@ const Barometer = ({ hpa, set }: { hpa: number; set: number }) => (
     initialValue={set}
   >
     <GaugeTrack width={14} color={INK} opacity={0.1} cap="butt" />
-    {/* Anchored at the set hand, the fall grows with the pointer as the dial
-        opens, whichever way the pressure has gone. */}
     <GaugeArc from={set} width={14} color={INK} opacity={0.35} cap="butt" />
     <GaugeTicks
       count={80}
@@ -644,10 +579,6 @@ const Barometer = ({ hpa, set }: { hpa: number; set: number }) => (
   </Gauge>
 )
 
-/**
- * The small half dial on the condition tiles: the whole scale as a track and
- * whatever the reading needs drawn over it.
- */
 const TileDial = ({
   value,
   max,
@@ -670,7 +601,6 @@ const TileDial = ({
   </Gauge>
 )
 
-/** Chance of rain as a solid ring small enough to sit under an hour. */
 const RainRing = ({ chance }: { chance: number }) => (
   <Gauge
     value={chance}
@@ -685,15 +615,8 @@ const RainRing = ({ chance }: { chance: number }) => (
   </Gauge>
 )
 
-/* ---------- charts ---------- */
-
-/** The strongest gust ahead, which tops the wind chart's scale. */
 const GUST_PEAK = Math.max(...HOURS.map((h) => h.gust))
 
-/**
- * The hours ahead as bars: the gusts faint behind, the mean wind solid in
- * front, and the hour picked above in full ink.
- */
 const WindBars = ({ selected }: { selected: number }) => (
   <div className="flex flex-col gap-1.5">
     <div className="grid h-12 grid-cols-12 gap-1">
@@ -723,17 +646,13 @@ const WindBars = ({ selected }: { selected: number }) => (
   </div>
 )
 
-/** Where a value sits between `lo` and `hi`, as a percentage. */
 const share = (value: number, lo: number, hi: number) =>
   `${((value - lo) / (hi - lo)) * 100}%`
-
-/* ---------- layout ---------- */
 
 const Caption = ({ children }: { children: ReactNode }) => (
   <span className="text-xs text-muted-foreground tabular-nums">{children}</span>
 )
 
-/** A reading set as a bold rounded figure with a small unit. */
 const Figure = ({
   value,
   unit,
@@ -758,7 +677,6 @@ const Figure = ({
   </span>
 )
 
-/** A section heading, its icon in the muted tone. */
 const Category = ({
   icon,
   children,
@@ -815,7 +733,6 @@ const Readouts = ({ rows }: { rows: Row[] }) => (
   </dl>
 )
 
-/** A condition tile: the category, the figure, a small dial and a caption. */
 const Tile = ({
   icon,
   label,
@@ -854,13 +771,6 @@ const SkyIcon = ({ sky, className }: { sky: Sky; className?: string }) => (
   />
 )
 
-/* ---------- sections ---------- */
-
-/**
- * The hours ahead, one button each: the time, the sky, the temperature and
- * the chance of rain on a ring. Picking one runs every dial on the page to
- * that hour.
- */
 const Hourly = ({
   selected,
   onSelect,
@@ -1040,7 +950,6 @@ const Conditions = ({ hour }: { hour: Hour }) => (
       unit="%"
       caption="Comfortable 30–60%"
     >
-      {/* The comfortable band on the track, and a dot at the reading. */}
       <TileDial value={hour.humidity} max={100}>
         <GaugeArc
           from={30}
@@ -1060,7 +969,6 @@ const Conditions = ({ hour }: { hour: Hour }) => (
       unit="%"
       caption={`${Math.round(hour.cloud / 12.5)} of 8 oktas`}
     >
-      {/* A plain fill, cut into eighths for the oktas. */}
       <TileDial value={hour.cloud} max={100}>
         <GaugeArc width={36} color={INK} cap="butt" />
         <GaugeMarks count={8} length={40} width={6} cap="butt" color={CUT} />
@@ -1072,7 +980,6 @@ const Conditions = ({ hour }: { hour: Hour }) => (
       value={`${hour.uv}`}
       caption={uvLabel(hour.uv)}
     >
-      {/* One segment per step of the index, lit up to the reading. */}
       <TileDial value={hour.uv} max={11}>
         <GaugeArc width={36} color={INK} cap="butt" />
         <GaugeMarks count={11} length={40} width={6} cap="butt" color={CUT} />
@@ -1085,7 +992,6 @@ const Conditions = ({ hour }: { hour: Hour }) => (
       unit="km"
       caption={hour.visibility < 10 ? "Reduced in rain" : "Clear"}
     >
-      {/* A needle, faint fill behind it, as the monitor's sensor tiles. */}
       <TileDial value={hour.visibility} max={50}>
         <GaugeArc width={36} color={INK} opacity={0.3} cap="butt" />
         <GaugeNeedle
@@ -1101,13 +1007,6 @@ const Conditions = ({ hour }: { hour: Hour }) => (
   </div>
 )
 
-/**
- * A weather app on gauges: the temperature on the Temperature template with
- * the hours ahead under it, wind on the Wind direction template gusting live,
- * the sun on the Sun path template, an aneroid barometer with its set hand,
- * air quality on its bands and a row of condition tiles.
- * Picking an hour runs every dial on the page to it.
- */
 export const WeatherDashboard = () => {
   const frame = useRef<HTMLDivElement>(null)
   const [selected, setSelected] = useState(0)

@@ -41,24 +41,16 @@ import { ChartContainer, type ChartConfig } from "@/components/ui/chart"
 import { useInView } from "@/hooks/use-in-view"
 import { cn } from "@/lib/utils"
 
-/** Every gauge sweeps up from the foot of its domain as the tab opens. */
 const ARRIVE: GaugeTransition = { type: "spring", visualDuration: 1, bounce: 0 }
 
 const MUTED = "var(--muted-foreground)"
-/** The zone worth watching takes the strongest tone on the face. */
 const ALERT = "var(--foreground)"
-/** For the stretch of a zone band that should show only the track. */
 const CLEAR = "transparent"
 
-/* ---------- the machine ---------- */
-
 const CORES = 8
-/** GB */
 const RAM = 32
 const SWAP = 8
-/** Mb/s, the link speed */
 const LINK = 1000
-/** Samples kept for the rolling charts. */
 const HISTORY = 40
 
 const VOLUMES = [
@@ -76,14 +68,8 @@ const PROCESSES = [
   { name: "prometheus", pid: 1755 },
 ]
 
-/** Days of history on the uptime bars. */
 const UPTIME_DAYS = 90
 
-/**
- * Ninety days of one service's uptime, as a percentage a day. Seeded rather
- * than random so the server and the client render the same history: most
- * days are clean, a few degraded and the odd one has an outage.
- */
 const uptimeHistory = (seed: number) => {
   let state = seed
   const next = () => {
@@ -103,8 +89,6 @@ const SERVICES = [
   { name: "postgres", history: uptimeHistory(7) },
 ]
 
-/* ---------- live readings ---------- */
-
 type Sample = {
   t: number
   user: number
@@ -116,26 +100,18 @@ type Sample = {
 type Process = { name: string; pid: number; cpu: number; mem: number }
 
 type Live = {
-  /** Where the cores are drifting towards, %. */
   demand: number
-  /** Busy share of each core, % */
   cores: number[]
-  /** Share of the busy time spent in the kernel, 0–1 */
   kernel: number
-  /** 1, 5 and 15 minute load averages */
   load: [number, number, number]
-  /** GB */
   wired: number
   app: number
   cached: number
   swap: number
-  /** Mb/s */
   rx: number
   tx: number
-  /** MB/s */
   read: number
   write: number
-  /** % used per volume */
   volumes: number[]
   processes: Process[]
   history: Sample[]
@@ -146,8 +122,6 @@ const mean = (values: number[]) =>
 
 const START_CORES = [46, 38, 61, 29, 52, 34, 44, 27]
 
-/* A deterministic backlog, so the server render and the first client render
-   agree and the charts open already full. */
 const START: Live = {
   demand: 42,
   cores: START_CORES,
@@ -188,13 +162,11 @@ const clampTo = (value: number, lo: number, hi: number) =>
 const drift = (value: number, by: number, lo: number, hi: number) =>
   clampTo(value + (Math.random() * 2 - 1) * by, lo, hi)
 
-/** Eases a load average towards the run queue, faster for the shorter window. */
 const settle = (load: number, queue: number, rate: number) =>
   load + (queue - load) * rate
 
 const step = (l: Live): Live => {
   const demand = drift(l.demand, 8, 15, 90)
-  /* Each core jitters on its own but is pulled towards the shared demand. */
   const cores = l.cores.map((c) =>
     clampTo(c + (demand - c) * 0.25 + (Math.random() * 2 - 1) * 14, 2, 100)
   )
@@ -245,11 +217,6 @@ const step = (l: Live): Live => {
   }
 }
 
-/**
- * Samples the machine every second and a half while the dashboard is on
- * screen, so the needles and charts keep moving like a real monitor's would.
- * Reduced motion leaves them where they start.
- */
 const useLiveReadings = (visible: boolean) => {
   const [live, setLive] = useState(START)
 
@@ -263,13 +230,6 @@ const useLiveReadings = (visible: boolean) => {
   return live
 }
 
-/* ---------- gauges ---------- */
-
-/**
- * The small top-half dial in the stat tiles: a track split into quarters, a
- * needle, and whatever fill or zone the metric needs underneath it. Hovering
- * it brings up the reading on the arc where the needle points.
- */
 const MiniDial = ({
   value,
   min = 0,
@@ -296,7 +256,6 @@ const MiniDial = ({
   >
     <GaugeTrack width={40} cap="butt" />
     {children}
-    {/* Notches in the card's own colour cut the band into segments. */}
     <GaugeMarks
       count={4}
       length={44}
@@ -310,7 +269,6 @@ const MiniDial = ({
   </Gauge>
 )
 
-/** Total CPU on a full dial, the busy arc split into user and kernel time. */
 const CpuDial = ({ busy, kernel }: { busy: number; kernel: number }) => (
   <Gauge
     value={busy}
@@ -344,7 +302,6 @@ const CpuDial = ({ busy, kernel }: { busy: number; kernel: number }) => (
   </Gauge>
 )
 
-/** One core: a ring that fills with its load, the reading in the middle. */
 const CoreDial = ({ index, value }: { index: number; value: number }) => (
   <Gauge
     value={value}
@@ -370,10 +327,6 @@ const CoreDial = ({ index, value }: { index: number; value: number }) => (
   </Gauge>
 )
 
-/**
- * Memory on a three-quarter ring, the used arc stacked from wired through app
- * to cache, with swap as a thin ring inside it.
- */
 const MemoryDial = ({
   wired,
   app,
@@ -419,10 +372,6 @@ const MemoryDial = ({
   </Gauge>
 )
 
-/**
- * Throughput on a half dial: the needle reads download off the scale, and an
- * inner arc fills with upload against the same link speed.
- */
 const NetworkDial = ({ rx, tx }: { rx: number; tx: number }) => (
   <Gauge
     value={rx}
@@ -454,7 +403,6 @@ const NetworkDial = ({ rx, tx }: { rx: number; tx: number }) => (
   </Gauge>
 )
 
-/** One volume's fill on a half dial, darkening once it passes 90%. */
 const VolumeDial = ({ used }: { used: number }) => (
   <Gauge
     value={used}
@@ -473,7 +421,6 @@ const VolumeDial = ({ used }: { used: number }) => (
   </Gauge>
 )
 
-/** A process's CPU as a solid ring small enough to sit in a table row. */
 const ProcessRing = ({ cpu }: { cpu: number }) => (
   <Gauge
     value={cpu}
@@ -489,28 +436,18 @@ const ProcessRing = ({ cpu }: { cpu: number }) => (
   </Gauge>
 )
 
-/** A day's tone: clean days quiet, degraded ones stronger, and an outage in
-    the strongest tone on the face, as every alert here is. */
 const dayColor = (uptime: number) =>
   uptime >= 99.9 ? fadeColor(MUTED, 40) : uptime >= 99 ? MUTED : ALERT
 
 const dayStatus = (uptime: number) =>
   uptime >= 99.9 ? "No incidents" : uptime >= 99 ? "Degraded" : "Outage"
 
-/** Bar length in SVG units: long, so a wide row draws near its own size. */
 const UPTIME_LENGTH = 900
 
-/**
- * A service's last ninety days, a tick a day as on a status page. The day
- * under the pointer stays bright while the rest dim, and the tooltip pins
- * to it with that day's status.
- */
 const UptimeBar = ({ history }: { history: number[] }) => {
   const [hover, setHover] = useState<number | null>(null)
   const last = history.length - 1
 
-  /* The day under the pointer, read through the SVG's own transform so the
-     bar's padding and scaling need no knowing. */
   const pick = (e: PointerEvent<SVGSVGElement>) => {
     const ctm = e.currentTarget.getScreenCTM()
     if (!ctm) return
@@ -559,13 +496,10 @@ const UptimeBar = ({ history }: { history: number[] }) => {
   )
 }
 
-/* ---------- layout ---------- */
-
 const Caption = ({ children }: { children: ReactNode }) => (
   <span className="text-xs text-muted-foreground tabular-nums">{children}</span>
 )
 
-/** A stat tile: label and figure on the left, a small gauge right. */
 const Stat = ({
   label,
   value,
@@ -578,8 +512,6 @@ const Stat = ({
   children: ReactNode
 }) => (
   <Card size="sm" className="shadow-none">
-    {/* The caption runs under the gauge too, so a narrow tile keeps it on
-        one line. */}
     <CardContent className="grid grid-cols-[1fr_auto] items-start gap-x-2 gap-y-1">
       <div className="flex min-w-0 flex-col gap-1">
         <span className="truncate text-xs text-muted-foreground">{label}</span>
@@ -626,7 +558,6 @@ const Panel = ({
   </Card>
 )
 
-/** A legend swatch in one of the dial's tones. */
 const Swatch = ({
   color,
   opacity = 1,
@@ -666,7 +597,6 @@ const networkConfig = {
   tx: { label: "Upload", color: MUTED },
 } satisfies ChartConfig
 
-/** A rolling chart that shifts with every sample instead of re-animating. */
 const Rolling = ({
   config,
   data,
@@ -709,19 +639,11 @@ const gb = (value: number) => `${value.toFixed(1)} GB`
 const pct = (value: number) => `${Math.round(value)}%`
 const mbps = (value: number) => `${Math.round(value)} Mb/s`
 
-/**
- * A server monitor built mostly from gauges: needles on the sensor tiles, a
- * CPU dial beside a ring per core, memory stacked on one ring with swap
- * inside it, network on a twin half dial, and a dial per volume, with a
- * top-style process list whose CPU sits in tiny rings.
- */
 export const MonitorDashboard = () => {
   const frame = useRef<HTMLDivElement>(null)
   const live = useLiveReadings(useInView(frame))
 
   const busy = mean(live.cores)
-  /* The sensors follow the load: the package warms with it, and the fan
-     spins up once it passes 45 °C. */
   const temp = 34 + busy * 0.55
   const fan = Math.round((1200 + Math.max(0, temp - 45) * 110) / 10) * 10
   const used = live.wired + live.app + live.cached
