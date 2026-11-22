@@ -34,6 +34,26 @@ export const polar = (radius: number, angle: number) => {
 
 const round = (n: number) => Math.round(n * 1000) / 1000
 
+/**
+ * Inverse of `polar`: the gauge angle, in [0, 360), of the direction `x`
+ * right and `y` down, as on screen or in SVG.
+ */
+export const screenToGaugeDegrees = (x: number, y: number) => {
+  const theta = (Math.atan2(y, x) * 180) / Math.PI
+  return (((theta - 90) % 360) + 360) % 360
+}
+
+/**
+ * The shortest turn from angle `from` to angle `to`, in degrees: positive
+ * clockwise, negative anticlockwise, in [-180, 180). Crossing six o'clock
+ * from 350° to 10° is a turn of 20°, not -340°.
+ */
+export const signedTurn = (from: number, to: number) =>
+  ((((to - from) % 360) + 540) % 360) - 180
+
+/** How far apart two angles are round the circle, in [0, 180]. */
+export const turnBetween = (a: number, b: number) => Math.abs(signedTurn(b, a))
+
 /** Linear map of a value in [min, max] onto the arc [startAngle, endAngle]. */
 export const valueToAngle = (
   value: number,

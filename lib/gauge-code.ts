@@ -1,7 +1,12 @@
+import { RADIUS } from "@/lib/gauge-panels"
 import {
   barPadding,
+  type GaugeDomain,
   type GaugeInsetSpec,
   type GaugeSpec,
+  type BaseGaugeSpec,
+  type LinearDomain,
+  type LinearFrame,
 } from "@/lib/gauge-spec"
 
 class Raw {
@@ -65,10 +70,15 @@ const container = (
     `${indent}</${tag}>`,
   ].join("\n")
 
-const usesZones = (spec: GaugeSpec) =>
-  spec.zones.show || spec.marks.show || (spec.arc.show && spec.arc.colorByZone)
+const marksAtCutoffs = (spec: BaseGaugeSpec) =>
+  spec.marks.show && spec.marks.values === undefined
 
-const zonesConst = (spec: GaugeSpec, name: string) =>
+const usesZones = (spec: BaseGaugeSpec) =>
+  spec.zones.show ||
+  marksAtCutoffs(spec) ||
+  (spec.arc.show && spec.arc.colorByZone)
+
+const zonesConst = (spec: BaseGaugeSpec, name: string) =>
   `const ${name} = [\n${spec.zones.list
     .map((zone, i) => {
       const isLast = i === spec.zones.list.length - 1
@@ -77,10 +87,10 @@ const zonesConst = (spec: GaugeSpec, name: string) =>
     })
     .join("\n")}\n]\n`
 
-const valueType = (spec: GaugeSpec) =>
+const valueType = (spec: BaseGaugeSpec) =>
   spec.rangeFrom === undefined ? "number" : "[number, number]"
 
-const reading = (spec: GaugeSpec, name: string) =>
+const reading = (spec: BaseGaugeSpec, name: string) =>
   spec.rangeFrom === undefined ? name : `${name}[1]`
 
 type Names = {
@@ -89,7 +99,7 @@ type Names = {
 }
 
 const parts = (
-  spec: GaugeSpec,
+  spec: BaseGaugeSpec,
   indent: string,
   used: Set<string>,
   names: Names
@@ -175,7 +185,11 @@ const parts = (
       element(
         "GaugeMarks",
         {
-          values: new Raw(`zoneCutoffs(${names.zones})`),
+          values: new Raw(
+            spec.marks.values
+              ? literal(spec.marks.values)
+              : `zoneCutoffs(${names.zones})`
+          ),
           length: spec.marks.length,
           width: spec.marks.width,
           color: spec.marks.color,
@@ -256,7 +270,7 @@ const parts = (
   }
 
   if (spec.needles.show) {
-    used.add("GaugeNeedle")
+    if (spec.needles.list.length > 0) used.add("GaugeNeedle")
     for (const needle of spec.needles.list) {
       body.push(
         element(
@@ -269,8 +283,8 @@ const parts = (
             tail: needle.tail,
             tailColor:
               needle.tailColor === needle.color ? undefined : needle.tailColor,
-            tailDot: needle.tailDot > 0 ? needle.tailDot : undefined,
-            gap: needle.gap > 0 ? needle.gap : undefined,
+            tailDot: needle.tailDot,
+            gap: needle.gap,
             turns: needle.turns === 1 ? undefined : needle.turns,
           },
           indent
@@ -368,17 +382,17 @@ const parts = (
   }
 
   if (spec.arc.show && spec.arc.colorByZone) used.add("zoneColor")
-  if (spec.marks.show) used.add("zoneCutoffs")
+  if (marksAtCutoffs(spec)) used.add("zoneCutoffs")
 
   return body
 }
 
-const paddingProp = (domain: GaugeSpec["domain"]) =>
+const paddingProp = (domain: LinearDomain & LinearFrame) =>
   domain.padding === domain.ends
     ? domain.padding
     : new Raw(literal(barPadding(domain)))
 
-const geometry = (domain: GaugeSpec["domain"]) =>
+const geometry = (domain: GaugeDomain) =>
   domain.shape === "linear"
     ? {
         orientation:
@@ -409,7 +423,7 @@ const insetElement = (
       max: domain.max,
       ...geometry(domain),
       radius:
-        domain.shape === "linear" || domain.radius === 200
+        domain.shape === "linear" || domain.radius === RADIUS
           ? undefined
           : domain.radius,
       transition: inset.spec.transition
@@ -492,12 +506,7 @@ export const gaugeToCode = (spec: GaugeSpec) => {
           {
             value: new Raw("value"),
             onChange: new Raw("onChange"),
-            min: domain.min,
-            max: domain.max,
             step: control.step,
-            ...(linear
-              ? { orientation: domain.orientation, length: domain.length }
-              : { startAngle: domain.startAngle, endAngle: domain.endAngle }),
             label: spec.title.show ? spec.title.text : "Value",
             knob: control.knob || undefined,
           },

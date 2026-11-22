@@ -161,14 +161,16 @@ const useGaugeReading = ({
           ? ends(initialValue)
           : [undefined, settle(initialValue[1])]
 
-  const shown = useAnimatedValue(target, transition, span, initialTo, wrap)
-  const shownFrom = useAnimatedValue(
-    targetFrom,
-    transition,
+  const shown = useAnimatedValue(target, transition, {
     span,
-    range ? initialFrom : undefined,
-    wrap
-  )
+    initial: initialTo,
+    wrap,
+  })
+  const shownFrom = useAnimatedValue(targetFrom, transition, {
+    span,
+    initial: range ? initialFrom : undefined,
+    wrap,
+  })
 
   return {
     value: wrap ? fold(shown) : shown,
@@ -196,13 +198,10 @@ export const useGaugeContextValue = ({
   ...domain
 }: GaugeDomainProps): GaugeContextValue & GaugeRoundShape => {
   const reading = useGaugeReading(domain)
-  const turned = useAnimatedValue(
-    rotate,
-    domain.transition,
-    360,
-    undefined,
-    true
-  )
+  const turned = useAnimatedValue(rotate, domain.transition, {
+    span: 360,
+    wrap: true,
+  })
   const a0 = startAngle + turned
   const a1 = endAngle + turned
   const angleOf = (v: number) =>

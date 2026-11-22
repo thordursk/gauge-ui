@@ -16,24 +16,30 @@ const shortestDelta = (delta: number, span: number) => {
   return ((((delta + s / 2) % s) + s) % s) - s / 2
 }
 
+export type AnimatedValueOptions = {
+  /** Size of the domain, which sets how near the target counts as at rest. */
+  span: number
+  /** Where the value starts on mount, for a sweep-in from the minimum.
+      Defaults to the target. */
+  initial?: number
+  /**
+   * Treat the domain as circular: every change is followed the shortest way
+   * round, so a heading crossing north never swings the long way back. The
+   * returned value may then sit outside the domain mid-flight; map it back
+   * with a modulo.
+   */
+  wrap?: boolean
+}
+
 /**
  * Follows `target` with the given transition and returns the value to draw
  * this frame. With no transition it returns `target` as is and renders
  * nothing extra. Honours `prefers-reduced-motion` by snapping.
- *
- * `span` is the size of the domain and sets the rest threshold. `initial` is
- * where the value starts on mount, for a sweep-in from the minimum. `wrap`
- * treats the domain as circular: every change is followed the shortest way
- * round, so a heading crossing north never swings the long way back. The
- * returned value may then sit outside the domain mid-flight; map it back
- * with a modulo.
  */
 export const useAnimatedValue = (
   target: number,
   transition: GaugeTransition | boolean | undefined,
-  span: number,
-  initial?: number,
-  wrap?: boolean
+  { span, initial, wrap = false }: AnimatedValueOptions
 ) => {
   const enabled = Boolean(transition)
   const [display, setDisplay] = useState(initial ?? target)

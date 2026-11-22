@@ -38,9 +38,17 @@ export const WINDOW = [25, 30] as const
 
 export const STEAM_BAND = [1.2, 1.5] as const
 
+export const GRIND_MIN = 1
+export const GRIND_MAX = 20
+
 const PREINFUSION = 6
 const PREINFUSION_PRESSURE = 3
 const BREW_PRESSURE = 9
+
+const band = (pressure: number) => [pressure - 1, pressure + 1] as const
+
+export const PREINFUSION_BAND = band(PREINFUSION_PRESSURE)
+export const BREW_BAND = band(BREW_PRESSURE)
 
 const PUMP_FLOW = 4
 
@@ -77,7 +85,8 @@ const approach = (value: number, target: number, rate: number, dt: number) =>
 
 const resistance = (recipe: Recipe, wear: number) =>
   RESISTANCE *
-  GRIND_STEP ** (DEFAULT_RECIPE.grind - recipe.grind) *
+  GRIND_STEP **
+    (DEFAULT_RECIPE.grind - clamp(recipe.grind, GRIND_MIN, GRIND_MAX)) *
   (recipe.dose / DEFAULT_RECIPE.dose) ** 1.5 *
   wear
 

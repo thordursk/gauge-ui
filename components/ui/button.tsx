@@ -8,7 +8,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "border-primary bg-primary bg-linear-to-b from-white/15 to-transparent text-primary-foreground shadow-[inset_0_1px_0_0_rgb(255_255_255/0.2),inset_0_-1px_0_0_rgb(0_0_0/0.2),0_1px_2px_0_rgb(0_0_0/0.3)] hover:bg-primary/90 active:not-aria-[haspopup]:shadow-[inset_0_1px_2px_0_rgb(0_0_0/0.25)] dark:border-white/60 dark:from-white/70 dark:shadow-[inset_0_1px_0_0_rgb(255_255_255/0.9),inset_0_-1px_0_0_rgb(0_0_0/0.12),0_1px_2px_0_rgb(0_0_0/0.6),0_2px_6px_-1px_rgb(0_0_0/0.5)] dark:hover:bg-primary/85 dark:active:not-aria-[haspopup]:shadow-[inset_0_1px_2px_0_rgb(0_0_0/0.3)]",
+          "border-primary bg-primary bg-linear-to-b from-white/15 to-transparent text-primary-foreground shadow-button-raised hover:bg-primary/90 active:not-aria-[haspopup]:shadow-button-pressed dark:border-white/60 dark:from-white/70 dark:shadow-button-raised-dark dark:hover:bg-primary/85 dark:active:not-aria-[haspopup]:shadow-button-pressed-dark",
         outline:
           "border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:bg-transparent dark:hover:bg-input/30",
         secondary:

@@ -1,4 +1,6 @@
 import {
+  NO_PAINT,
+  RADIUS,
   defaultPanelValues,
   resolvePanelValues,
   type PanelUpdates,
@@ -6,8 +8,8 @@ import {
 import {
   hostLayer,
   layerName,
-  specFromLayers,
-  type GaugeLayer,
+  specOf,
+  type Composition,
 } from "@/lib/gauge-layers"
 
 export type TemplateInset = {
@@ -25,13 +27,30 @@ export const templateCategories = [
 
 export type TemplateCategory = (typeof templateCategories)[number]["id"]
 
-export type GaugeTemplate = {
+type DialCategory = Exclude<TemplateCategory, "composed" | "bars">
+
+type TemplateSource = {
   id: string
   name: string
-  category: TemplateCategory
+  category?: DialCategory
   values: PanelUpdates
   insets?: TemplateInset[]
 }
+
+export type GaugeTemplate = Omit<TemplateSource, "category"> & {
+  category: TemplateCategory
+}
+
+const categoryOf = ({
+  values,
+  insets,
+  category = "arcs",
+}: TemplateSource): TemplateCategory =>
+  values.gauge?.shape === "linear"
+    ? "bars"
+    : insets?.length
+      ? "composed"
+      : category
 
 const token = (name: string) => ({ token: name })
 
@@ -99,6 +118,7 @@ const sprintRing = (
     label: `${done} of ${total} tasks`,
     unit: "%",
     position: "value",
+    side: x < 0 ? "left" : "right",
   },
   text: {
     value: { show: false },
@@ -141,41 +161,45 @@ const planetOrbit = (
   text: { value: { show: false }, unit: { show: false } },
 })
 
+type MarksUpdates = NonNullable<PanelUpdates["cutoffs"]>["marks"]
+
+const marksAt = (
+  values: number[],
+  marks: MarksUpdates
+): PanelUpdates["cutoffs"] => ({
+  show: true,
+  band: { show: false },
+  marks: {
+    show: true,
+    values: values.join(", "),
+    offset: 0,
+    cap: "butt",
+    ...marks,
+  },
+})
+
 const quarterCuts = (
   min: number,
   max: number,
   length: number
 ): PanelUpdates["cutoffs"] => {
   const at = (t: number) => min + (max - min) * t
-  return {
-    show: true,
-    count: 4,
-    zone1: { to: at(0.25) },
-    zone2: { to: at(0.5) },
-    zone3: { to: at(0.75) },
-    band: { opacity: 0 },
-    marks: {
-      show: true,
-      length,
-      width: 4,
-      offset: 0,
-      cap: "butt",
-      color: token("background"),
-    },
-  }
+  return marksAt([at(0.25), at(0.5), at(0.75)], {
+    length,
+    width: 4,
+    color: token("background"),
+  })
 }
 
 const markAt = (
   at: number,
   length: number,
   color: ReturnType<typeof token>
-): PanelUpdates["cutoffs"] => ({
-  show: true,
-  count: 2,
-  zone1: { to: at },
-  band: { opacity: 0 },
-  marks: { show: true, length, width: 3, offset: 0, cap: "butt", color },
-})
+): PanelUpdates["cutoffs"] => marksAt([at], { length, width: 3, color })
+
+const BAND_WIDTH = 36
+const BAND_MARGIN = 8
+const OUTER_BAND_X = 0.75
 
 const spectrumBand = (db: number, x?: number): PanelUpdates => ({
   gauge: {
@@ -194,8 +218,8 @@ const spectrumBand = (db: number, x?: number): PanelUpdates => ({
     fill: {
       show: true,
       count: 20,
-      length: 36,
-      litLength: 36,
+      length: BAND_WIDTH,
+      litLength: BAND_WIDTH,
       width: 6,
       cap: "butt",
       color: token("foreground"),
@@ -209,7 +233,14 @@ const spectrumBand = (db: number, x?: number): PanelUpdates => ({
   },
 })
 
-const templates: GaugeTemplate[] = [
+const CABIN_TICKS = { length: 6, offset: -34 }
+const CABIN_DOT = 5
+const CABIN_DOT_CLEARANCE = 12
+
+const SPEED_SWEEP = { startAngle: 40, endAngle: 320 }
+const FUEL_GAP = 6
+
+const templates: TemplateSource[] = [
   {
     id: "simple",
     name: "Simple",
@@ -446,13 +477,21 @@ const templates: GaugeTemplate[] = [
         minor: {
           show: true,
           count: 60,
-          length: 6,
+          ...CABIN_TICKS,
           width: 1.5,
-          offset: -34,
           opacity: 0.5,
         },
       },
-      dot: { show: true, radius: 5, offset: -54, color: token("foreground") },
+      dot: {
+        show: true,
+        radius: CABIN_DOT,
+        offset:
+          CABIN_TICKS.offset -
+          CABIN_TICKS.length / 2 -
+          CABIN_DOT_CLEARANCE -
+          CABIN_DOT,
+        color: token("foreground"),
+      },
       text: {
         value: { fontSize: 84, decimals: 1 },
         unit: {
@@ -1109,28 +1148,11 @@ const templates: GaugeTemplate[] = [
         track: { width: 30, cap: "butt" },
         arc: { width: 30, color: token("foreground"), cap: "butt" },
       },
-      cutoffs: {
-        show: true,
-        count: 2,
-        zone1: { to: 80, color: token("muted") },
-        zone2: { color: token("muted") },
-        band: {
-          width: 30,
-          offset: 0,
-          gap: 0,
-          cap: "butt",
-          endCap: "butt",
-          opacity: 0,
-        },
-        marks: {
-          show: true,
-          length: 46,
-          width: 5,
-          offset: 0,
-          cap: "butt",
-          color: token("foreground"),
-        },
-      },
+      cutoffs: marksAt([80], {
+        length: 46,
+        width: 5,
+        color: token("foreground"),
+      }),
       text: {
         value: {
           fontSize: 92,
@@ -1419,7 +1441,6 @@ const templates: GaugeTemplate[] = [
   {
     id: "chronograph",
     name: "Chronograph",
-    category: "composed",
     values: {
       gauge: { min: 0, max: 60, startAngle: 180, endAngle: 540 },
       value: { value: 42 },
@@ -1524,9 +1545,8 @@ const templates: GaugeTemplate[] = [
   {
     id: "speed-fuel",
     name: "Speed & fuel",
-    category: "composed",
     values: {
-      gauge: { min: 0, max: 240, startAngle: 40, endAngle: 320 },
+      gauge: { min: 0, max: 240, ...SPEED_SWEEP },
       value: { value: 128 },
       arcs: { track: { show: false }, arc: { show: false } },
       cutoffs: {
@@ -1592,8 +1612,8 @@ const templates: GaugeTemplate[] = [
           gauge: {
             min: 0,
             max: 100,
-            startAngle: 326,
-            endAngle: 394,
+            startAngle: SPEED_SWEEP.endAngle + FUEL_GAP,
+            endAngle: SPEED_SWEEP.startAngle + 360 - FUEL_GAP,
             placement: { position: { x: 0, y: 0 }, scale: 1 },
           },
           value: { value: 38 },
@@ -1647,7 +1667,6 @@ const templates: GaugeTemplate[] = [
   {
     id: "nested-rings",
     name: "Nested rings",
-    category: "composed",
     values: {
       gauge: { min: 0, max: 100, startAngle: 180, endAngle: 540 },
       value: { value: 72 },
@@ -1715,7 +1734,6 @@ const templates: GaugeTemplate[] = [
   {
     id: "sprint",
     name: "Sprint",
-    category: "composed",
     values: {
       gauge: { min: 0, max: 100, startAngle: 180, endAngle: 540 },
       value: { value: 0 },
@@ -1738,7 +1756,6 @@ const templates: GaugeTemplate[] = [
   {
     id: "system",
     name: "System",
-    category: "composed",
     values: {
       gauge: { min: 0, max: 100, startAngle: 90, endAngle: 270 },
       value: { value: 64 },
@@ -1782,12 +1799,11 @@ const templates: GaugeTemplate[] = [
   {
     id: "orrery",
     name: "Orrery",
-    category: "composed",
     values: {
       ...planetOrbit(0, 65, 7),
       needle: {
         show: true,
-        needle1: { style: "line", length: 0.1, width: 1, tail: 0 },
+        count: 0,
         hub: { radius: 24, color: token("foreground") },
       },
       text: {
@@ -1805,7 +1821,6 @@ const templates: GaugeTemplate[] = [
   {
     id: "throttle",
     name: "Throttle",
-    category: "bars",
     values: {
       gauge: { shape: "linear", min: 0, max: 100, padding: 64, ends: 28 },
       value: { value: 72 },
@@ -1844,7 +1859,6 @@ const templates: GaugeTemplate[] = [
   {
     id: "tank",
     name: "Tank",
-    category: "bars",
     values: {
       gauge: {
         shape: "linear",
@@ -1886,7 +1900,6 @@ const templates: GaugeTemplate[] = [
   {
     id: "rev-tape",
     name: "Rev tape",
-    category: "bars",
     values: {
       gauge: { shape: "linear", min: 4, max: 12, padding: 72, ends: 16 },
       value: { value: 9.4 },
@@ -1897,7 +1910,7 @@ const templates: GaugeTemplate[] = [
       cutoffs: {
         show: true,
         count: 2,
-        zone1: { to: 11, color: token("background") },
+        zone1: { to: 11, color: token(NO_PAINT) },
         zone2: { color: token("foreground") },
         band: { width: 5, offset: 18, gap: 0, cap: "butt", endCap: "butt" },
       },
@@ -1942,7 +1955,6 @@ const templates: GaugeTemplate[] = [
   {
     id: "shift-lights",
     name: "Shift lights",
-    category: "bars",
     values: {
       gauge: { shape: "linear", min: 9, max: 12, padding: 24, ends: 16 },
       value: { value: 11.1 },
@@ -1968,7 +1980,6 @@ const templates: GaugeTemplate[] = [
   {
     id: "delta",
     name: "Delta",
-    category: "bars",
     values: {
       gauge: { shape: "linear", min: -1, max: 1, padding: 64, ends: 28 },
       value: { value: -0.32 },
@@ -2012,24 +2023,26 @@ const templates: GaugeTemplate[] = [
   {
     id: "equaliser",
     name: "Equaliser",
-    category: "bars",
     values: {
       ...spectrumBand(-26),
-      gauge: { ...spectrumBand(-26).gauge, padding: 176, ends: 8 },
+      gauge: {
+        ...spectrumBand(-26).gauge,
+        padding: OUTER_BAND_X * RADIUS + BAND_WIDTH / 2 + BAND_MARGIN,
+        ends: BAND_MARGIN,
+      },
     },
     insets: [
-      { name: "sub", values: spectrumBand(-22, -0.75) },
+      { name: "sub", values: spectrumBand(-22, -OUTER_BAND_X) },
       { name: "bass", values: spectrumBand(-14, -0.5) },
       { name: "lowMid", values: spectrumBand(-20, -0.25) },
       { name: "highMid", values: spectrumBand(-31, 0.25) },
       { name: "presence", values: spectrumBand(-38, 0.5) },
-      { name: "air", values: spectrumBand(-46, 0.75) },
+      { name: "air", values: spectrumBand(-46, OUTER_BAND_X) },
     ],
   },
   {
     id: "eq-fader",
     name: "EQ fader",
-    category: "bars",
     values: {
       gauge: {
         shape: "linear",
@@ -2089,24 +2102,32 @@ const templates: GaugeTemplate[] = [
   },
 ]
 
+const shelved = templates.map((template) => ({
+  ...template,
+  category: categoryOf(template),
+}))
+
 export const gaugeTemplates: GaugeTemplate[] = templateCategories.flatMap(
-  ({ id }) => templates.filter((template) => template.category === id)
+  ({ id }) => shelved.filter((template) => template.category === id)
 )
 
-export const templateLayers = (
+export const templateComposition = (
   template: GaugeTemplate | null
-): GaugeLayer[] => [
-  hostLayer(
+): Composition => ({
+  host: hostLayer(
     template ? resolvePanelValues(template.values) : defaultPanelValues()
   ),
-  ...(template?.insets ?? []).map((inset) => ({
+  insets: (template?.insets ?? []).map((inset) => ({
     id: inset.name,
     name: layerName(inset.name),
     values: resolvePanelValues(inset.values),
   })),
-]
+})
 
 export const templatePreview = (template: GaugeTemplate) => {
-  const layers = templateLayers(template)
-  return { spec: specFromLayers(layers), value: layers[0].values.value.value }
+  const composition = templateComposition(template)
+  return {
+    spec: specOf(composition),
+    value: composition.host.values.value.value,
+  }
 }

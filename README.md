@@ -75,13 +75,14 @@ export function Speed({ value }: { value: number }) {
 | `GaugeTrack` | Background arc across the whole sweep |
 | `GaugeArc` | Filled arc anchored at `from`, growing either way to the current value or `to`; `reverse` grows it back from the end, `wrap` carries it past the seam of a closed ring |
 | `GaugeStack` | The value arc split into parts that sweep as one, by `weight` shares or fixed `to` cutoffs |
-| `GaugeZones` | Coloured bands between zone cutoffs |
+| `GaugeZones` | Coloured bands between zone cutoffs. A zone painted `"none"` is left undrawn, so a band can cover only part of the domain |
 | `GaugeTicks` | Evenly spaced tick marks |
 | `GaugeTickFill` | Ticks as the fill: those between the ends of the value or range are lit, the rest dim, or with `mode="nearest"` only the tick at each end. Lit and dim colours can be functions of the value |
 | `GaugeMarks` | Marks at arbitrary values, or at the `count` equal cuts of the domain |
+| `GaugeDots` | Round dots at evenly spaced values, or at arbitrary `values`: watch-face indices, a ring of LEDs |
 | `GaugeTickLabels` | Numeric, compass or clock labels along the arc |
 | `GaugeNeedle` | Line, pointer, compass or arrow needle |
-| `GaugeHub` | Centre cap for the needle |
+| `GaugeHub` | Disc at the centre: the needles' pivot, or on its own a centre cap |
 | `GaugeDot` | A disc riding the arc at the current value, with an optional `halo` to stand it off a band |
 | `GaugeTooltip` | An HTML tooltip shown on hover, pinned to the value, the pointer or a fixed spot on the dial: the value with a label and unit by default, or any content you give it |
 | `GaugeValue` | Formatted current value |
@@ -90,6 +91,24 @@ export function Speed({ value }: { value: number }) {
 | `GaugeControl` | Wraps a gauge as an accessible slider: drag round the ring, turn the face with `knob`, or use the keyboard to set its value |
 
 `Gauge` and `GaugeInset` also take `wrap`, which treats the domain as circular so a heading animates the shortest way round, and `rotate`, which turns the whole scale under a fixed pointer the way a compass card turns.
+
+## Controls
+
+`GaugeControl` turns the gauge inside it into a slider. It takes the value, `onChange`, a `label` and `step`; the domain, angles, orientation, length and `wrap` all come from the gauge, so they're set once, on the gauge.
+
+```tsx
+<GaugeControl value={volume} onChange={setVolume} step={1} knob label="Volume">
+  <Gauge value={volume} min={0} max={100} startAngle={40} endAngle={320}>
+    <GaugeTrack />
+    <GaugeArc />
+    <GaugeDot offset={-70} />
+  </Gauge>
+</GaugeControl>
+```
+
+- The gauge can sit directly inside the control or inside a component of your own. Wrap exactly one gauge; insets inside it aren't controlled.
+- `min` and `max` on the control are optional limits inside the gauge's domain, for a slider that stops short of its scale: a dimmer drawn from 0 that never goes below 1 takes `min={1}`.
+- A press in the middle of the face, or Enter, calls `onPress`. With `knob`, a drag on the face turns the value from where it is instead.
 
 ## Bars
 
@@ -108,7 +127,7 @@ export function Speed({ value }: { value: number }) {
 - The bar is `length` SVG units long (default 400) and centred on the origin. A horizontal bar runs left to right. A vertical bar runs bottom to top.
 - `offset` moves a part outward, the same as on a dial: up from a horizontal bar, or left of a vertical one. Use a negative offset for labels below or to the right.
 - `padding` takes one number, or `{ top, right, bottom, left }` for a different amount on each side. The SVG gets a matching `aspect-ratio`, so a horizontal bar fills its width and a vertical bar fills its height.
-- `GaugeControl` takes `orientation` (and `length`, if it isn't 400) to work as a slider along the bar. `LinearGaugeInset` puts a bar inside another gauge.
+- `GaugeControl` round a `LinearGauge` works as a slider along the bar. `LinearGaugeInset` puts a bar inside another gauge.
 - On a `wrap` domain, a range that runs past the end of the bar continues from its start.
 
 ## Ranges
@@ -133,7 +152,7 @@ Pass a `[from, to]` pair as `value` to show a span of the domain instead of a si
 - `GaugeValue` and `GaugeTooltip` show both ends, joined by `separator` (default `–`), with `format` applied to each. The tooltip points at the middle of the range. `GaugeValue` takes `end` to show just one end.
 - `GaugeControl` gets two thumbs. A press on the ring moves the nearer one, and each thumb can be tabbed to and moved with the keys on its own. Name them with `thumbLabels`, and pass one `valueText` per end. With `knob`, turning the face moves the whole range and keeps its width.
 
-`GaugeTicks`, `GaugeMarks` and `GaugeTickLabels` take a function as `color`, called with each mark's value, so marks inside a range can stand out: `color={(v) => (v >= 50 && v <= 70 ? "green" : "gray")}`.
+`GaugeTicks`, `GaugeMarks`, `GaugeDots` and `GaugeTickLabels` take a function as `color`, called with each mark's value, so marks inside a range can stand out: `color={(v) => (v >= 50 && v <= 70 ? "green" : "gray")}`.
 
 `GaugeTickFill` builds a gauge from ticks alone. It ticks the whole sweep and lights the ticks the fill covers, following the value or range the way `GaugeArc` does:
 
@@ -143,7 +162,15 @@ Pass a `[from, to]` pair as `value` to show a span of the domain instead of a si
 <GaugeTickFill count={72} mode="nearest" length={0} litLength={40} dimColor="transparent" />
 ```
 
-On an open domain, the ends are sorted and the control's thumbs stop when they meet. On a `wrap` domain the order matters, because the range runs forward from `from`: `[22, 6]` on a 24-hour ring is the night and `[6, 22]` is the day. Pass `wrap` to `GaugeControl` too, so its thumbs can cross the seam.
+On an open domain, the ends are sorted and the control's thumbs stop when they meet. On a `wrap` domain the order matters, because the range runs forward from `from`: `[22, 6]` on a 24-hour ring is the night and `[6, 22]` is the day. A `GaugeControl` round a wrapped gauge lets its thumbs cross the seam.
+
+`GaugeDots` stands round dots at fixed values the way `GaugeTicks` stands lines: `count` intervals with both ends included (one fewer on a closed ring, where the ends meet), or the `values` you give it. `radius` sizes each dot, and `color` can pick one per dot:
+
+```tsx
+<GaugeDots count={12} radius={6} offset={-20} />
+<GaugeDots values={[0, 3, 6, 9]} radius={10} offset={-20} />
+<GaugeDots count={8} radius={30} offset={-80} color={(v) => (lit(v) ? "white" : "gray")} />
+```
 
 Helpers `zoneColor`, `zoneCutoffs`, `compassLabel`, `clockLabel`, `clockTime`, `durationLabel` and `fadeColor` are exported from the same module and are what the studio's generated code uses.
 
@@ -242,7 +269,7 @@ Value changes are instant by default. Pass `transition` to `Gauge` and every par
 | `duration` | tween | Seconds. Default 0.5 |
 | `ease` | tween | `linear`, `easeIn`, `easeOut`, `easeInOut`, `[x1, y1, x2, y2]` or `(t) => number`. Default `easeInOut` |
 
-Inside custom primitives, `useGauge()` exposes both `value`, the animated figure being drawn this frame, and `target`, the value the gauge is heading for. On a range, `from` and `targetFrom` are the same for its start, and `range` is `true`. The studio's Value panel has the same controls, and the code it generates carries your transition.
+Inside custom primitives, `useGauge()` exposes both `value`, the animated figure being drawn this frame, and `target`, the value the gauge is heading for. On a range, `from` and `targetFrom` are the same for its start, and `range` is `true`. Its `scale` draws along the gauge: `scale.path(from, to)` between two positions, and `scale.wrappedPath(start, length)` for a span that carries on past the end, round a ring or back in at the start of a bar. To animate a value of your own the same way, `useAnimatedValue(target, transition, { span, initial, wrap })` returns the figure to draw this frame. The studio's Value panel has the same controls, and the code it generates carries your transition.
 
 ## Studio
 

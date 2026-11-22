@@ -1,173 +1,140 @@
-import { useEffect, useMemo, useRef, useState } from "react"
-import { useControlPanel } from "@/hooks/use-control-panel"
+import { useEffect, useEffectEvent, useMemo, useState } from "react"
+import { useControlPanel, useControlValue } from "@/hooks/use-control-panel"
 
 import {
   arcsConfig,
   cutoffsConfig,
   domainOf,
   dotConfig,
-  flatValues,
   gaugeConfig,
   needleConfig,
+  panelInputs,
   textPanelConfig,
   ticksConfig,
   tooltipConfig,
   valueConfig,
+  type LayerKind,
   type PanelValues,
   type PlayMode,
 } from "@/lib/gauge-panels"
 import {
   addedLayer,
-  specFromLayers,
+  findLayer,
+  kindOf,
+  mapLayers,
+  specOf,
   withLive,
+  type Composition,
   type GaugeLayer,
 } from "@/lib/gauge-layers"
 import {
   gaugeTemplates,
-  templateLayers,
+  templateComposition,
   type GaugeTemplate,
 } from "@/lib/gauge-templates"
 import { readStored, storageKeys, writeStored } from "@/lib/storage"
 
-const APPLY_PASSES = 3
+const TICKS = ticksConfig()
+const TEXT = textPanelConfig()
+const NEEDLE = needleConfig()
+const DOT = dotConfig()
+const TOOLTIP = tooltipConfig()
 
 export const useGaugeControllers = () => {
   const [activeTemplate, setActiveTemplate] = useState<GaugeTemplate | null>(
     null
   )
-  const [layers, setLayers] = useState<GaugeLayer[]>(() => templateLayers(null))
-  const [selected, setSelected] = useState(0)
-  const [sweepKey, setSweepKey] = useState(0)
-  const kind = selected === 0 ? "host" : "inset"
-
-  const gaugeCtl = useControlPanel(
-    "Gauge",
-    gaugeConfig(flatValues("gauge"), kind),
-    { id: "gauge" }
+  const [composition, setComposition] = useState<Composition>(() =>
+    templateComposition(null)
   )
+  const [selected, setSelected] = useState(composition.host.id)
+  const [mode, setMode] = useState<PlayMode>("manual")
+  const [playIn, setPlayIn] = useState(0)
+  const kind = kindOf(composition, selected)
+
+  const linear = useControlValue("gauge", "shape") === "linear"
+  const range = useControlValue("value", "range") === true
+
+  const gaugeCfg = useMemo(() => gaugeConfig(kind, linear), [kind, linear])
+  const gaugeCtl = useControlPanel("Gauge", gaugeCfg, { id: "gauge" })
   const gauge = gaugeCtl.values
   const { min, max } = domainOf(gauge)
-  const linear = gauge.shape === "linear"
 
-  const valCtl = useControlPanel(
-    "Value",
-    valueConfig(min, max, flatValues("value")),
-    {
-      id: "value",
-    }
+  const valueCfg = useMemo(
+    () => valueConfig(min, max, range),
+    [min, max, range]
   )
+  const valCtl = useControlPanel("Value", valueCfg, { id: "value" })
   const val = valCtl.values
 
-  const arcsCtl = useControlPanel(
-    "Track & arc",
-    arcsConfig(flatValues("arcs"), linear),
-    { id: "arcs" }
-  )
+  const arcsCfg = useMemo(() => arcsConfig(linear), [linear])
+  const arcsCtl = useControlPanel("Track & arc", arcsCfg, { id: "arcs" })
   const arcs = arcsCtl.values
 
-  const cutoffsCtl = useControlPanel(
-    "Cutoffs",
-    cutoffsConfig(min, max, flatValues("cutoffs")),
-    { id: "cutoffs", defaultCollapsed: true }
-  )
+  const cutoffsCfg = useMemo(() => cutoffsConfig(min, max), [min, max])
+  const cutoffsCtl = useControlPanel("Cutoffs", cutoffsCfg, {
+    id: "cutoffs",
+    defaultCollapsed: true,
+  })
   const cutoffs = cutoffsCtl.values
 
-  const ticksCtl = useControlPanel("Ticks", ticksConfig(flatValues("ticks")), {
+  const ticksCtl = useControlPanel("Ticks", TICKS, {
     id: "ticks",
     defaultCollapsed: true,
   })
   const ticks = ticksCtl.values
 
-  const textCtl = useControlPanel("Text", textPanelConfig(flatValues("text")), {
-    id: "text",
-  })
+  const textCtl = useControlPanel("Text", TEXT, { id: "text" })
   const text = textCtl.values
 
-  const needleCtl = useControlPanel(
-    "Needle",
-    needleConfig(flatValues("needle")),
-    { id: "needle", defaultCollapsed: true, hidden: linear }
-  )
+  const needleCtl = useControlPanel("Needle", NEEDLE, {
+    id: "needle",
+    defaultCollapsed: true,
+    hidden: linear,
+  })
   const needle = needleCtl.values
 
-  const dotCtl = useControlPanel("Dot", dotConfig(flatValues("dot")), {
+  const dotCtl = useControlPanel("Dot", DOT, {
     id: "dot",
     defaultCollapsed: true,
   })
   const dot = dotCtl.values
 
-  const tooltipCtl = useControlPanel("Tooltip", tooltipConfig(), {
+  const tooltipCtl = useControlPanel("Tooltip", TOOLTIP, {
     id: "tooltip",
     defaultCollapsed: true,
   })
   const tooltip = tooltipCtl.values
 
-  const controllers = {
-    gauge: gaugeCtl,
-    value: valCtl,
-    arcs: arcsCtl,
-    cutoffs: cutoffsCtl,
-    ticks: ticksCtl,
-    text: textCtl,
-    needle: needleCtl,
-    dot: dotCtl,
-    tooltip: tooltipCtl,
-  }
-
-  const panels = useRef(controllers)
-  useEffect(() => {
-    panels.current = controllers
-  })
-
   const readLive = (): PanelValues => ({
-    gauge: panels.current.gauge.getValues(),
-    value: panels.current.value.getValues(),
-    arcs: panels.current.arcs.getValues(),
-    cutoffs: panels.current.cutoffs.getValues(),
-    ticks: panels.current.ticks.getValues(),
-    text: panels.current.text.getValues(),
-    needle: panels.current.needle.getValues(),
-    dot: panels.current.dot.getValues(),
-    tooltip: panels.current.tooltip.getValues(),
+    gauge: gaugeCtl.getValues(),
+    value: valCtl.getValues(),
+    arcs: arcsCtl.getValues(),
+    cutoffs: cutoffsCtl.getValues(),
+    ticks: ticksCtl.getValues(),
+    text: textCtl.getValues(),
+    needle: needleCtl.getValues(),
+    dot: dotCtl.getValues(),
+    tooltip: tooltipCtl.getValues(),
   })
 
-  const [request, setRequest] = useState<{ values: PanelValues } | null>(null)
-  const [settling, setSettling] = useState(false)
-
-  useEffect(() => {
-    if (!request) return
-    const { gauge, value, arcs, cutoffs, ticks, text, needle, dot, tooltip } =
-      request.values
-    let pass = 0
-    let frame = 0
-
-    const apply = () => {
-      panels.current.gauge.setValues(gauge)
-      panels.current.value.setValues(value)
-      panels.current.arcs.setValues(arcs)
-      panels.current.cutoffs.setValues(cutoffs)
-      panels.current.ticks.setValues(ticks)
-      panels.current.text.setValues(text)
-      panels.current.needle.setValues(needle)
-      panels.current.dot.setValues(dot)
-      panels.current.tooltip.setValues(tooltip)
-      if (++pass < APPLY_PASSES) frame = requestAnimationFrame(apply)
-      else frame = requestAnimationFrame(() => setSettling(false))
-    }
-
-    apply()
-    return () => cancelAnimationFrame(frame)
-  }, [request])
-
-  const load = (layer: GaugeLayer) => {
-    setSettling(true)
-    setRequest({ values: layer.values })
+  const load = ({ values }: GaugeLayer, kind: LayerKind) => {
+    const inputs = panelInputs(values)
+    gaugeCtl.load(values.gauge, gaugeConfig(kind, inputs.linear))
+    valCtl.load(values.value, valueConfig(inputs.min, inputs.max, inputs.range))
+    arcsCtl.load(values.arcs, arcsConfig(inputs.linear))
+    cutoffsCtl.load(values.cutoffs, cutoffsConfig(inputs.min, inputs.max))
+    ticksCtl.load(values.ticks, TICKS)
+    textCtl.load(values.text, TEXT)
+    needleCtl.load(values.needle, NEEDLE, { hidden: inputs.linear })
+    dotCtl.load(values.dot, DOT)
+    tooltipCtl.load(values.tooltip, TOOLTIP)
   }
 
   const current = useMemo(
     () =>
-      layers.map((layer, i) =>
-        i === selected && !settling
+      mapLayers(composition, (layer) =>
+        layer.id === selected
           ? withLive(layer, {
               gauge,
               value: val,
@@ -182,9 +149,8 @@ export const useGaugeControllers = () => {
           : layer
       ),
     [
-      layers,
+      composition,
       selected,
-      settling,
       gauge,
       val,
       arcs,
@@ -197,71 +163,75 @@ export const useGaugeControllers = () => {
     ]
   )
 
-  const spec = useMemo(() => specFromLayers(current), [current])
+  const spec = useMemo(() => specOf(current), [current])
+  const selectedLayer = findLayer(current, selected) ?? current.host
 
-  const stage = current[0].values.gauge.stage
-  const hostValue = current[0].values.value.value
-
-  const store = (list: GaugeLayer[]) =>
-    list.map((layer, i) =>
-      i === selected ? withLive(layer, readLive()) : layer
+  const saved = () =>
+    mapLayers(composition, (layer) =>
+      layer.id === selected ? withLive(layer, readLive()) : layer
     )
 
-  const selectLayer = (index: number) => {
-    if (index === selected || index >= layers.length) return
-    setLayers(store)
-    setSelected(index)
-    load(layers[index])
+  const selectLayer = (id: string) => {
+    if (id === selected) return
+    const next = saved()
+    const layer = findLayer(next, id)
+    if (!layer) return
+    setComposition(next)
+    setSelected(id)
+    load(layer, kindOf(next, id))
   }
 
   const addLayer = () => {
-    const layer = addedLayer(layers)
-    setLayers((list) => [...store(list), layer])
-    setSelected(layers.length)
-    load(layer)
+    const next = saved()
+    const layer = addedLayer(next)
+    setComposition({ ...next, insets: [...next.insets, layer] })
+    setSelected(layer.id)
+    load(layer, "inset")
   }
 
-  const removeLayer = (index = selected) => {
-    if (index === 0 || index >= layers.length) return
-    const rest = store(layers).filter((_, i) => i !== index)
-    setLayers(rest)
-    if (index === selected) {
-      setSelected(0)
-      load(rest[0])
-    } else if (index < selected) {
-      setSelected(selected - 1)
+  const removeLayer = (id = selected) => {
+    if (kindOf(composition, id) === "host") return
+    const next = saved()
+    const rest = {
+      ...next,
+      insets: next.insets.filter((layer) => layer.id !== id),
     }
+    setComposition(rest)
+    if (id !== selected) return
+    setSelected(rest.host.id)
+    load(rest.host, "host")
   }
 
-  const applyLayers = (next: GaugeLayer[]) => {
-    setLayers(next)
-    setSelected(0)
-    setSweepKey((n) => n + 1)
-    load(next[0])
+  const applyComposition = (next: Composition) => {
+    setComposition(next)
+    setSelected(next.host.id)
+    setMode("manual")
+    setPlayIn((n) => n + 1)
+    load(next.host, "host")
   }
 
   const selectTemplate = (template: GaugeTemplate) => {
     writeStored(storageKeys.template, template.id)
     setActiveTemplate(template)
-    applyLayers(templateLayers(template))
+    applyComposition(templateComposition(template))
   }
 
-  const pick = useRef(selectTemplate)
-  useEffect(() => {
-    pick.current = selectTemplate
+  const restoreTemplate = useEffectEvent(() => {
+    const stored = readStored(storageKeys.template)
+    const template = gaugeTemplates.find((t) => t.id === stored)
+    if (template) selectTemplate(template)
   })
 
   useEffect(() => {
-    const stored = readStored(storageKeys.template)
-    const template = gaugeTemplates.find((t) => t.id === stored)
-    if (template) pick.current(template)
+    const frame = requestAnimationFrame(restoreTemplate)
+    return () => cancelAnimationFrame(frame)
   }, [])
 
-  const reset = () => applyLayers(templateLayers(activeTemplate))
+  const reset = () => applyComposition(templateComposition(activeTemplate))
 
   const setValue = (v: number) => {
     valCtl.setValue("value", v)
-    if (val.mode !== "manual") valCtl.setValue("mode", "manual")
+    setMode("manual")
   }
 
   const setRange = ([from, to]: [number, number]) => {
@@ -269,28 +239,21 @@ export const useGaugeControllers = () => {
     setValue(to)
   }
 
-  const setMode = (mode: PlayMode) => {
-    valCtl.setValue("mode", mode)
-    setLayers((list) =>
-      list.map((layer) => ({
-        ...layer,
-        values: { ...layer.values, value: { ...layer.values.value, mode } },
-      }))
-    )
-  }
-
   return {
     spec,
-    stage,
-    hostValue,
-    sweepKey,
-    layers: current,
+    stage: current.host.values.gauge.stage,
+    hostValue: current.host.values.value.value,
+    playIn,
+    composition: current,
     selected,
+    selectedLayer,
+    hostSelected: kind === "host",
     selectLayer,
     addLayer,
     removeLayer,
     value: val,
     domain: { min, max },
+    mode,
     setValue,
     setRange,
     setMode,

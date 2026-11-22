@@ -15,25 +15,23 @@ export const SiteFooter = () => (
           Studio
         </Link>
       </div>
-      <p className="flex items-center gap-2">
+      <p className="flex items-center">
         Built by
-        <span className="flex items-center">
-          <a
-            href="https://x.com/doddiskula"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group/author flex items-center gap-1.5 font-medium text-foreground"
-          >
-            <Avatar size="sm" className="data-[size=sm]:size-5">
-              <AvatarImage src="/doddi.png" alt="" />
-              <AvatarFallback>D</AvatarFallback>
-            </Avatar>
-            <span className="underline-offset-4 group-hover/author:underline">
-              Doddi
-            </span>
-          </a>
-          .
-        </span>
+        <a
+          href="https://x.com/doddiskula"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group/author ml-2 flex items-center gap-1.5 font-medium text-foreground"
+        >
+          <Avatar size="sm" className="data-[size=sm]:size-5">
+            <AvatarImage src="/doddi.png" alt="" />
+            <AvatarFallback>D</AvatarFallback>
+          </Avatar>
+          <span className="underline-offset-4 group-hover/author:underline">
+            Doddi
+          </span>
+        </a>
+        .
       </p>
     </div>
   </footer>

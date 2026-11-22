@@ -24,41 +24,50 @@ import {
   zoneCutoffs,
   type GaugeTransition,
 } from "@/components/gauge"
-import { barPadding, type GaugeSpec } from "@/lib/gauge-spec"
+import {
+  barPadding,
+  type GaugeSpec,
+  type BaseGaugeSpec,
+} from "@/lib/gauge-spec"
 
 type GaugePreviewProps = {
   spec: GaugeSpec
   value: number
   transition?: GaugeTransition | boolean
-  sweepIn?: boolean
+  playIn?: number
   tooltips?: boolean
 }
 
-const SWEEP_TURNS = 0.4
+export const HALF_TURN = 0.5
+export const SWEEP_TURNS = HALF_TURN * 0.8
 
-const sweepFrom = (spec: GaugeSpec, value: number) => {
-  const { min, max } = spec.domain
-  const span = max - min
-  const turns = Math.max(
+export const maxTurns = (spec: BaseGaugeSpec) =>
+  Math.max(
     1,
     ...(spec.needles.show ? spec.needles.list.map((n) => n.turns) : []),
     ...(spec.dot.show ? [spec.dot.turns] : [])
   )
-  const reach = turns > 1 ? (span / turns) * SWEEP_TURNS : span
-  return Math.max(min, value - reach)
+
+export const reachWithinOneSweep = (span: number, turns: number) =>
+  turns > 1 ? (span / turns) * SWEEP_TURNS : span
+
+export const sweepFrom = (spec: BaseGaugeSpec, value: number) => {
+  const { min, max } = spec.domain
+  return Math.max(min, value - reachWithinOneSweep(max - min, maxTurns(spec)))
 }
 
-const valueOf = (spec: GaugeSpec, value: number) =>
+const valueOf = (spec: BaseGaugeSpec, value: number) =>
   spec.rangeFrom === undefined ? value : ([spec.rangeFrom, value] as const)
 
 export const GaugePreview = ({
   spec,
   value,
   transition = spec.transition,
-  sweepIn = false,
+  playIn,
   tooltips = true,
 }: GaugePreviewProps) => {
   const { domain } = spec
+  const sweepIn = playIn !== undefined
   const root = {
     value: valueOf(spec, value),
     min: domain.min,
@@ -116,6 +125,7 @@ export const GaugePreview = ({
 
   return domain.shape === "linear" ? (
     <LinearGauge
+      key={playIn}
       {...root}
       orientation={domain.orientation}
       length={domain.length}
@@ -128,6 +138,7 @@ export const GaugePreview = ({
     </LinearGauge>
   ) : (
     <Gauge
+      key={playIn}
       {...root}
       startAngle={domain.startAngle}
       endAngle={domain.endAngle}
@@ -145,7 +156,7 @@ const GaugeParts = ({
   value,
   tooltips,
 }: {
-  spec: GaugeSpec
+  spec: BaseGaugeSpec
   value: number
   tooltips: boolean
 }) => {
@@ -196,7 +207,7 @@ const GaugeParts = ({
       )}
       {marks.show && (
         <GaugeMarks
-          values={zoneCutoffs(zones.list)}
+          values={marks.values ?? zoneCutoffs(zones.list)}
           length={marks.length}
           width={marks.width}
           color={marks.color}

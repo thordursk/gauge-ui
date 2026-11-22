@@ -4,14 +4,18 @@ import { useRef } from "react"
 
 import { Row } from "@/components/controls/field-controls"
 import {
+  DEFAULT_PAD_AXIS,
   snapToStep,
   stepDecimals,
-  type PadAxis,
   type PadConfig,
   type PadValue,
 } from "@/lib/controls"
 
-const DEFAULT_AXIS: PadAxis = [0, -1, 1, 0.01]
+const DOT_COLUMNS = 21
+const DOT_ROWS = 7
+
+export const screenToPadY = (ty: number) => 1 - ty
+export const padToScreenY = (py: number) => 1 - py
 
 export type PadControlProps = {
   label: string
@@ -20,9 +24,14 @@ export type PadControlProps = {
   onChange: (value: PadValue) => void
 }
 
-export const PadControl = ({ label, pad, value, onChange }: PadControlProps) => {
-  const [, minX, maxX, stepX = 0.01] = pad?.x ?? DEFAULT_AXIS
-  const [, minY, maxY, stepY = 0.01] = pad?.y ?? DEFAULT_AXIS
+export const PadControl = ({
+  label,
+  pad,
+  value,
+  onChange,
+}: PadControlProps) => {
+  const [, minX, maxX, stepX = 0.01] = pad?.x ?? DEFAULT_PAD_AXIS
+  const [, minY, maxY, stepY = 0.01] = pad?.y ?? DEFAULT_PAD_AXIS
 
   const area = useRef<HTMLDivElement>(null)
   const dragging = useRef(false)
@@ -34,7 +43,7 @@ export const PadControl = ({ label, pad, value, onChange }: PadControlProps) => 
     const ty = Math.min(1, Math.max(0, (clientY - rect.top) / rect.height))
     onChange({
       x: snapToStep(minX + tx * (maxX - minX), stepX, minX, maxX),
-      y: snapToStep(minY + (1 - ty) * (maxY - minY), stepY, minY, maxY),
+      y: snapToStep(minY + screenToPadY(ty) * (maxY - minY), stepY, minY, maxY),
     })
   }
 
@@ -72,8 +81,7 @@ export const PadControl = ({ label, pad, value, onChange }: PadControlProps) => 
           dragging.current = false
         }}
         onKeyDown={(e) => {
-          const dx =
-            e.key === "ArrowLeft" ? -1 : e.key === "ArrowRight" ? 1 : 0
+          const dx = e.key === "ArrowLeft" ? -1 : e.key === "ArrowRight" ? 1 : 0
           const dy = e.key === "ArrowDown" ? -1 : e.key === "ArrowUp" ? 1 : 0
           if (!dx && !dy) return
           e.preventDefault()
@@ -87,7 +95,7 @@ export const PadControl = ({ label, pad, value, onChange }: PadControlProps) => 
           style={{
             backgroundImage:
               "radial-gradient(circle, color-mix(in oklab, var(--foreground) 22%, transparent) 1px, transparent 1px)",
-            backgroundSize: "calc(100% / 21) calc(100% / 7)",
+            backgroundSize: `calc(100% / ${DOT_COLUMNS}) calc(100% / ${DOT_ROWS})`,
             backgroundPosition: "center",
             maskImage:
               "radial-gradient(ellipse 70% 70% at center, black 35%, transparent 95%)",
@@ -106,7 +114,7 @@ export const PadControl = ({ label, pad, value, onChange }: PadControlProps) => 
         <div
           aria-hidden
           className="absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground shadow-sm"
-          style={{ left: `${px * 100}%`, top: `${(1 - py) * 100}%` }}
+          style={{ left: `${px * 100}%`, top: `${padToScreenY(py) * 100}%` }}
         />
       </div>
     </div>

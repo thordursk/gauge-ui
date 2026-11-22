@@ -1,16 +1,28 @@
 "use client"
 
 import {
+  createContext,
+  useContext,
   useRef,
   type KeyboardEvent,
   type PointerEvent,
   type ReactNode,
+  type RefObject,
 } from "react"
 
 import { cn } from "@/lib/utils"
-import { angleToValue, clamp, foldValue, valueToAngle } from "./math"
+import {
+  angleToValue,
+  clamp,
+  foldValue,
+  screenToGaugeDegrees,
+  signedTurn,
+  turnBetween,
+} from "./math"
 import type { GaugeRange } from "./context"
 import type { GaugeOrientation } from "./scale"
+
+import { useGauge } from "./context"
 
 const FACE = 0.55
 
@@ -20,9 +32,8 @@ const angleAt = (el: HTMLElement, x: number, y: number) => {
   const box = el.getBoundingClientRect()
   const dx = x - (box.left + box.width / 2)
   const dy = y - (box.top + box.height / 2)
-  const theta = (Math.atan2(dy, dx) * 180) / Math.PI
   return {
-    angle: (((theta - 90) % 360) + 360) % 360,
+    angle: screenToGaugeDegrees(dx, dy),
     reach: Math.hypot(dx, dy) / (box.width / 2),
   }
 }
@@ -39,9 +50,6 @@ const positionAt = (
   return orientation === "vertical" ? -p.y : p.x
 }
 
-const turnBetween = (a: number, b: number) =>
-  Math.abs(((((a - b) % 360) + 540) % 360) - 180)
-
 type Widen<V> = V extends number ? number : [number, number]
 
 export type GaugeControlProps<V extends number | GaugeRange = number> = {
@@ -51,27 +59,17 @@ export type GaugeControlProps<V extends number | GaugeRange = number> = {
   /** A press on the middle of the face, or Enter, for a dial that is also a
       switch. Left out, the middle does nothing. */
   onPress?: () => void
+  /**
+   * Lowest value the control will set, for a slider that stops short of
+   * the gauge's own `min`: a dimmer drawn from 0 that never goes below 1.
+   * Defaults to the gauge's `min`. The pointer still maps onto the gauge's
+   * whole domain. Ignored on a wrapped domain, which carries on round.
+   */
   min?: number
+  /** Highest value the control will set. Defaults to the gauge's `max`. */
   max?: number
   /** Granularity a drag lands on, and the size of an arrow-key step. */
   step?: number
-  /** Gauge degrees, matching the gauge drawn inside. */
-  startAngle?: number
-  endAngle?: number
-  /**
-   * Make the `LinearGauge` inside a slider instead of a round gauge: a
-   * press anywhere along the bar sets the value under it, and a drag
-   * follows the pointer along the bar. Match it to the gauge's own.
-   */
-  orientation?: GaugeOrientation
-  /** Length of the bar in SVG units, matching the `LinearGauge` inside. */
-  length?: number
-  /**
-   * The domain is a closed ring, as the gauge's own `wrap`: values carry on
-   * round past either end instead of holding there, and a range may run
-   * across the seam, its ends in either order.
-   */
-  wrap?: boolean
   /** Read to screen readers; every slider needs one. On a range it names the
       pair, and each thumb gets its own from `thumbLabels`. */
   label: string
@@ -87,35 +85,80 @@ export type GaugeControlProps<V extends number | GaugeRange = number> = {
       every drag moves the value by as far as the pointer goes along it. */
   knob?: boolean
   disabled?: boolean
+  /** Classes for the slider element round the gauge's SVG. */
   className?: string
+  /** The gauge to control: one `Gauge` or `LinearGauge`, directly or inside
+      components of your own. */
   children: ReactNode
 }
 
+type Control = Omit<
+  GaugeControlProps<number | GaugeRange>,
+  "onChange" | "valueText" | "children"
+> & {
+  onChange: (value: number | [number, number]) => void
+  valueText?: string | readonly [string, string]
+}
+
+const ControlContext = createContext<Control | null>(null)
+
+const OwnerContext = createContext<RefObject<HTMLElement | null> | null>(null)
+
 /**
- * Makes the square gauge inside it a slider: drag round the ring to set it,
- * or use the arrow keys, Page Up and Down, Home and End. With an
- * `orientation` it makes a `LinearGauge` one instead, dragged along the bar. A drag past either
- * end of the sweep holds there rather than jumping to the other. A press in
- * the middle of the face, or Enter, is left for `onPress`, which a dimmer
- * uses to switch on and off, or, with `knob`, turns the face from where it
- * is. The domain and angles default to `Gauge`'s own.
+ * The element that holds keyboard focus for the gauge around the caller:
+ * the slider a `GaugeControl` puts round it, or null outside one.
+ */
+export const useGaugeControlElement = () => useContext(OwnerContext)
+
+/**
+ * Makes the gauge inside it a slider: drag round the ring to set it, or use
+ * the arrow keys, Page Up and Down, Home and End. Round a `LinearGauge` it
+ * is dragged along the bar instead. A drag past either end of the sweep
+ * holds there rather than jumping to the other. A press in the middle of
+ * the face, or Enter, is left for `onPress`, which a dimmer uses to switch
+ * on and off, or, with `knob`, turns the face from where it is.
+ *
+ * The domain, angles, orientation, length and `wrap` all come from the
+ * gauge itself, so they are only ever set once, on the gauge. The control
+ * hands its settings down, and the gauge's root renders the slider round
+ * its SVG; wrap exactly one gauge.
  *
  * Given a `[from, to]` range it has two thumbs: a press on the ring takes
  * whichever is nearer, and each can be tabbed to and keyed on its own. On an
  * open domain they hold short of passing each other.
  */
 export const GaugeControl = <V extends number | GaugeRange = number>({
+  children,
+  ...control
+}: GaugeControlProps<V>) => (
+  <ControlContext.Provider value={control as unknown as Control}>
+    {children}
+  </ControlContext.Provider>
+)
+
+/**
+ * Renders a `GaugeControl`'s slider round a gauge root's SVG, with the
+ * gauge's own geometry, or the SVG alone when no control wraps it. `Gauge`
+ * and `LinearGauge` render it inside their context; insets do not, so only
+ * the outermost gauge is controlled.
+ */
+export const GaugeControlSurface = ({ children }: { children: ReactNode }) => {
+  const control = useContext(ControlContext)
+  if (!control) return children
+  return (
+    <ControlContext.Provider value={null}>
+      <Surface {...control}>{children}</Surface>
+    </ControlContext.Provider>
+  )
+}
+
+const Surface = ({
   value,
   onChange,
   onPress,
-  min = 0,
-  max = 100,
+  min: floor,
+  max: ceiling,
   step = 1,
-  startAngle = 40,
-  endAngle = 320,
-  orientation,
-  length = 400,
-  wrap = false,
   label,
   thumbLabels,
   valueText,
@@ -123,14 +166,22 @@ export const GaugeControl = <V extends number | GaugeRange = number>({
   disabled = false,
   className,
   children,
-}: GaugeControlProps<V>) => {
-  const range = typeof value !== "number"
-  const ends: number[] = range ? [...(value as GaugeRange)] : [value as number]
-  const emit = (next: number[]) =>
-    (onChange as (value: number | [number, number]) => void)(
-      range ? [next[0], next[1]] : next[0]
-    )
+}: Control & { children: ReactNode }) => {
+  const gauge = useGauge()
+  const { scale, positionOf, wrap } = gauge
+  const orientation = gauge.shape === "linear" ? gauge.orientation : undefined
+  const linear = orientation !== undefined
+  const domain = gauge.max - gauge.min
+  const sweep = scale.end - scale.start
+  const min = floor ?? gauge.min
+  const max = ceiling ?? gauge.max
 
+  const range = typeof value !== "number"
+  const ends: number[] = range ? [...value] : [value]
+  const emit = (next: number[]) =>
+    onChange(range ? [next[0], next[1]] : next[0])
+
+  const element = useRef<HTMLDivElement>(null)
   const pressed = useRef(false)
   const active = useRef(0)
   const turn = useRef<{ at: number; base: number[]; by: number } | null>(null)
@@ -141,7 +192,7 @@ export const GaugeControl = <V extends number | GaugeRange = number>({
   const snap = (v: number) => Math.round(v / step) * step
   const settle = (v: number) => {
     const n = Number(v.toFixed(2))
-    return wrap ? foldValue(n, lo, hi) : clamp(n, lo, hi)
+    return wrap ? foldValue(n, gauge.min, gauge.max) : clamp(n, lo, hi)
   }
 
   const setEnd = (i: number, next: number) => {
@@ -151,13 +202,6 @@ export const GaugeControl = <V extends number | GaugeRange = number>({
     }
     emit(ends.map((e, j) => (j === i ? v : e)))
   }
-
-  const linear = orientation !== undefined
-  const sweep = linear ? length : endAngle - startAngle
-  const positionOf = (v: number) =>
-    linear
-      ? valueToAngle(v, min, max, -length / 2, length / 2)
-      : valueToAngle(v, min, max, startAngle, endAngle)
 
   const locate = (el: HTMLElement, x: number, y: number) => {
     if (orientation) {
@@ -170,8 +214,8 @@ export const GaugeControl = <V extends number | GaugeRange = number>({
   const valueAt = (at: number) =>
     snap(
       linear
-        ? min + clamp((at + length / 2) / length, 0, 1) * (max - min)
-        : angleToValue(at, min, max, startAngle, endAngle)
+        ? gauge.min + clamp((at - scale.start) / sweep, 0, 1) * domain
+        : angleToValue(at, gauge.min, gauge.max, scale.start, scale.end)
     )
 
   const nearest = (at: number, under: number) => {
@@ -217,8 +261,8 @@ export const GaugeControl = <V extends number | GaugeRange = number>({
     if (t) {
       const { at, reach } = locate(e.currentTarget, e.clientX, e.clientY)
       if (reach < HUB) return
-      const delta = linear ? at - t.at : ((at - t.at + 540) % 360) - 180
-      let by = t.by + (delta / sweep) * (max - min)
+      const delta = linear ? at - t.at : signedTurn(t.at, at)
+      let by = t.by + (delta / sweep) * domain
       if (!wrap) {
         by = clamp(by, lo - Math.min(...t.base), hi - Math.max(...t.base))
       }
@@ -260,26 +304,25 @@ export const GaugeControl = <V extends number | GaugeRange = number>({
     }
   }
 
-  const slider = (i: number) => {
-    const texts = valueText as string | readonly [string, string] | undefined
-    return {
-      role: "slider",
-      tabIndex: disabled ? -1 : 0,
-      "aria-label": range
-        ? (thumbLabels?.[i] ?? `${label} ${i === 0 ? "start" : "end"}`)
-        : label,
-      "aria-valuemin": range && !wrap && i === 1 ? ends[0] : min,
-      "aria-valuemax": range && !wrap && i === 0 ? ends[1] : max,
-      "aria-valuenow": ends[i],
-      "aria-valuetext": typeof texts === "string" ? texts : texts?.[i],
-      "aria-orientation": orientation,
-      "aria-disabled": disabled,
-      onKeyDown: keyDown(i),
-    }
-  }
+  const slider = (i: number) => ({
+    role: "slider",
+    tabIndex: disabled ? -1 : 0,
+    "aria-label": range
+      ? (thumbLabels?.[i] ?? `${label} ${i === 0 ? "start" : "end"}`)
+      : label,
+    "aria-valuemin": range && !wrap && i === 1 ? ends[0] : min,
+    "aria-valuemax": range && !wrap && i === 0 ? ends[1] : max,
+    "aria-valuenow": ends[i],
+    "aria-valuetext":
+      typeof valueText === "string" ? valueText : valueText?.[i],
+    "aria-orientation": orientation,
+    "aria-disabled": disabled,
+    onKeyDown: keyDown(i),
+  })
 
   return (
     <div
+      ref={element}
       {...(range ? { role: "group", "aria-label": label } : slider(0))}
       data-slot="gauge-control"
       onPointerDown={onPointerDown}
@@ -296,7 +339,7 @@ export const GaugeControl = <V extends number | GaugeRange = number>({
         className
       )}
     >
-      {children}
+      <OwnerContext.Provider value={element}>{children}</OwnerContext.Provider>
       {range &&
         ends.map((_, i) => (
           <div
