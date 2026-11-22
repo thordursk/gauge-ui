@@ -1,4 +1,5 @@
 import {
+  RADIUS,
   defaultPanelValues,
   resolvePanelValues,
   type PanelUpdates,
@@ -177,6 +178,10 @@ const markAt = (
   marks: { show: true, length, width: 3, offset: 0, cap: "butt", color },
 })
 
+const BAND_WIDTH = 36
+const BAND_MARGIN = 8
+const OUTER_BAND_X = 0.75
+
 const spectrumBand = (db: number, x?: number): PanelUpdates => ({
   gauge: {
     shape: "linear",
@@ -194,8 +199,8 @@ const spectrumBand = (db: number, x?: number): PanelUpdates => ({
     fill: {
       show: true,
       count: 20,
-      length: 36,
-      litLength: 36,
+      length: BAND_WIDTH,
+      litLength: BAND_WIDTH,
       width: 6,
       cap: "butt",
       color: token("foreground"),
@@ -208,6 +213,13 @@ const spectrumBand = (db: number, x?: number): PanelUpdates => ({
     title: { show: false },
   },
 })
+
+const CABIN_TICKS = { length: 6, offset: -34 }
+const CABIN_DOT = 5
+const CABIN_DOT_CLEARANCE = 12
+
+const SPEED_SWEEP = { startAngle: 40, endAngle: 320 }
+const FUEL_GAP = 6
 
 const templates: GaugeTemplate[] = [
   {
@@ -446,13 +458,21 @@ const templates: GaugeTemplate[] = [
         minor: {
           show: true,
           count: 60,
-          length: 6,
+          ...CABIN_TICKS,
           width: 1.5,
-          offset: -34,
           opacity: 0.5,
         },
       },
-      dot: { show: true, radius: 5, offset: -54, color: token("foreground") },
+      dot: {
+        show: true,
+        radius: CABIN_DOT,
+        offset:
+          CABIN_TICKS.offset -
+          CABIN_TICKS.length / 2 -
+          CABIN_DOT_CLEARANCE -
+          CABIN_DOT,
+        color: token("foreground"),
+      },
       text: {
         value: { fontSize: 84, decimals: 1 },
         unit: {
@@ -1526,7 +1546,7 @@ const templates: GaugeTemplate[] = [
     name: "Speed & fuel",
     category: "composed",
     values: {
-      gauge: { min: 0, max: 240, startAngle: 40, endAngle: 320 },
+      gauge: { min: 0, max: 240, ...SPEED_SWEEP },
       value: { value: 128 },
       arcs: { track: { show: false }, arc: { show: false } },
       cutoffs: {
@@ -1592,8 +1612,8 @@ const templates: GaugeTemplate[] = [
           gauge: {
             min: 0,
             max: 100,
-            startAngle: 326,
-            endAngle: 394,
+            startAngle: SPEED_SWEEP.endAngle + FUEL_GAP,
+            endAngle: SPEED_SWEEP.startAngle + 360 - FUEL_GAP,
             placement: { position: { x: 0, y: 0 }, scale: 1 },
           },
           value: { value: 38 },
@@ -2015,15 +2035,19 @@ const templates: GaugeTemplate[] = [
     category: "bars",
     values: {
       ...spectrumBand(-26),
-      gauge: { ...spectrumBand(-26).gauge, padding: 176, ends: 8 },
+      gauge: {
+        ...spectrumBand(-26).gauge,
+        padding: OUTER_BAND_X * RADIUS + BAND_WIDTH / 2 + BAND_MARGIN,
+        ends: BAND_MARGIN,
+      },
     },
     insets: [
-      { name: "sub", values: spectrumBand(-22, -0.75) },
+      { name: "sub", values: spectrumBand(-22, -OUTER_BAND_X) },
       { name: "bass", values: spectrumBand(-14, -0.5) },
       { name: "lowMid", values: spectrumBand(-20, -0.25) },
       { name: "highMid", values: spectrumBand(-31, 0.25) },
       { name: "presence", values: spectrumBand(-38, 0.5) },
-      { name: "air", values: spectrumBand(-46, 0.75) },
+      { name: "air", values: spectrumBand(-46, OUTER_BAND_X) },
     ],
   },
   {
