@@ -15,7 +15,13 @@ const scriptKind = (f) =>
       : ts.ScriptKind.TS
 
 const leafTokens = (src, f) => {
-  const sf = ts.createSourceFile(f, src, ts.ScriptTarget.Latest, true, scriptKind(f))
+  const sf = ts.createSourceFile(
+    f,
+    src,
+    ts.ScriptTarget.Latest,
+    true,
+    scriptKind(f)
+  )
   const out = []
   const walk = (node) => {
     if (
@@ -41,7 +47,10 @@ const leafTokens = (src, f) => {
 }
 
 const cssTokens = (src) =>
-  src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\s+/g, " ").trim()
+  src
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/\s+/g, " ")
+    .trim()
 
 let bad = 0
 let checked = 0
@@ -49,7 +58,11 @@ for (const f of files) {
   if (!/\.(tsx?|jsx?|mjs|cjs|css)$/.test(f) || !fs.existsSync(f)) continue
   let before
   try {
-    before = execSync(`git show ${base}:${f}`, { encoding: "utf8", maxBuffer: 1e8 })
+    before = execSync(`git show ${base}:${f}`, {
+      encoding: "utf8",
+      maxBuffer: 1e8,
+      stdio: ["ignore", "pipe", "ignore"],
+    })
   } catch {
     continue
   }

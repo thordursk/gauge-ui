@@ -3,9 +3,12 @@ import { execSync } from "node:child_process"
 import fs from "node:fs"
 
 const scope = process.argv.slice(2)
-const tracked = execSync(`git ls-files -- ${scope.map((s) => `'${s}'`).join(" ")}`, {
-  encoding: "utf8",
-})
+const tracked = execSync(
+  `git ls-files -- ${scope.map((s) => `'${s}'`).join(" ")}`,
+  {
+    encoding: "utf8",
+  }
+)
   .split("\n")
   .filter(Boolean)
 
@@ -27,7 +30,8 @@ for (const file of tracked.filter((f) => f.endsWith(".css"))) {
   fs.readFileSync(file, "utf8")
     .split("\n")
     .forEach((line, i) => {
-      if (line.includes("/*")) rows.push(`${file}:${i + 1}  ${line.trim().slice(0, 100)}`)
+      if (line.includes("/*"))
+        rows.push(`${file}:${i + 1}  ${line.trim().slice(0, 100)}`)
     })
 }
 
