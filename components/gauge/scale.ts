@@ -17,10 +17,20 @@ export type GaugeScale = {
   point: (position: number, offset?: number) => GaugePoint
   /**
    * SVG path along the scale between two positions, `offset` outward. Empty
-   * when `to` is not past `from`. A span carried past the end of a bar, as a
-   * wrapped arc is, comes back in at its start.
+   * when `to` is not past `from`. It runs straight from one to the other:
+   * past the end of a dial it carries on round the circle, and past the end
+   * of a bar it carries on along the line.
    */
   path: (from: number, to: number, offset?: number) => string
+  /**
+   * SVG path that runs `length` along the scale from `start`, `offset`
+   * outward, for a span that may carry past the end of the scale, as a
+   * wrapped arc does. A dial carries it on round the circle, which on a
+   * closed ring is its start again; a bar brings it back in at its start.
+   * Capped at the length of the whole scale; empty when `length` is not
+   * positive.
+   */
+  wrappedPath: (start: number, length: number, offset?: number) => string
   /** The outward direction at a position, as a unit vector. */
   normal: (position: number) => GaugePoint
   /**
@@ -41,6 +51,12 @@ export const arcScale = (
   closed: endAngle - startAngle >= 360,
   point: (angle, offset = 0) => polar(radius + offset, angle),
   path: (from, to, offset = 0) => arcPath(radius + offset, from, to),
+  wrappedPath: (start, length, offset = 0) =>
+    arcPath(
+      radius + offset,
+      start,
+      start + Math.min(length, endAngle - startAngle)
+    ),
   normal: (angle) => polar(1, angle),
   box: (offset = 0) => arcBox(radius + offset, startAngle, endAngle),
 })
@@ -74,13 +90,15 @@ export const lineScale = (
     end: half,
     closed: false,
     point,
-    path: (from, to, offset = 0) => {
-      if (to <= from || length <= 0) return ""
-      if (to <= half) return segment(from, to, offset)
-      const over = Math.min(to - half, length)
+    path: (from, to, offset = 0) =>
+      to <= from || length <= 0 ? "" : segment(from, to, offset),
+    wrappedPath: (start, span, offset = 0) => {
+      if (span <= 0 || length <= 0) return ""
+      const to = start + Math.min(span, length)
+      if (to <= half) return segment(start, to, offset)
       return [
-        from < half ? segment(from, half, offset) : "",
-        segment(-half, -half + over, offset),
+        start < half ? segment(start, half, offset) : "",
+        segment(-half, to - length, offset),
       ]
         .filter(Boolean)
         .join(" ")

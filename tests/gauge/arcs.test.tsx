@@ -78,4 +78,15 @@ describe("GaugeArc wrap", () => {
   it("draws nothing for an empty span", () => {
     expect(arcOn("ring", { from: 5, to: 5, wrap: true })).toBeNull()
   })
+
+  it("wraps a domain that does not start at zero", () => {
+    const { container } = render(
+      <LinearGauge value={0} min={100} max={124} length={240}>
+        <GaugeArc from={120} to={126} wrap />
+      </LinearGauge>
+    )
+    expect(container.querySelector("path")?.getAttribute("d")).toBe(
+      "M 80 0 L 120 0 M -120 0 L -100 0"
+    )
+  })
 })
