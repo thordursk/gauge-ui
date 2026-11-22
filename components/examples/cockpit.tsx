@@ -78,6 +78,11 @@ const Pointer = () => (
   </>
 )
 
+const FLAP = [40, 85] as const
+const NORMAL = [50, 130] as const
+const VNE = 165
+const CAUTION = [NORMAL[1], VNE] as const
+
 const AirspeedIndicator = ({ airspeed }: { airspeed: number }) => (
   <Gauge
     value={airspeed}
@@ -88,30 +93,30 @@ const AirspeedIndicator = ({ airspeed }: { airspeed: number }) => (
     {...dial}
   >
     <GaugeArc
-      from={40}
-      to={85}
+      from={FLAP[0]}
+      to={FLAP[1]}
       width={4}
       offset={-15}
       opacity={0.5}
       cap="butt"
     />
     <GaugeArc
-      from={50}
-      to={130}
+      from={NORMAL[0]}
+      to={NORMAL[1]}
       width={10}
       offset={-5}
       opacity={0.15}
       cap="butt"
     />
     <GaugeArc
-      from={130}
-      to={165}
+      from={CAUTION[0]}
+      to={CAUTION[1]}
       width={10}
       offset={-5}
       opacity={0.35}
       cap="butt"
     />
-    <GaugeMarks values={[165]} length={24} width={4} offset={-12} cap="butt" />
+    <GaugeMarks values={[VNE]} length={24} width={4} offset={-12} cap="butt" />
     <Scale minor={32} major={8} labelSize={24} />
     <Caption y={-72}>KNOTS</Caption>
     <Pointer />
@@ -174,39 +179,44 @@ const AttitudeIndicator = ({
 }: {
   bank: number
   pitch: number
-}) => (
-  <Gauge
-    value={-bank}
-    min={-90}
-    max={90}
-    startAngle={90}
-    endAngle={270}
-    {...dial}
-  >
-    <Horizon pitch={pitch} />
-    <GaugeMarks
-      values={[-60, -30, 30, 60]}
-      length={22}
-      width={3}
-      offset={-12}
-      cap="butt"
-    />
-    <GaugeMarks
-      values={[-45, -20, -10, 10, 20, 45]}
-      length={12}
-      width={2}
-      offset={-17}
-      cap="butt"
-    />
-    <GaugeMarks values={[0]} length={22} width={6} offset={-12} cap="butt" />
-    <GaugeDot radius={6} offset={-38} />
-    <g stroke="currentColor" strokeWidth={6} strokeLinecap="round">
-      <line x1={-112} x2={-44} />
-      <line x1={44} x2={112} />
-    </g>
-    <GaugeHub radius={7} />
-  </Gauge>
-)
+}) => {
+  const roll = -bank
+  return (
+    <Gauge
+      value={roll}
+      min={-90}
+      max={90}
+      startAngle={90}
+      endAngle={270}
+      {...dial}
+    >
+      <Horizon pitch={pitch} />
+      <GaugeMarks
+        values={[-60, -30, 30, 60]}
+        length={22}
+        width={3}
+        offset={-12}
+        cap="butt"
+      />
+      <GaugeMarks
+        values={[-45, -20, -10, 10, 20, 45]}
+        length={12}
+        width={2}
+        offset={-17}
+        cap="butt"
+      />
+      <GaugeMarks values={[0]} length={22} width={6} offset={-12} cap="butt" />
+      <GaugeDot radius={6} offset={-38} />
+      <g stroke="currentColor" strokeWidth={6} strokeLinecap="round">
+        <line x1={-112} x2={-44} />
+        <line x1={44} x2={112} />
+      </g>
+      <GaugeHub radius={7} />
+    </Gauge>
+  )
+}
+
+const STANDARD_SETTING = "29.92"
 
 const Altimeter = ({ altitude }: { altitude: number }) => (
   <Gauge
@@ -220,7 +230,7 @@ const Altimeter = ({ altitude }: { altitude: number }) => (
     <Scale minor={50} major={10} format={(v) => String(v / 1000)} />
     <Caption y={-72}>ALT</Caption>
     <GaugeText x={96} fontSize={18} color={MUTED} className="tabular-nums">
-      29.92
+      {STANDARD_SETTING}
     </GaugeText>
     <GaugeNeedle style="pointer" length={0.55} width={16} tail={0} />
     <GaugeNeedle style="line" length={0.88} width={5} tail={28} turns={10} />
@@ -268,6 +278,7 @@ const TurnCoordinator = ({ rate, slip }: { rate: number; slip: number }) => {
   const l = label(56)
   const r = label(304)
   const wing = <GaugeNeedle style="pointer" length={0.7} width={12} tail={0} />
+  const ball = -slip
 
   return (
     <Gauge value={rate} {...TURN} {...LEFT_WING} {...dial}>
@@ -286,7 +297,7 @@ const TurnCoordinator = ({ rate, slip }: { rate: number; slip: number }) => {
         2 MIN
       </GaugeText>
       <GaugeInset
-        value={-slip}
+        value={ball}
         min={-1}
         max={1}
         radius={120}
