@@ -2,12 +2,12 @@
 
 exports[`Logo > renders the link with its animated mark 1`] = `
 "<a class="group/logo flex items-center gap-2 text-base font-semibold tracking-tight" href="/">
-<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" aria-hidden="true" class="size-5 shrink-0">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" aria-hidden="true" class="size-5 shrink-0" style="--swing:45deg;--swung-offset:60">
 <path d="M6.34 18.66 A8 8 0 1 1 17.66 18.66" stroke-width="2.5" opacity="0.3">
 </path>
-<path d="M6.34 18.66 A8 8 0 1 1 17.66 18.66" pathLength="270" stroke-width="2.5" stroke-dasharray="270" stroke-dashoffset="105" class="transition-[stroke-dashoffset] group-hover/logo:[stroke-dashoffset:60] group-focus-visible/logo:[stroke-dashoffset:60] duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] motion-reduce:transition-none">
+<path d="M6.34 18.66 A8 8 0 1 1 17.66 18.66" pathLength="270" stroke-width="2.5" stroke-dasharray="270" stroke-dashoffset="105" class="transition-[stroke-dashoffset] group-hover/logo:[stroke-dashoffset:var(--swung-offset)] group-focus-visible/logo:[stroke-dashoffset:var(--swung-offset)] duration-500 ease-overshoot motion-reduce:transition-none">
 </path>
-<path d="M12 13 L14.75 8.24" stroke-width="2" style="transform-origin:12px 13px;transform-box:view-box" class="transition-transform group-hover/logo:rotate-45 group-focus-visible/logo:rotate-45 duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] motion-reduce:transition-none">
+<path d="M12 13 L14.75 8.24" stroke-width="2" style="transform-origin:12px 13px;transform-box:view-box" class="transition-transform group-hover/logo:rotate-(--swing) group-focus-visible/logo:rotate-(--swing) duration-500 ease-overshoot motion-reduce:transition-none">
 </path>
 <circle cx="12" cy="13" r="1.75" fill="currentColor" stroke="none">
 </circle>
@@ -18,9 +18,9 @@ exports[`Logo > renders the mark 1`] = `
 "<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" aria-hidden="true" class="shrink-0 size-7">
 <path d="M6.34 18.66 A8 8 0 1 1 17.66 18.66" stroke-width="2.5" opacity="0.3">
 </path>
-<path d="M6.34 18.66 A8 8 0 1 1 17.66 18.66" pathLength="270" stroke-width="2.5" stroke-dasharray="270" stroke-dashoffset="105" class="transition-[stroke-dashoffset] group-hover/logo:[stroke-dashoffset:60] group-focus-visible/logo:[stroke-dashoffset:60] duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] motion-reduce:transition-none">
+<path d="M6.34 18.66 A8 8 0 1 1 17.66 18.66" pathLength="270" stroke-width="2.5" stroke-dasharray="270" stroke-dashoffset="105">
 </path>
-<path d="M12 13 L14.75 8.24" stroke-width="2" style="transform-origin:12px 13px;transform-box:view-box" class="transition-transform group-hover/logo:rotate-45 group-focus-visible/logo:rotate-45 duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] motion-reduce:transition-none">
+<path d="M12 13 L14.75 8.24" stroke-width="2">
 </path>
 <circle cx="12" cy="13" r="1.75" fill="currentColor" stroke="none">
 </circle>
