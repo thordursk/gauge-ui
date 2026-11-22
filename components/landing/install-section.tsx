@@ -18,7 +18,6 @@ const runners = [
   { id: "bun", command: `bunx --bun shadcn@latest add ${REGISTRY_URL}` },
 ]
 
-/** Prompts for building a gauge from the installed primitives. */
 const prompts = [
   {
     title: "Speedometer with a redline",

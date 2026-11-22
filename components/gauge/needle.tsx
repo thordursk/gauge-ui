@@ -51,14 +51,9 @@ const pts = (points: { x: number; y: number }[]) =>
  * a `gap` to clear the centre for a readout instead.
  */
 export const GaugeNeedle = ({ gap = 0, ...props }: GaugeNeedleProps) => {
-  /* useId's output is not a safe fragment identifier, so keep word
-     characters only. */
   const maskId = `gauge-needle-gap${useId().replace(/\W/g, "")}`
   if (gap <= 0) return <NeedleShape {...props} />
 
-  /* A mask rather than geometry, so every style splits the same way. The
-     cut edges follow the circle, which on a gap this much wider than the
-     needle reads as straight. */
   return (
     <g>
       <mask
@@ -104,10 +99,6 @@ const NeedleShape = ({
     ) : null
 
   if (style === "arrow") {
-    /* A shaft of `width` capped by a triangular head that scales with it,
-       never longer than the needle itself. The shaft stops where the head
-       begins so the two never overlap, and the tail is the shaft carried on
-       behind the centre in its own colour, rounded off at the end. */
     const reach = radius * length
     const headLength = Math.min(width * 4, reach)
     const base = polar(reach - headLength, angle)
@@ -173,10 +164,6 @@ const NeedleShape = ({
     )
   }
 
-  /* The filled styles are two polygons meeting at the centre, so the tail can
-     take its own colour. Their shared base runs across the pivot. Both ends
-     keep a fifth of the width and are rounded off with a disc of that size,
-     as a round cap would, so a thin needle never vanishes to a point. */
   const left = polar(width / 2, angle - 90)
   const right = polar(width / 2, angle + 90)
   const endRadius = width * 0.2
@@ -190,7 +177,6 @@ const NeedleShape = ({
       left,
     ])
 
-  /* A pointer's tail is a blunt stub; a compass tapers the same both ways. */
   const rear =
     style === "compass"
       ? blade(back)

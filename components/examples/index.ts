@@ -18,7 +18,6 @@ export type Example = {
   Component: ComponentType | null
 }
 
-/** Whole scenes built from the gauge primitives, one tab each. */
 export const examples: Example[] = [
   {
     id: "monitor",

@@ -5,7 +5,6 @@
  * values increase clockwise, so a sweep from 40° to 320° leaves an opening
  * at the bottom. Coordinates are SVG units centred on the gauge origin.
  */
-
 export const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value))
 

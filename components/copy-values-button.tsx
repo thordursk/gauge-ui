@@ -14,15 +14,9 @@ import {
 import { withoutMeta, type PanelValues } from "@/lib/gauge-panels"
 
 type CopyValuesButtonProps = {
-  /** Every panel's values for the layer being edited. */
   values: PanelValues
 }
 
-/**
- * Copies every control section as one JSON object, keyed by panel the way a
- * template's `values` are, so a copied gauge can be pasted straight into
- * `lib/gauge-templates.ts`. Panel bookkeeping such as `_collapsed` is left out.
- */
 export const CopyValuesButton = ({ values }: CopyValuesButtonProps) => {
   const [copied, setCopied] = useState(false)
 

@@ -11,7 +11,6 @@ import type { PlayMode } from "@/lib/gauge-panels"
 
 export type ControlBarProps = {
   layers: GaugeLayer[]
-  /** Index of the gauge the panels and the value slider are pointed at. */
   selected: number
   onSelect: (index: number) => void
   onAdd: () => void
@@ -25,17 +24,6 @@ export type ControlBarProps = {
   onModeChange: (mode: PlayMode) => void
 }
 
-/**
- * The one bar under the gauge, a single row: which gauge is being edited on
- * the left, the value it is reading in the dial slider filling the rest. The
- * composition itself is kept a step away, in the layers popover the gauge
- * button opens, so the bar stays narrow however many insets are added.
- *
- * Both pickers are dropdowns, which is what keeps the bar to one line: each
- * is a single button naming what it is on, and the choosing is done in the
- * popover rather than in the bar. On phone widths the slider wraps onto its
- * own full-width row under the pickers so it keeps a usable drag length.
- */
 export const ControlBar = ({
   layers,
   selected,
@@ -97,8 +85,6 @@ export const ControlBar = ({
               type="button"
               aria-label="Edit gauge value"
               className="pointer-events-auto shrink-0 cursor-text border-b border-transparent font-mono text-xs text-muted-foreground tabular-nums transition-colors hover:border-muted-foreground/60 hover:text-foreground"
-              /* The row underneath is the slider; the readout must not start
-                 a drag when all that is wanted is to type. */
               onPointerDown={(e) => e.stopPropagation()}
               onClick={() => setDraft(shown)}
             >

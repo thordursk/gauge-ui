@@ -1,15 +1,3 @@
-/**
- * The line a gauge lays its domain out along. A dial bends it round an arc
- * and a bar runs it straight. Every primitive that draws along the scale
- * asks it where a position is rather than doing the geometry itself, which
- * is what lets one set of parts draw both.
- *
- * Positions are in the scale's own units: gauge degrees round a dial, SVG
- * units along a bar. An offset moves a point off the scale's reference line,
- * outward: away from a dial's centre, up from a horizontal bar and to the
- * left of a vertical one.
- */
-
 import { arcBox, arcPath, polar } from "./math"
 
 export type GaugePoint = { x: number; y: number }
@@ -107,5 +95,4 @@ export const lineScale = (
   }
 }
 
-/* Rounded as `polar` is, so server and client render identical attributes. */
 const round = (n: number) => Math.round(n * 1000) / 1000

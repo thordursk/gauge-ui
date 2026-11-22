@@ -12,11 +12,6 @@ import {
 import { Switch } from "@/components/ui/switch"
 import { formatLabel, isHexColor, type SelectOption } from "@/lib/controls"
 
-/**
- * One control row, shaped like the dial slider: a single container the full
- * width of the panel, the label inside it on the left and the control on the
- * right.
- */
 export const Row = ({
   label,
   children,
@@ -54,8 +49,6 @@ export const ToggleControl = ({
 const Swatch = ({ css }: { css: string }) => (
   <span
     aria-hidden
-    /* An inset ring, so a swatch the colour of the panel behind it still
-       reads as a dot. */
     className="size-2.5 shrink-0 rounded-full ring-1 ring-foreground/20 ring-inset"
     style={{ background: css }}
   />
@@ -88,7 +81,6 @@ export const SelectControl = ({
         if (typeof next === "string") onChange(next)
       }}
     >
-      {/* The whole row is the trigger, label and all, like the slider. */}
       <SelectTrigger
         size="sm"
         aria-label={label}
@@ -104,8 +96,6 @@ export const SelectControl = ({
           </span>
         </SelectValue>
       </SelectTrigger>
-      {/* The trigger is the whole row, so the popup sizes to its options
-          rather than inheriting the anchor's width. */}
       <SelectContent align="end" className="w-auto min-w-28 p-1">
         {items.map((item) => (
           <SelectItem
@@ -147,7 +137,6 @@ export const TextControl = ({
   </Row>
 )
 
-/** The exact `#rrggbb` a native colour input insists on. */
 const toHex6 = (value: string) => {
   if (!isHexColor(value)) return "#000000"
   if (value.length === 4)
@@ -155,11 +144,6 @@ const toHex6 = (value: string) => {
   return value.slice(0, 7)
 }
 
-/**
- * A free colour: the swatch opens the browser's picker, the field takes a
- * typed hex. The field keeps its own text while it is an incomplete colour,
- * committing each keystroke that parses.
- */
 export const ColorControl = ({
   label,
   value,

@@ -13,7 +13,6 @@ type TemplateNavProps = {
   className?: string
 }
 
-/** The template the given number of steps away, wrapping at both ends. */
 const templateFrom = (selected: GaugeTemplate | null, step: 1 | -1) => {
   const n = gaugeTemplates.length
   const index = selected
@@ -23,11 +22,6 @@ const templateFrom = (selected: GaugeTemplate | null, step: 1 | -1) => {
   return gaugeTemplates[(index + step + n) % n]
 }
 
-/**
- * The template picker, with the same moves on the keyboard: `[` and `]`
- * anywhere outside a text field, and the arrow keys when nothing else has
- * focus, so they never fight a slider.
- */
 export const TemplateNav = ({
   selected,
   onSelect,

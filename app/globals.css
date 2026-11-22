@@ -5,11 +5,8 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  /* Between phone and `sm`, for grids that can fit a third column. */
   --breakpoint-xs: 30rem;
 
-  /* A track holding its items twice over, slid by one copy's width so the
-     loop has no seam. */
   --animate-marquee: marquee var(--marquee-duration, 60s) linear infinite;
 
   @keyframes marquee {
@@ -21,8 +18,6 @@
     }
   }
 
-  /* A lub-dub: two beats close together, then a rest. One cycle is one
-     heartbeat, so the duration is 60 / bpm seconds. */
   --animate-heartbeat: heartbeat var(--beat, 1s) ease-out infinite;
 
   @keyframes heartbeat {
@@ -44,8 +39,6 @@
 }
 
 @theme inline {
-  /* Through a variable of its own, so a page can swap the face shadcn's
-     titles use without touching the rounded token itself. */
   --font-heading: var(--font-heading-face);
   --font-sans: var(--font-sans);
   --font-rounded: var(--font-rounded), ui-rounded, system-ui, sans-serif;
@@ -167,15 +160,11 @@
   body {
     @apply bg-background text-foreground;
   }
-  /* Geist is the site's own face; Inter and Nunito stay loaded as
-     `font-sans` and `font-rounded` for the gauges' font options. */
   html {
     @apply font-geist;
   }
 }
 
-/* Shiki renders both themes into CSS variables; pick one by colour scheme.
-   The drawer supplies its own background, so the theme's is dropped. */
 .code-block .shiki {
   overflow-x: auto;
   background-color: transparent !important;
@@ -189,8 +178,6 @@
   color: var(--shiki-dark);
 }
 
-/* A line-number gutter drawn from a counter, so the numbers stay out of the
-   source itself and out of anything copied from it. */
 .code-block code {
   counter-reset: line;
 }

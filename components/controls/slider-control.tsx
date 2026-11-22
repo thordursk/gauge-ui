@@ -14,11 +14,6 @@ export type SliderControlProps = {
   onChange: (value: number) => void
 }
 
-/**
- * The panel slider: the whole row drags, the label sits inside it on the
- * left and the value on the right. Clicking the value swaps it for an input,
- * for the numbers a drag will not land on exactly.
- */
 export const SliderControl = ({
   label,
   value,
@@ -60,8 +55,6 @@ export const SliderControl = ({
             type="button"
             aria-label={`Edit ${label}`}
             className="pointer-events-auto shrink-0 cursor-text border-b border-transparent font-mono text-xs text-muted-foreground tabular-nums transition-colors hover:border-muted-foreground/60 hover:text-foreground"
-            /* The row underneath is the slider; the readout must not start
-               a drag when all that is wanted is to type. */
             onPointerDown={(e) => e.stopPropagation()}
             onClick={() => setDraft(shown)}
           >

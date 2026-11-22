@@ -71,8 +71,6 @@ export const Gauge = ({
       <svg
         viewBox={`${box.x} ${box.y} ${box.width} ${box.height}`}
         preserveAspectRatio="xMidYMid meet"
-        /* A fitted box takes its height from its width, so it needs the ratio
-           on the element; a square one fills whatever box it is handed. */
         style={
           fit === "content"
             ? { aspectRatio: `${box.width} / ${box.height}`, ...style }

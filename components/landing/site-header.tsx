@@ -22,7 +22,6 @@ const links = [
   { href: "#examples", label: "Examples" },
 ]
 
-/* 118 → "118", 1234 → "1.2K". Pinned to en-US so server and client agree. */
 const starFormat = new Intl.NumberFormat("en-US", {
   notation: "compact",
   maximumFractionDigits: 1,

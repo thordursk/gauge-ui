@@ -3,13 +3,6 @@ import { Logo } from "@/components/logo"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 
-/**
- * The hero, restaged at fixed image sizes for a headless browser to
- * screenshot. `?variant=og` (the default) is the 1200×630 social card and
- * `?variant=header` the wide README banner; `?theme=dark` flips both. Not
- * linked from anywhere and of no use to a visitor, so it stays out of
- * search results.
- */
 export const metadata = { robots: { index: false, follow: false } }
 
 const stages = {

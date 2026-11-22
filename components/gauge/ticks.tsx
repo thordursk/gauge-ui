@@ -16,10 +16,6 @@ import {
 
 import { useGauge } from "./context"
 
-/**
- * Evenly spaced domain values for ticks. On a closed ring the last step lands
- * on the first, so it is dropped rather than drawn twice.
- */
 const tickValues = ({ min, max, scale }: GaugeContextValue, count: number) => {
   const values = stepValues(min, max, count)
   if (scale.closed) values.pop()
@@ -39,7 +35,6 @@ type CrossLineProps = {
   offset?: number
 }
 
-/** Lines standing across the scale at domain values, as ticks do. */
 const CrossLines = ({
   values,
   length = 12,
@@ -144,18 +139,14 @@ export const GaugeTickFill = ({
   const tail = from ?? gauge.from
   const head = to ?? gauge.value
   const span = Math.abs(gauge.max - gauge.min)
-  /* Slack for ticks that land on an end, whose step values carry float
-     error. */
   const eps = span * 1e-6
 
-  /* How far round from the start a value sits, on a closed ring. */
   const ahead = (v: number) => foldValue(v - tail + eps, 0, span)
   const between = (v: number) =>
     gauge.wrap
       ? ahead(v) <= ahead(head) + eps
       : v >= Math.min(tail, head) - eps && v <= Math.max(tail, head) + eps
 
-  /* The tick nearest a value, measured round the seam on a ring. */
   const nearestTo = (target: number) => {
     const gap = (v: number) => {
       const d = Math.abs(v - target)

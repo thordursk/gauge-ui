@@ -20,11 +20,6 @@ export type PadControlProps = {
   onChange: (value: PadValue) => void
 }
 
-/**
- * A two-axis position: drag anywhere in the field, or nudge with the arrow
- * keys. Screen Y grows downward while the pad's grows upward, so the vertical
- * axis is flipped on the way in and out.
- */
 export const PadControl = ({ label, pad, value, onChange }: PadControlProps) => {
   const [, minX, maxX, stepX = 0.01] = pad?.x ?? DEFAULT_AXIS
   const [, minY, maxY, stepY = 0.01] = pad?.y ?? DEFAULT_AXIS
@@ -50,7 +45,6 @@ export const PadControl = ({ label, pad, value, onChange }: PadControlProps) => 
     })
 
   const fmt = (v: number, step: number) => v.toFixed(stepDecimals(step))
-  /* Where the puck sits, as fractions of the field. */
   const px = (value.x - minX) / (maxX - minX || 1)
   const py = (value.y - minY) / (maxY - minY || 1)
 
@@ -87,9 +81,6 @@ export const PadControl = ({ label, pad, value, onChange }: PadControlProps) => 
         }}
         className="relative h-28 w-full cursor-crosshair touch-none overflow-hidden rounded-md bg-input/50 select-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-hidden"
       >
-        {/* A dot grid that melts away towards the edges. Odd tile counts on
-            both axes put a dot dead centre and a full row and column of dots
-            on the crosshair lines, whatever the pad's rendered size. */}
         <div
           aria-hidden
           className="absolute inset-0"

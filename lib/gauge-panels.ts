@@ -1,9 +1,3 @@
-/**
- * The control panel configs behind the studio, plus the pure functions that
- * turn panel values into a `GaugeSpec`. Kept free of React so templates can
- * be described and previewed against the same source the panels use.
- */
-
 import {
   ControlsStore,
   type ControlConfig,
@@ -33,14 +27,11 @@ import type {
 
 export const RADIUS = 200
 
-/* ---------- control helpers ---------- */
-
 type Option = string | { value: string; label: string; swatch?: string }
 type Select = { type: "select"; options: Option[]; default: string }
 type Axis = [number, number, number, number]
 type Pad = { type: "pad"; x: Axis; y: Axis }
 
-/** Keeps a toggle's type `boolean` rather than the literal default. */
 const toggle = (value: boolean): boolean => value
 const select = (options: Option[], value: string): Select => ({
   type: "select",
@@ -60,11 +51,6 @@ const position = (x: number, y: number): Pad => ({
   y: [y, -1, 1, 0.01],
 })
 
-/**
- * A short, named palette. The first entries follow the shadcn theme tokens so
- * the gauge tracks light and dark mode; the last few are fixed accents for
- * status colours the greyscale theme does not provide.
- */
 export const palette = [
   { value: "primary", label: "Primary", css: "var(--primary)" },
   { value: "foreground", label: "Foreground", css: "var(--foreground)" },
@@ -89,26 +75,15 @@ const paletteCss = new Map<string, string>(
 
 const DEFAULT_CUSTOM = "#38bdf8"
 
-/** A hint of every colour, for the entry that stands for "any colour". */
 const CUSTOM_SWATCH =
   "conic-gradient(from 0.5turn, #f87171, #facc15, #4ade80, #38bdf8, #a78bfa, #f87171)"
 
-/** The store's current values for a panel, flat and keyed by dotted path. */
 export type Flat = Record<string, unknown>
 export const flatValues = (panelId: string): Flat =>
   ControlsStore.getValues(panelId)
 
 type ColorFolder = { token: Select; custom: string; _collapsed: true }
 
-/**
- * A colour control: a named palette entry, or "custom" for a free colour.
- * The hex picker is only part of the config while "custom" is selected, so
- * the panel stays compact; `path` is the control's dotted path in the panel
- * and `flat` the panel's current values, used to decide whether to show it.
- *
- * The return type always lists `custom` so resolved values stay easy to
- * type; at runtime it is absent unless custom is selected, and `css` copes.
- */
 const color = (flat: Flat, path: string, token: Token): ColorFolder => {
   const folder: Record<string, unknown> = {
     token: select(
@@ -137,23 +112,17 @@ export const css = (c: ColorValue) =>
     ? (c.custom ?? DEFAULT_CUSTOM)
     : (paletteCss.get(c.token) ?? `var(--${c.token})`)
 
-/** Slider step that gives about a hundred stops across the domain. */
 export const stepFor = (span: number) =>
   span > 0 ? Math.pow(10, Math.floor(Math.log10(span)) - 2) : 1
-
-/* ---------- panel configs ---------- */
 
 export const playModes = ["manual", "sweep", "wander", "jump"] as const
 export type PlayMode = (typeof playModes)[number]
 
-/** Which gauge of a composition a panel is editing. */
 export type LayerKind = "host" | "inset"
 
-/** Controls only the host has, and the one only an inset has. */
 const HOST_ONLY = ["padding", "ends", "fit", "stage", "control"] as const
 const INSET_ONLY = ["placement"] as const
 
-/** Controls only a dial has, and the ones only a bar has. */
 const ROUND_ONLY = ["startAngle", "endAngle", "fit"] as const
 const LINEAR_ONLY = ["orientation", "length", "ends"] as const
 
@@ -162,37 +131,19 @@ const without = <T extends object>(config: T, keys: readonly string[]): T =>
     Object.entries(config).filter(([key]) => !keys.includes(key))
   ) as T
 
-/**
- * Every control the panel has for either kind of layer. A panel only shows
- * its own kind's, but a layer stores the lot, so the defaults come from here
- * rather than from the trimmed config: an inset added at the defaults still
- * has a `placement` to be drawn by.
- */
 const fullGaugeConfig = (flat: Flat = {}) =>
   ({
-    /* A dial bends the scale round an arc; a bar lays it out straight. */
     shape: select(["round", "linear"], "round"),
     min: [0, -100, 100, 1],
-    /* Down to just above min's floor, for a domain below zero: dB up to
-       full scale. */
     max: [100, -99, 1000, 1],
-    /* Runs the whole way round so a dial can start anywhere, including in
-       the opening another gauge leaves at the bottom. */
     startAngle: [40, 0, 360, 1],
-    /* Runs past 360 so a ring can start at twelve o'clock and close on itself. */
     endAngle: [320, 180, 540, 1],
     orientation: select(["horizontal", "vertical"], "horizontal"),
     length: [400, 100, 800, 10],
-    /* Round a dial; either side of a bar, with `ends` past its two ends. */
     padding: [56, 0, 200, 1],
     ends: [24, 0, 200, 1],
-    /* `content` trims the box to the arc's sweep, which only buys anything
-       back on gauges that stop well short of a full turn. */
     fit: select(["square", "content"], "square"),
     stage: color(flat, "stage", "background"),
-    /* Makes the gauge a slider: drag round the ring, or with `knob` turn the
-       face as well. Only a square gauge can be turned, since the drag is
-       measured round the middle of its box. A bar is dragged along. */
     control: select(
       [
         "off",
@@ -202,35 +153,17 @@ const fullGaugeConfig = (flat: Flat = {}) =>
       "off"
     ),
     placement: {
-      /** Centre in the host gauge, as a fraction of its radius. */
       position: position(0, 0),
-      /** Size relative to the host, strokes and text along with it. */
       scale: [0.5, 0.05, 1.5, 0.01],
     },
   }) satisfies ControlConfig
 
-/**
- * The domain and geometry panel. An inset sits inside another gauge rather
- * than in a box of its own, so it trades `padding`, `fit` and the stage
- * colour for where it is placed and how big it is drawn. A bar trades a
- * dial's sweep for which way it runs and how long it is.
- *
- * Both kinds keep the same resolved type, and a layer's stored values fill in
- * whatever its own panel does not show, so the two shapes never have to be
- * told apart downstream.
- */
 export const gaugeConfig = (flat: Flat = {}, kind: LayerKind = "host") =>
   without(fullGaugeConfig(flat), [
     ...(kind === "host" ? INSET_ONLY : HOST_ONLY),
     ...(flat.shape === "linear" ? ROUND_ONLY : LINEAR_ONLY),
   ])
 
-/* Panels whose slider ranges follow the domain are built from functions so
-   the store can reconcile them when min or max changes.
-
-   `range` makes the value a `[from, to]` pair: the slider above is the far
-   end, and `from` appears under it for the start, only while it is on.
-   Without `flat`, for the defaults, `from` is always there. */
 export const valueConfig = (min: number, max: number, flat?: Flat) =>
   ({
     value: [clamp(62, min, max), min, max, stepFor(max - min)],
@@ -238,19 +171,13 @@ export const valueConfig = (min: number, max: number, flat?: Flat) =>
     ...((flat === undefined || flat.range === true
       ? { from: [clamp(30, min, max), min, max, stepFor(max - min)] }
       : {}) as { from: Axis }),
-    /* manual: follow the slider. sweep: min to max and back. wander: drift
-       around the slider value. jump: random targets, settled by `motion`. */
     mode: select([...playModes], "manual"),
     period: [3, 0.2, 20, 0.1],
     amplitude: [0.25, 0, 1, 0.01],
-    /* How the gauge settles on a new value, in the preview and in the copied
-       code alike. Off means the gauge jumps. */
     animate: toggle(true),
     motion: { type: "spring", visualDuration: 0.5, bounce: 0.1 },
   }) satisfies ControlConfig
 
-/* A bar has no middle to fill, so it goes without the face. Whether the
-   gauge is one is the gauge panel's to say, which this one cannot see. */
 export const arcsConfig = (flat: Flat = {}, linear = false) =>
   without(
     {
@@ -267,11 +194,7 @@ export const arcsConfig = (flat: Flat = {}, linear = false) =>
         width: [24, 1, 80, 1],
         color: color(flat, "arc.color", "primary"),
         colorByZone: toggle(false),
-        /* Anchors the fill to the end of the sweep, for a dial that fills
-         towards where it starts. */
         reverse: toggle(false),
-        /* Anchors it at zero, so on a domain either side of it the fill grows
-         left or right of centre as the value goes. */
         fromZero: toggle(false),
         opacity: [1, 0, 1, 0.01],
         cap: cap("round"),
@@ -341,8 +264,6 @@ export const ticksConfig = (flat: Flat = {}) =>
   ({
     major: tickConfig(flat, "major", 10, 16, 3, 1),
     minor: { ...tickConfig(flat, "minor", 50, 8, 1.5, 0.6), _collapsed: true },
-    /* Ticks that are the fill: lit up to the value, or across a range, and
-       dim elsewhere. `nearest` lights only the tick at each end. */
     fill: {
       show: toggle(false),
       mode: select(["fill", "nearest"], "fill"),
@@ -448,14 +369,10 @@ const needleFolder = (
     tail: [tail, 0, 200, 1],
     tailColor: color(flat, `${path}.tailColor`, "foreground"),
     tailDot: [0, 0, 40, 0.5],
-    /* A clear circle at the centre, splitting the needle round a readout. */
     gap: [0, 0, 200, 1],
-    /* Sweeps across the domain. A clock's hands turn 1, 12 and 720 times. */
     turns: [turns, 1, 720, 1],
   }) satisfies ControlConfig
 
-/* Up to three needles share one hub. The defaults for the second and third
-   are a clock's minute and second hands, so a clock is a matter of count. */
 export const needleConfig = (flat: Flat = {}) =>
   ({
     show: toggle(false),
@@ -475,10 +392,6 @@ export const needleConfig = (flat: Flat = {}) =>
     },
   }) satisfies ControlConfig
 
-/**
- * The dot that rides the arc at the value. `turns` is the needle's control by
- * another name, so one value can send a dot round its arc more than once.
- */
 export const dotConfig = (flat: Flat = {}) =>
   ({
     show: toggle(false),
@@ -487,15 +400,9 @@ export const dotConfig = (flat: Flat = {}) =>
     opacity: [1, 0, 1, 0.01],
     offset: [0, -120, 120, 1],
     turns: [1, 1, 720, 1],
-    /* `both` puts a second dot on the start of a range, as its handles. */
     ends: select(["value", "both"], "value"),
   }) satisfies ControlConfig
 
-/**
- * The HTML tooltip shown while the gauge is hovered. The text fields are
- * plain strings, and an empty one leaves its line out. `pin` holds it open
- * so it can be placed without keeping the pointer on the gauge.
- */
 export const tooltipConfig = () =>
   ({
     show: toggle(false),
@@ -524,8 +431,6 @@ export const tooltipConfig = () =>
     gap: [8, 0, 64, 1],
   }) satisfies ControlConfig
 
-/* ---------- values ---------- */
-
 export type GaugeValues = ResolvedValues<ReturnType<typeof gaugeConfig>>
 export type ValueValues = ResolvedValues<ReturnType<typeof valueConfig>>
 export type ArcsValues = ResolvedValues<ReturnType<typeof arcsConfig>>
@@ -536,7 +441,6 @@ export type NeedleValues = ResolvedValues<ReturnType<typeof needleConfig>>
 export type DotValues = ResolvedValues<ReturnType<typeof dotConfig>>
 export type TooltipValues = ResolvedValues<ReturnType<typeof tooltipConfig>>
 
-/** Every panel's resolved values, keyed by panel id. */
 export type PanelValues = {
   gauge: GaugeValues
   value: ValueValues
@@ -549,7 +453,6 @@ export type PanelValues = {
   tooltip: TooltipValues
 }
 
-/** A partial update for every panel, in the shape `setValues` accepts. */
 export type PanelUpdates = {
   gauge?: ControlValueUpdates<ReturnType<typeof gaugeConfig>>
   value?: ControlValueUpdates<ReturnType<typeof valueConfig>>
@@ -565,11 +468,6 @@ export type PanelUpdates = {
 const isRecord = (v: unknown): v is Record<string, unknown> =>
   typeof v === "object" && v !== null && !Array.isArray(v)
 
-/**
- * Resolves a control config to its default values: sliders take their first
- * element, selects their `default`, pads their axis defaults, and folders
- * recurse. Mirrors what the store does when a panel first registers.
- */
 export const defaultsOf = <T extends ControlConfig>(
   config: T
 ): ResolvedValues<T> => {
@@ -594,12 +492,6 @@ export const defaultsOf = <T extends ControlConfig>(
   return out as ResolvedValues<T>
 }
 
-/**
- * A deep copy without the keys the panels keep for themselves, such as
- * `_collapsed`.
- * Panel values read back out of the store are fed to `setValues` when a layer
- * comes round again, and those keys are not values to set.
- */
 export const withoutMeta = <T>(values: T): T => {
   if (!isRecord(values)) return values
   const out: Record<string, unknown> = {}
@@ -610,7 +502,6 @@ export const withoutMeta = <T>(values: T): T => {
   return out as T
 }
 
-/** Recursively overlays `updates` on `base`; arrays and primitives replace. */
 export const mergeValues = <T>(base: T, updates: unknown): T => {
   if (!isRecord(base) || !isRecord(updates)) return (updates ?? base) as T
   const out: Record<string, unknown> = { ...base }
@@ -621,7 +512,6 @@ export const mergeValues = <T>(base: T, updates: unknown): T => {
   return out as T
 }
 
-/** Default values for every panel, at the given domain. */
 export const defaultPanelValues = (min = 0, max = 100): PanelValues => ({
   gauge: defaultsOf(fullGaugeConfig()),
   value: defaultsOf(valueConfig(min, max)),
@@ -634,23 +524,17 @@ export const defaultPanelValues = (min = 0, max = 100): PanelValues => ({
   tooltip: defaultsOf(tooltipConfig()),
 })
 
-/** Panel values for a set of updates applied over the defaults. */
 export const resolvePanelValues = (updates: PanelUpdates): PanelValues => {
   const min = updates.gauge?.min ?? gaugeConfig().min[0]
   const max = updates.gauge?.max ?? gaugeConfig().max[0]
   return mergeValues(defaultPanelValues(min, max), updates)
 }
 
-/* ---------- spec ---------- */
-
-/** The effective domain after guarding against min crossing max. */
 export const domainOf = (gauge: GaugeValues) => ({
   min: Math.min(gauge.min, gauge.max - 1),
   max: gauge.max,
 })
 
-/** Turns panel values into the normalised spec the preview and code share. */
-/** The gauge's own transition shape for a panel transition control. */
 export const toGaugeTransition = (t: TransitionConfig): GaugeTransition => {
   if (t.type === "easing")
     return { type: "tween", duration: t.duration, ease: t.ease }
@@ -670,14 +554,8 @@ export const toGaugeTransition = (t: TransitionConfig): GaugeTransition => {
 export const buildSpec = (v: PanelValues): GaugeSpec => {
   const { gauge, value, arcs, cutoffs, ticks, text, needle, dot, tooltip } = v
   const { min, max } = domainOf(gauge)
-  /* A bar has no centre for a needle to pivot on or a face to fill, so
-     whatever the panels it hides still hold is left out. */
   const linear = gauge.shape === "linear"
 
-  /* Zones keep their panel order. The last zone always runs to `max`, so its
-     own cutoff is ignored, and each earlier cutoff is held at or above the
-     one before it: dragging a cutoff past its neighbour collapses that zone
-     rather than swapping the two colours around. */
   const zoneFolders: { to?: number; color: ColorValue }[] = [
     cutoffs.zone1,
     cutoffs.zone2,

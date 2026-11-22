@@ -30,11 +30,6 @@ export type TransitionControlProps = {
   onChange: (value: TransitionConfig) => void
 }
 
-/**
- * How the gauge settles on a new value: a spring said in duration and bounce,
- * or a bezier easing over a duration. Switching modes carries the duration
- * across, so trying both stays a fair comparison.
- */
 export const TransitionControl = ({
   label,
   value,
@@ -60,8 +55,6 @@ export const TransitionControl = ({
           value={value.type}
           onValueChange={setMode}
           aria-label={`${label} type`}
-          /* The row is already the container, so the strip stays bare and
-             only the sliding pill marks the active mode. */
           className="-mr-1.5 h-7 shrink-0 items-center bg-transparent p-0.5"
           itemClassName="px-2 py-1 text-xs"
         />

@@ -16,8 +16,6 @@ export const metadata: Metadata = {
     url: "/studio",
     title: "Gauge Studio",
     description,
-    /* Defining `openGraph` here replaces the inherited field wholesale, which
-       drops the root segment's file-convention card — so point back at it. */
     images: [
       {
         url: "/opengraph-image.png",

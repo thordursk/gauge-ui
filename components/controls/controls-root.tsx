@@ -24,12 +24,6 @@ import {
 } from "@/lib/controls"
 import { cn } from "@/lib/utils"
 
-/**
- * Every panel registered through `useControlPanel`, in registration order,
- * each a collapsible section. This is the whole of the sidebar's content:
- * the store carries the values, so the tree re-renders panel by panel as
- * they change rather than as a whole.
- */
 export const ControlsRoot = () => {
   const panels = useSyncExternalStore(
     ControlsStore.subscribeGlobal,
@@ -94,11 +88,6 @@ const PanelSection = ({ panel }: { panel: PanelConfig }) => {
   )
 }
 
-/**
- * A nested group. Open state lives here and the component is keyed on its
- * path, so a folder holds its fold across the config rebuilds that add and
- * remove controls inside it.
- */
 const Folder = ({
   label,
   defaultOpen,
@@ -150,13 +139,6 @@ const ControlList = ({
   </>
 )
 
-/**
- * The colour controls are folders in the config — a `token` select plus, only
- * while "custom" is picked, a `custom` hex — but folders sit inside groups
- * that sit inside panels, and three levels of accordion is one too many. A
- * folder of that shape is recognised here and rendered flat: one select row
- * under the folder's own label, with the hex row beneath it when it exists.
- */
 const colorFolderOf = (control: ControlMeta) => {
   const children = control.children ?? []
   const token = children.find(

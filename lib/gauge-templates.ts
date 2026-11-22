@@ -1,22 +1,3 @@
-/**
- * Starting points for the studio. Each template is a partial update over the
- * panel defaults, in the shape the panel controllers accept, so applying one
- * is "reset, then set". The same updates drive the picker's mini previews.
- *
- * Templates stay within the greyscale theme tokens so they follow light and
- * dark mode; the fixed accents in the palette are left for the user to add.
- * None of them set `padding`, so every preview keeps the panel default and the
- * dials sit in the same frame as each other.
- *
- * A template can also carry `insets`: further gauges, described the same way,
- * drawn inside the first one. They are placed in the host gauge's coordinate
- * space and scaled as a whole, so an inset is simply a smaller dial.
- *
- * The bars at the end are `LinearGauge`s, each taken from one of the
- * examples. A bar has no face and no needle, so they draw with the track,
- * arc, cutoffs, ticks, dot and text alone.
- */
-
 import {
   defaultPanelValues,
   resolvePanelValues,
@@ -29,23 +10,11 @@ import {
   type GaugeLayer,
 } from "@/lib/gauge-layers"
 
-/**
- * A whole second gauge drawn inside the template's own, described the same
- * way: a set of panel updates over the defaults. Where it sits and how big it
- * is drawn are `gauge.placement`, the same control an inset's own Gauge panel
- * shows, so a template says nothing the studio cannot say back.
- */
 export type TemplateInset = {
-  /** Prop name in the generated code. A plain identifier, such as `fuel`. */
   name: string
   values: PanelUpdates
 }
 
-/**
- * The shelves the picker sorts templates onto, in the order it shows them.
- * A template with insets is `composed` whatever shape it is, unless it is a
- * bar, which always goes with the bars.
- */
 export const templateCategories = [
   { id: "arcs", name: "Arcs" },
   { id: "rings", name: "Rings" },
@@ -66,7 +35,6 @@ export type GaugeTemplate = {
 
 const token = (name: string) => ({ token: name })
 
-/** The small half dials under the System template's own, bar their labels. */
 const insetHalfDial = (
   x: number,
   value: number,
@@ -106,11 +74,6 @@ const insetHalfDial = (
   },
 })
 
-/**
- * One workstream's ring for the Sprint template: a small full ring from
- * twelve o'clock placed in the grid, its name in the middle, and a tooltip
- * with the tasks behind the share.
- */
 const sprintRing = (
   x: number,
   y: number,
@@ -150,22 +113,10 @@ const sprintRing = (
   },
 })
 
-/**
- * One planet on its orbit, for the Orrery. The track is the orbit itself,
- * pulled in from the gauge's radius by `offset` rather than scaled down, so
- * every ring stays the same hairline and every planet the same size however
- * far in it sits. The arc is the stretch of orbit covered so far and the dot
- * rides its head, which makes the layer's value the planet's position: drag
- * it or sweep it and the planet goes round, trailing its path behind it.
- */
 const planetOrbit = (
-  /** How far in from the gauge's radius the orbit sits. */
   offset: number,
-  /** Where the planet has got to, in degrees round the orbit. */
   at: number,
-  /** The planet's radius. */
   size: number,
-  /** Insets need placing; the outermost orbit is the gauge itself. */
   inset = false
 ): PanelUpdates => ({
   gauge: {
@@ -190,15 +141,9 @@ const planetOrbit = (
   text: { value: { show: false }, unit: { show: false } },
 })
 
-/**
- * Marks in the stage's own colour across a bar, cutting it into quarters as
- * the tanks and throttles in the examples are. They are the cutoffs between
- * four zones whose band is left undrawn, so only the marks show.
- */
 const quarterCuts = (
   min: number,
   max: number,
-  /** As long as the bar is wide, so each cut goes right across it. */
   length: number
 ): PanelUpdates["cutoffs"] => {
   const at = (t: number) => min + (max - min) * t
@@ -220,8 +165,6 @@ const quarterCuts = (
   }
 }
 
-/** A single mark across a bar at `at`: the cutoff between two zones whose
-    band is left undrawn, as the Battery template's charge limit is. */
 const markAt = (
   at: number,
   length: number,
@@ -234,11 +177,6 @@ const markAt = (
   marks: { show: true, length, width: 3, offset: 0, cap: "butt", color },
 })
 
-/**
- * One band of the Equaliser's analyser: an upright column of segments, lit
- * up to the band's level in dB. A band other than the middle one is an
- * inset, placed `x` along the row at full size.
- */
 const spectrumBand = (db: number, x?: number): PanelUpdates => ({
   gauge: {
     shape: "linear",
@@ -437,19 +375,6 @@ const templates: GaugeTemplate[] = [
     id: "sun-path",
     name: "Sun path",
     category: "arcs",
-    /* The sun's arc across a day, drawn the way the sky is: a half circle
-       standing on the horizon, sunrise at the left and sunset at the right.
-       `fit: "content"` trims the box to that sweep, so the flat bottom edge
-       reads as the horizon rather than leaving a blank lower half.
-
-       The domain is the hour of the day, 6 to 18, and there are no hands and
-       no numbering: the dot rides the head of the arc, which makes it the sun
-       itself, and it takes the accent so it stays the one thing to look for.
-       The arc behind it keeps the track's colour at full strength, so the
-       daylight already spent reads as shade rather than a second mark. The
-       ticks are stubs barely longer than they are wide, one every half hour, so
-       they read as a rule printed along the band rather than a scale, and the
-       two times in the middle are what the band's ends stand for. */
     values: {
       gauge: { min: 6, max: 18, startAngle: 90, endAngle: 270, fit: "content" },
       value: { value: 13.7 },
@@ -527,11 +452,6 @@ const templates: GaugeTemplate[] = [
           opacity: 0.5,
         },
       },
-      /* A second reading of the value, inside the ticks: the arc says it in
-         the round and this says it to the degree. The ticks reach in to 163,
-         so a dot of 5 sitting at 146 leaves 12 clear of them. It keeps one
-         colour while the arc takes the zone's, so the mark stays the same
-         thing to look for wherever the temperature has got to. */
       dot: { show: true, radius: 5, offset: -54, color: token("foreground") },
       text: {
         value: { fontSize: 84, decimals: 1 },
@@ -554,10 +474,6 @@ const templates: GaugeTemplate[] = [
     id: "thermostat",
     name: "Thermostat",
     category: "arcs",
-    /* The smart home's thermostat: a broad band sliced into segments by a
-       ribbon of ticks drawn in the stage's colour, filled to the setpoint,
-       with the dot as the handle a drag would turn. The ticks are longer than
-       the band is wide, so they cut it clean through at either edge. */
     values: {
       gauge: { min: 10, max: 30, startAngle: 40, endAngle: 320 },
       value: { value: 21.5 },
@@ -611,10 +527,6 @@ const templates: GaugeTemplate[] = [
     id: "range",
     name: "Range",
     category: "arcs",
-    /* A comfort band rather than a reading: the value is a [from, to] range,
-       the arc fills between its two ends and a dot rides each one. The ring
-       is a control, so either end can be dragged on its own, and it follows
-       the thumbs exactly rather than springing after them. */
     values: {
       gauge: {
         min: 10,
@@ -704,8 +616,6 @@ const templates: GaugeTemplate[] = [
     id: "segments",
     name: "Segments",
     category: "arcs",
-    /* No track and no arc: a ring of ticks is the fill, lit up to the value
-       and dim past it, the lit ones standing a little longer. */
     values: {
       value: { value: 64 },
       arcs: { track: { show: false }, arc: { show: false } },
@@ -736,9 +646,6 @@ const templates: GaugeTemplate[] = [
     id: "data-usage",
     name: "Data usage",
     category: "arcs",
-    /* A month's mobile data. Hovering the dial brings up a tooltip on the
-       head of the arc with what has been used so far, which swings round
-       with the fill as the value moves. */
     values: {
       gauge: { min: 0, max: 50, startAngle: 60, endAngle: 300 },
       value: { value: 32 },
@@ -783,9 +690,6 @@ const templates: GaugeTemplate[] = [
     id: "dimmer",
     name: "Dimmer",
     category: "arcs",
-    /* A light's dimmer: the brightness fills a broad sweep, and the notch at
-       its head — a dot in the stage's colour — is the grip a finger would
-       find. */
     values: {
       gauge: { min: 0, max: 100, startAngle: 40, endAngle: 320 },
       value: { value: 68 },
@@ -818,10 +722,6 @@ const templates: GaugeTemplate[] = [
     id: "volume",
     name: "Volume",
     category: "arcs",
-    /* The smart home's volume knob, and the one template that can be set by
-       hand: drag round the scale to jump to a level, or take hold of the
-       face and turn it like a real knob. A thin scale fills round the
-       outside, and the face carries a single dot for its pointer. */
     values: {
       gauge: {
         min: 0,
@@ -986,12 +886,6 @@ const templates: GaugeTemplate[] = [
     id: "wind",
     name: "Wind direction",
     category: "needles",
-    /* A masthead wind indicator: the arrowhead points at the bearing the wind
-       blows from, and its tail runs out to a disc on the far rim, like a vane's
-       counterweight. The arrow spans the whole dial and crosses the broad
-       rim at both ends. Instead of a hub it is split round the centre, where
-       a fixed wind speed sits between the halves. Round ticks every 10°,
-       heavier at the cardinal points, which are labelled. */
     values: {
       gauge: { min: 0, max: 360, startAngle: 180, endAngle: 540 },
       value: { value: 196 },
@@ -1021,8 +915,6 @@ const templates: GaugeTemplate[] = [
         },
         hub: { radius: 0 },
       },
-      /* The value is the bearing, so the wind speed in the middle is fixed
-         text: the figure in the title, the unit under it. */
       text: {
         value: { show: false },
         title: {
@@ -1210,10 +1102,6 @@ const templates: GaugeTemplate[] = [
     id: "battery",
     name: "Battery",
     category: "rings",
-    /* An EV charging: the charge fills the ring and the charge limit is a
-       notch across the band. The notch is the cutoff between two zones in the
-       track's own colour, with the band's opacity at zero so only its mark
-       draws. */
     values: {
       gauge: { min: 0, max: 100, startAngle: 180, endAngle: 540 },
       value: { value: 64 },
@@ -1336,10 +1224,6 @@ const templates: GaugeTemplate[] = [
     id: "power-meter",
     name: "Power meter",
     category: "needles",
-    /* The house's grid connection: a half dial centred on zero, the needle
-       leaning left while power flows out to the grid and right while the
-       house draws it in. The words either side of the hub name the two
-       directions, since the value itself carries the sign. */
     values: {
       gauge: {
         min: -10,
@@ -1536,10 +1420,6 @@ const templates: GaugeTemplate[] = [
     id: "chronograph",
     name: "Chronograph",
     category: "composed",
-    /* A mechanical stopwatch: sixty seconds round the rim under a sweep hand
-       with a counterweight dot, the split printed above the centre, and a
-       thirty-minute register inset above six o'clock. The register is a whole
-       second dial, so it is an inset with its own hand to drive. */
     values: {
       gauge: { min: 0, max: 60, startAngle: 180, endAngle: 540 },
       value: { value: 42 },
@@ -1689,8 +1569,6 @@ const templates: GaugeTemplate[] = [
         needle1: { style: "pointer", length: 0.85, width: 10, tail: 32 },
         hub: { radius: 12 },
       },
-      /* The readout sits just under the hub, clear of the needle's tail, with
-         the unit under the number and both on the dial's centre line. */
       text: {
         value: {
           fontSize: 40,
@@ -1707,12 +1585,6 @@ const templates: GaugeTemplate[] = [
         title: { show: false },
       },
     },
-    /* Fuel closes the speedometer's ring: same centre, same radius, filling
-       the opening left between 320 and 400 — the 40 the speed sweep started
-       at — with a few degrees clear at either end so the two arcs never
-       touch. The sweep runs clockwise, which at the foot of a dial is right
-       to left, so the fill is reversed to sit the empty end on the left and
-       read E to F the way a fuel gauge does. */
     insets: [
       {
         name: "fuel",
@@ -1801,10 +1673,6 @@ const templates: GaugeTemplate[] = [
         },
       },
     },
-    /* Three rings of the same thickness. Scaling shrinks the stroke along with
-       the radius, so each inner ring's width is set back up by its own scale:
-       60 x 0.74 and 76 x 0.5 both land near the host's 44. They step down in
-       weight rather than in colour, which keeps them apart in either theme. */
     insets: [
       {
         name: "exercise",
@@ -1848,12 +1716,6 @@ const templates: GaugeTemplate[] = [
     id: "sprint",
     name: "Sprint",
     category: "composed",
-    /* A sprint's four workstreams as small progress rings in a grid, each
-       carrying only its name. The host draws nothing itself and only places
-       them. Hovering the grid brings up a tooltip on the head of every ring
-       at once with its tasks done and its share. The values are picked so
-       each head, and so each bubble, points out of the grid at its own
-       corner rather than into a neighbour. */
     values: {
       gauge: { min: 0, max: 100, startAngle: 180, endAngle: 540 },
       value: { value: 0 },
@@ -1906,7 +1768,6 @@ const templates: GaugeTemplate[] = [
         },
       },
     },
-    /* Two more half dials in the empty lower half, one either side. */
     insets: [
       {
         name: "mem",
@@ -1922,14 +1783,6 @@ const templates: GaugeTemplate[] = [
     id: "orrery",
     name: "Orrery",
     category: "composed",
-    /* Four orbits round one Sun, evenly spaced, each running a whole turn
-       from twelve o'clock. Every layer is a planet, so driving one sends that
-       planet round its own orbit; sweep it to watch a year go by.
-
-       The Sun is the hub, which only draws alongside a needle, so the needle
-       is a stub shorter than the hub's radius and never shows. The outermost
-       orbit is the gauge itself; the other three are insets sharing its
-       centre at full size, set apart by how far each ring is offset inwards. */
     values: {
       ...planetOrbit(0, 65, 7),
       needle: {
@@ -1953,8 +1806,6 @@ const templates: GaugeTemplate[] = [
     id: "throttle",
     name: "Throttle",
     category: "bars",
-    /* The rocket's throttle and the race car's level bars: a flat bar cut
-       into quarters, with its name and reading over it and a scale under. */
     values: {
       gauge: { shape: "linear", min: 0, max: 100, padding: 64, ends: 28 },
       value: { value: 72 },
@@ -1994,9 +1845,6 @@ const templates: GaugeTemplate[] = [
     id: "tank",
     name: "Tank",
     category: "bars",
-    /* A propellant tank or a water tank, as in the rocket and the espresso
-       machine: an upright column cut into quarters, draining from the top.
-       Its name stands over it and its level under it. */
     values: {
       gauge: {
         shape: "linear",
@@ -2039,10 +1887,6 @@ const templates: GaugeTemplate[] = [
     id: "rev-tape",
     name: "Rev tape",
     category: "bars",
-    /* The race car's revs on a tape, in thousands, with a scale under it and
-       the band past the shift point marked over it. That band is the second
-       of two zones; the first is drawn in the stage's colour, so it never
-       shows. */
     values: {
       gauge: { shape: "linear", min: 4, max: 12, padding: 72, ends: 16 },
       value: { value: 9.4 },
@@ -2099,9 +1943,6 @@ const templates: GaugeTemplate[] = [
     id: "shift-lights",
     name: "Shift lights",
     category: "bars",
-    /* The strip across the top of the race car's wheel: a row of lights
-       through the last three thousand revs, lit up to the revs. They are
-       ticks with no length, so each round cap is a light. */
     values: {
       gauge: { shape: "linear", min: 9, max: 12, padding: 24, ends: 16 },
       value: { value: 11.1 },
@@ -2128,8 +1969,6 @@ const templates: GaugeTemplate[] = [
     id: "delta",
     name: "Delta",
     category: "bars",
-    /* Time against the best lap, from the race car: the fill grows left of
-       the centre line when ahead and right of it when behind. */
     values: {
       gauge: { shape: "linear", min: -1, max: 1, padding: 64, ends: 28 },
       value: { value: -0.32 },
@@ -2174,13 +2013,8 @@ const templates: GaugeTemplate[] = [
     id: "equaliser",
     name: "Equaliser",
     category: "bars",
-    /* The music studio's analyser: a row of columns, each a stack of
-       segments lit up to its band's level. The middle band is the gauge and
-       the rest are insets beside it, so wander or jump moves every band on
-       its own, as a live analyser does. */
     values: {
       ...spectrumBand(-26),
-      /* Wide enough either side to take the outermost band. */
       gauge: { ...spectrumBand(-26).gauge, padding: 176, ends: 8 },
     },
     insets: [
@@ -2196,9 +2030,6 @@ const templates: GaugeTemplate[] = [
     id: "eq-fader",
     name: "EQ fader",
     category: "bars",
-    /* One band of the music studio's graphic EQ: an upright fader that cuts
-       or boosts from 0 dB, the fill growing either way from the line across
-       it, with its scale down the left. */
     values: {
       gauge: {
         shape: "linear",
@@ -2258,19 +2089,10 @@ const templates: GaugeTemplate[] = [
   },
 ]
 
-/**
- * Every template, shelf by shelf, so stepping through them with the keys
- * goes in the order the picker shows them.
- */
 export const gaugeTemplates: GaugeTemplate[] = templateCategories.flatMap(
   ({ id }) => templates.filter((template) => template.category === id)
 )
 
-/**
- * A template as the studio holds it: one layer per gauge, each resolved
- * through the same defaults the panels use, so a template only has to
- * describe what makes it different. No template gives the bare defaults.
- */
 export const templateLayers = (
   template: GaugeTemplate | null
 ): GaugeLayer[] => [
@@ -2284,7 +2106,6 @@ export const templateLayers = (
   })),
 ]
 
-/** A template's own spec and value, for the picker's previews. */
 export const templatePreview = (template: GaugeTemplate) => {
   const layers = templateLayers(template)
   return { spec: specFromLayers(layers), value: layers[0].values.value.value }

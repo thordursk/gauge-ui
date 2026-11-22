@@ -1,17 +1,3 @@
-/**
- * The studio's own control-panel kit, in the spirit of dialkit but owned by
- * this codebase: a panel is a plain config object — sliders as
- * `[default, min, max, step]` tuples, toggles as booleans, selects, colours,
- * XY pads, transitions and nested folders — parsed once into control metadata
- * and a flat value map keyed by dotted path. React reads it through
- * `useControlPanel` and `ControlsRoot` renders it with shadcn components.
- * There are no presets, no persistence and no timeline: the studio keeps its
- * own state in layers.
- */
-
-/* ---------- config shapes ---------- */
-
-/** The `[default, min, max, step?]` notation used by sliders and pad axes. */
 export type SliderTuple = [number, number, number, number?]
 
 export type SpringConfig = {
@@ -31,7 +17,6 @@ export type EasingConfig = {
 
 export type TransitionConfig = SpringConfig | EasingConfig
 
-/** A swatch paints a dot beside the label, for options that name a colour. */
 export type SelectOption =
   | string
   | { value: string; label: string; swatch?: string }
@@ -48,9 +33,7 @@ export type PadAxis = SliderTuple
 export type PadValue = { x: number; y: number }
 export type PadConfig = {
   type: "pad"
-  /** Defaults to [0, -1, 1, 0.01]. */
   x?: PadAxis
-  /** Positive Y points upward. Defaults to [0, -1, 1, 0.01]. */
   y?: PadAxis
 }
 
@@ -68,7 +51,6 @@ export type ControlConfig = {
   [key: string]: ControlValue | SliderTuple | ControlConfig
 }
 
-/** A panel config resolved to the values its controls currently hold. */
 export type ResolvedValues<T extends ControlConfig> = {
   [K in keyof T]: T[K] extends SliderTuple
     ? number
@@ -87,7 +69,6 @@ export type ResolvedValues<T extends ControlConfig> = {
                 : T[K]
 }
 
-/** A partial, nested update in the shape `setValues` accepts. */
 export type ControlValueUpdates<T extends ControlConfig> = {
   [K in keyof T as K extends "_collapsed" ? never : K]?: T[K] extends SliderTuple
     ? number
@@ -102,8 +83,6 @@ export type ControlValueUpdates<T extends ControlConfig> = {
             : T[K]
 }
 
-/* ---------- control metadata ---------- */
-
 export type ControlType =
   | "slider"
   | "toggle"
@@ -116,7 +95,6 @@ export type ControlType =
 
 export type ControlMeta = {
   type: ControlType
-  /** The control's dotted path within its panel. */
   path: string
   label: string
   min?: number
@@ -136,11 +114,8 @@ export type PanelConfig = {
   name: string
   controls: ControlMeta[]
   defaultCollapsed: boolean
-  /** Left out of the sidebar while its values stay registered. */
   hidden: boolean
 }
-
-/* ---------- helpers ---------- */
 
 const isRecord = (v: unknown): v is Record<string, unknown> =>
   typeof v === "object" && v !== null && !Array.isArray(v)
@@ -160,7 +135,6 @@ const isPadConfig = (v: unknown): v is PadConfig => hasType(v, "pad")
 export const isPadValue = (v: unknown): v is PadValue =>
   isRecord(v) && typeof v.x === "number" && typeof v.y === "number"
 
-/** Any typed leaf; every other plain object in a config is a folder. */
 const isFolderConfig = (v: unknown): v is ControlConfig =>
   isRecord(v) &&
   !isTransitionConfig(v) &&
@@ -172,7 +146,6 @@ const isFolderConfig = (v: unknown): v is ControlConfig =>
 export const isHexColor = (value: string) =>
   /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$/.test(value)
 
-/** `startAngle` reads as "Start Angle" on its row. */
 export const formatLabel = (key: string) =>
   key
     .replace(/([A-Z])/g, " $1")
@@ -187,7 +160,6 @@ const inferStep = (min: number, max: number) => {
   return 10
 }
 
-/** A sensible range around a bare number, for configs that give only that. */
 const inferRange = (value: number) => {
   if (value >= 0 && value <= 1) return { min: 0, max: 1, step: 0.01 }
   if (value >= 0 && value <= 10) return { min: 0, max: value * 3 || 10, step: 0.1 }
@@ -197,11 +169,9 @@ const inferRange = (value: number) => {
   return { min: value * 3, max: -value * 3, step: 1 }
 }
 
-/** How many decimals a step needs to print without loss. */
 export const stepDecimals = (step: number) =>
   step > 0 && step < 1 ? Math.max(0, Math.ceil(-Math.log10(step))) : 0
 
-/** Clamps into `[min, max]` and snaps onto the step grid anchored at `min`. */
 export const snapToStep = (
   value: number,
   step: number | undefined,
@@ -212,7 +182,6 @@ export const snapToStep = (
   if (!step || step <= 0 || !Number.isFinite(clamped)) return clamped
   const base = Number.isFinite(min) ? min : 0
   const snapped = base + Math.round((clamped - base) / step) * step
-  /* Re-round to shed float noise like 0.30000000000000004. */
   const tidy = Number(snapped.toFixed(stepDecimals(step) + 2))
   return Math.min(max, Math.max(min, tidy))
 }
@@ -220,7 +189,6 @@ export const snapToStep = (
 const optionValue = (option: SelectOption) =>
   typeof option === "string" ? option : option.value
 
-/** A leaf's default: tuples take their head, typed configs their `default`. */
 const leafDefault = (raw: unknown): ControlValue => {
   if (Array.isArray(raw)) return raw[0] as number
   if (isSelectConfig(raw))
@@ -230,15 +198,12 @@ const leafDefault = (raw: unknown): ControlValue => {
   return raw as ControlValue
 }
 
-/* ---------- parsing ---------- */
-
 type ParsedConfig = {
   controls: ControlMeta[]
   defaults: FlatValues
   byPath: Map<string, ControlMeta>
 }
 
-/** Compiles a config into controls, defaults and a path index in one walk. */
 export const parseConfig = (config: ControlConfig): ParsedConfig => {
   const defaults: FlatValues = {}
   const byPath = new Map<string, ControlMeta>()
@@ -272,7 +237,6 @@ export const parseConfig = (config: ControlConfig): ParsedConfig => {
       } else if (isPadConfig(raw)) {
         control = { type: "pad", path, label, pad: raw }
       } else if (typeof raw === "string") {
-        /* A bare hex string is a colour to pick; any other string is text. */
         control = { type: isHexColor(raw) ? "color" : "text", path, label }
       } else if (isRecord(raw)) {
         const folder = raw as ControlConfig
@@ -295,7 +259,6 @@ export const parseConfig = (config: ControlConfig): ParsedConfig => {
   return { controls: visit(config, ""), defaults, byPath }
 }
 
-/** Nests a panel's flat values back into the shape of its config. */
 export const resolveValues = <T extends ControlConfig>(
   config: T,
   flat: FlatValues
@@ -313,12 +276,6 @@ export const resolveValues = <T extends ControlConfig>(
   return visit(config, "") as ResolvedValues<T>
 }
 
-/**
- * Flattens a nested update into dotted paths, guided by the config: keys the
- * config does not know are dropped. A control that only exists once another
- * value brings it into being — a colour's custom hex — is picked up on a
- * later pass, once the panel has rebuilt around that value.
- */
 export const flattenUpdates = (
   config: ControlConfig,
   updates: unknown
@@ -345,12 +302,6 @@ export const flattenUpdates = (
   return out
 }
 
-/**
- * Keeps an existing value across a panel rebuild when it still fits the
- * control, normalised to it: sliders clamp and snap to the new range, selects
- * fall back when their option is gone. A transition keeps whichever shape it
- * has — a spring switched to an easing should not snap back on a rebuild.
- */
 const normalizeValue = (
   control: ControlMeta,
   existing: ControlValue | undefined,
@@ -394,8 +345,6 @@ const normalizeValue = (
   }
 }
 
-/* ---------- the store ---------- */
-
 type Listener = () => void
 
 const EMPTY_VALUES: FlatValues = {}
@@ -407,8 +356,6 @@ class ControlsStoreClass {
   private values = new Map<string, FlatValues>()
   private byPanel = new Map<string, Map<string, ControlMeta>>()
   private defaults = new Map<string, FlatValues>()
-  /* Values kept across an unmount, so strict mode's double mount and a panel
-     coming back later pick up where they left off. */
   private retained = new Map<string, FlatValues>()
   private listeners = new Map<string, Set<Listener>>()
   private globalListeners = new Set<Listener>()
@@ -454,9 +401,6 @@ class ControlsStoreClass {
     previous: FlatValues
   ) {
     const { controls, defaults, byPath } = parseConfig(config)
-    /* Values whose control has left the config stay put — a custom colour
-       keeps its hex while the token select is off "custom" — and every value
-       the config still has is normalised to its rebuilt control. */
     const values: FlatValues = { ...previous }
     for (const [path, control] of byPath) {
       if (control.type === "folder") continue
@@ -477,10 +421,8 @@ class ControlsStoreClass {
     this.notify(id)
   }
 
-  /** A panel's current values, flat and keyed by dotted path. */
   getValues = (id: string): FlatValues => this.values.get(id) ?? EMPTY_VALUES
 
-  /** Every registered panel, in registration order. */
   getPanels = (): PanelConfig[] => this.snapshot
 
   updateValue(id: string, path: string, value: ControlValue) {

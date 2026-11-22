@@ -17,7 +17,6 @@ export const SiteFooter = () => (
       </div>
       <p className="flex items-center gap-2">
         Built by
-        {/* The period sits outside the link but tight against it. */}
         <span className="flex items-center">
           <a
             href="https://x.com/doddiskula"

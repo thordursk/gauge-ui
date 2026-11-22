@@ -3,7 +3,6 @@
  * font options, zones, and the formatters that turn a value into a label.
  * Everything here is framework-free so it can be used in generated code.
  */
-
 export type StrokeCap = "round" | "butt"
 export type FontFamily = "sans" | "rounded" | "mono"
 export type FontWeight = "regular" | "medium" | "semibold" | "bold"

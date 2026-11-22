@@ -132,10 +132,6 @@ export type GaugeDomainProps = GaugeReadingProps & {
   rotate?: number
 }
 
-/**
- * Resolves the domain and follows the value: the half of a gauge's context
- * that is the same whatever its shape.
- */
 const useGaugeReading = ({
   value,
   min = 0,
@@ -147,15 +143,10 @@ const useGaugeReading = ({
   const lo = Math.min(min, max)
   const hi = Math.max(min, max)
   const span = hi - lo
-  /* A wrapped domain folds any value back inside itself instead of clamping,
-     so 370° on a compass reads as 10°. */
   const fold = (v: number) => foldValue(v, lo, hi)
   const settle = wrap ? fold : (v: number) => clamp(v, lo, hi)
 
   const range = typeof value !== "number"
-  /* An open range is put in order so every part can take `from` as the low
-     end; a wrapped one keeps its order, which is what says which way round
-     the ring it runs. */
   const ends = (pair: GaugeRange) =>
     wrap
       ? [settle(pair[0]), settle(pair[1])]
@@ -171,8 +162,6 @@ const useGaugeReading = ({
           : [undefined, settle(initialValue[1])]
 
   const shown = useAnimatedValue(target, transition, span, initialTo, wrap)
-  /* Followed on a single value too, so the hooks run the same every render;
-     it just sits at `min` there. */
   const shownFrom = useAnimatedValue(
     targetFrom,
     transition,
@@ -182,8 +171,6 @@ const useGaugeReading = ({
   )
 
   return {
-    /* Folded when wrapped, otherwise as the spring left it, overshoot and
-       all — a bounce past the end is part of the motion. */
     value: wrap ? fold(shown) : shown,
     target,
     from: range && wrap ? fold(shownFrom) : shownFrom,
@@ -209,7 +196,6 @@ export const useGaugeContextValue = ({
   ...domain
 }: GaugeDomainProps): GaugeContextValue & GaugeRoundShape => {
   const reading = useGaugeReading(domain)
-  /* The rotation is a bearing, so it always takes the short way round. */
   const turned = useAnimatedValue(
     rotate,
     domain.transition,

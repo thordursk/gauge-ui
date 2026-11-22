@@ -39,7 +39,6 @@ import {
   type StageReadings,
 } from "./launch-simulation"
 
-/** Quick and without overshoot, so twenty readings a second glide together. */
 const FOLLOW: GaugeTransition = {
   type: "spring",
   visualDuration: 0.15,
@@ -47,51 +46,34 @@ const FOLLOW: GaugeTransition = {
 }
 
 const MUTED = "var(--muted-foreground)"
-/** Drawn in the colour the cards are painted in, the page background, to
-    cut a band into segments. */
 const CUT = "var(--background)"
-/** The one ink every mark is drawn in, thinned for the quieter tones. */
 const INK = "var(--foreground)"
 const fade = (percent: number) => fadeColor(INK, percent)
 
-/** Bar lengths in SVG units. A bar with a scale under it is drawn near the
-    width its half of the grid gives it, so its labels keep their size. */
 const SHORT = 240
 const HALF = 380
 
-/** The dials' full scales, shared by both stages so they compare. */
 const SPEED_MAX = 30000
 const ALTITUDE_MAX = 250
 const G_MAX = 6
 const Q_MAX = 25
 
-/** When the second stage reaches orbit and shuts down. */
 const SECO = EVENTS.find((e) => e.name === "SECO")?.t ?? END
 
 const pad = (n: number) => String(n).padStart(2, "0")
 
-/** Mission time as the clock shows it: "T−00:07" in the count, "T+02:31"
-    after. The count rounds up, so it reads T−00:01 until liftoff. */
 const missionClock = (t: number) => {
   const s = t < 0 ? Math.ceil(-t) : Math.floor(t)
   return `T${t < 0 ? "−" : "+"}${pad(Math.floor(s / 60))}:${pad(s % 60)}`
 }
 
-/** A span of seconds as "6:02". */
 const span = (seconds: number) => {
   const s = Math.ceil(seconds)
   return `${Math.floor(s / 60)}:${pad(s % 60)}`
 }
 
-/** Grouped by thousands the same way on the server and in every browser. */
 const grouped = (v: number) => Math.round(v).toLocaleString("en-US")
 
-/* ---------- dials ---------- */
-
-/**
- * A stage's reading as a webcast shows it: a thin ring filling round the
- * figure, its unit under it, and nothing else.
- */
 const Readout = ({
   value,
   max,
@@ -119,21 +101,10 @@ const Readout = ({
   </Gauge>
 )
 
-/** Radius of one booster engine on the flower: the centre one and the
-    eight round it are alike. */
 const ENGINE = 34
 
-/** Ring engines lit for a burn, around the centre one. */
 type EngineLayout = (ring: number) => boolean
 
-/**
- * A stage's engines from below, as a flower: the centre engine and a ring
- * of others round it, each glowing in proportion to its throttle while it
- * burns. Round them runs the stage's fuel on a ring like the other dials.
- * The engines sit on a full-circle gauge inset in the fuel's, where the
- * ring is its ticks with no length, so each is a round dot. The ring is
- * turned half an engine's spacing so a pair sits at the top and the bottom.
- */
 const EngineFlower = ({
   ring,
   lit,
@@ -142,12 +113,10 @@ const EngineFlower = ({
   fuel,
   centreSize = ENGINE,
 }: {
-  /** Engines in the ring round the centre one. */
   ring: number
   lit: EngineLayout
   centreLit: boolean
   throttle: number
-  /** Fuel left, 0–1. */
   fuel: number
   centreSize?: number
 }) => {
@@ -184,30 +153,19 @@ const EngineFlower = ({
   )
 }
 
-/**
- * Which of the booster's eight ring engines burn for a count of engines lit.
- * They come on in turn round the ring as it lights for liftoff; flying home
- * it lights the centre with two opposite each other, or the centre alone.
- */
 const boosterLayout =
   (engines: number, t: number): EngineLayout =>
   (i) =>
     engines >= 9 ||
     (t >= SEPARATION && engines === 3 ? i === 0 || i === 4 : i < engines - 1)
 
-/* ---------- bars ---------- */
-
-/** The timeline's length in SVG units, about as wide as the page draws it. */
 const FULL = 900
 
 const eventTime = (name: string) => EVENTS.find((e) => e.name === name)?.t ?? 0
 
-/** The timeline bar's thickness, and the space between its sections, in
-    SVG units. */
 const BAR = 8
 const SECTION_GAP = 3
 
-/** The flight cut into its sections, which the timeline is drawn in. */
 const SECTIONS = [
   { name: "Count", from: COUNT, to: 0 },
   { name: "Stage 1 burn", from: 0, to: eventTime("MECO") },
@@ -216,10 +174,8 @@ const SECTIONS = [
   { name: "Orbit", from: SECO, to: END },
 ]
 
-/** The tone of an event still to come: faint until the flight reaches it. */
 const AHEAD = fade(20)
 
-/** Which edge of an event's name sits at its mark, where names crowd. */
 const ALIGN: Record<string, "start" | "end"> = {
   Liftoff: "start",
   MECO: "end",
@@ -228,16 +184,8 @@ const ALIGN: Record<string, "start" | "end"> = {
   Boostback: "start",
 }
 
-/**
- * The mission from the count to orbit, cut into its sections and filling as
- * it flies. Marks above the bar are the second stage's events and those
- * below the booster's on its way home; each darkens once it has happened.
- * The pointer picks a section and the tooltip pins to it.
- */
 const Timeline = ({ t }: { t: number }) => {
   const [hover, setHover] = useState<number | null>(null)
-  /* The time under the pointer, read through the SVG's own transform so
-     the bar's padding and scaling need no knowing. */
   const pick = (e: PointerEvent<SVGSVGElement>) => {
     const ctm = e.currentTarget.getScreenCTM()
     if (!ctm) return
@@ -320,7 +268,6 @@ const Timeline = ({ t }: { t: number }) => {
   )
 }
 
-/** A throttle, cut into quarters. */
 const ThrottleBar = ({ value }: { value: number }) => (
   <LinearGauge
     value={value * 100}
@@ -334,9 +281,6 @@ const ThrottleBar = ({ value }: { value: number }) => (
   </LinearGauge>
 )
 
-/** The air pushing on the stack, with its scale under it and the highest
-    it has reached marked over it. The fill follows the readings without
-    easing, so it never trails behind the peak mark on the way up. */
 const PressureBar = ({ q, peak }: { q: number; peak: number }) => (
   <LinearGauge
     value={q}
@@ -353,10 +297,6 @@ const PressureBar = ({ q, peak }: { q: number; peak: number }) => (
   </LinearGauge>
 )
 
-/**
- * A propellant tank draining as a column, cut into quarters. The booster's
- * keep a reserve for flying home, shaded at the foot with its line across.
- */
 const Tank = ({
   level,
   label,
@@ -403,13 +343,10 @@ const Tank = ({
   </div>
 )
 
-/* ---------- layout ---------- */
-
 const Caption = ({ children }: { children: ReactNode }) => (
   <span className="text-xs text-muted-foreground tabular-nums">{children}</span>
 )
 
-/** A reading set as a bold rounded figure. */
 const Figure = ({
   value,
   className,
@@ -453,7 +390,6 @@ const Panel = ({
   </Card>
 )
 
-/** A label over a reading on the right, above the bar it belongs to. */
 const Row = ({
   label,
   value,
@@ -472,7 +408,6 @@ const Row = ({
   </div>
 )
 
-/** A dial with its name in small capitals under it. */
 const Labelled = ({
   label,
   children,
@@ -488,15 +423,11 @@ const Labelled = ({
   </div>
 )
 
-/** Text placed along the timeline by percentage, so it lines up with the
-    SVG however wide the card draws it. */
 const along = (t: number) => {
   const pad = 4
   return `${((pad + ((t - COUNT) / (END - COUNT)) * FULL) / (FULL + pad * 2)) * 100}%`
 }
 
-/** The events' names over or under their marks. Too crowded for a phone,
-    where the clock names the next one. */
 const EventLabels = ({ t, booster }: { t: number; booster: boolean }) => (
   <div className="relative hidden h-4 sm:block">
     {EVENTS.filter((e) => Boolean(e.booster) === booster).map((e) => (
@@ -518,8 +449,6 @@ const EventLabels = ({ t, booster }: { t: number; booster: boolean }) => (
     ))}
   </div>
 )
-
-/* ---------- sections ---------- */
 
 const Mission = ({ launch }: { launch: Launch }) => {
   const { t } = launch
@@ -552,10 +481,6 @@ const Mission = ({ launch }: { launch: Launch }) => {
   )
 }
 
-/**
- * One stage's telemetry as the webcast lays it out: speed, altitude and
- * g-force on rings, and its engines from below inside its fuel.
- */
 const Stage = ({
   title,
   status,
@@ -659,15 +584,6 @@ const Propellant = ({ launch }: { launch: Launch }) => (
   </Panel>
 )
 
-/**
- * A rocket launch from the last seconds of the count to orbit, laid out
- * like a launch webcast: the mission clock over a timeline of its events,
- * then each stage's speed, altitude and g-force on thin rings beside its
- * engines from below, lighting as they burn. The two stages read alike
- * until they part, then the second stage climbs on to orbit while the
- * booster turns back and lands. Throttles, the air on the stack and the
- * tanks stay on bars.
- */
 export const RocketLaunch = () => {
   const frame = useRef<HTMLDivElement>(null)
   const launch = useLaunchSimulation(frame)

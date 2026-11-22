@@ -24,7 +24,6 @@ import { cn } from "@/lib/utils"
 
 type LayerPickerProps = {
   layers: GaugeLayer[]
-  /** Index of the gauge the panels and the value slider are pointed at. */
   selected: number
   onSelect: (index: number) => void
   onAdd: () => void
@@ -32,15 +31,6 @@ type LayerPickerProps = {
   className?: string
 }
 
-/**
- * The composition as a stack, the way a layers panel shows one: the insets on
- * top of the gauge they sit in, each a live thumbnail of itself, the selected
- * one being the gauge the panels edit. Insets are added and taken away here,
- * and the first layer — the gauge the rest sit inside — stays.
- *
- * It stays open while layers are picked, so a composition can be worked
- * through without reaching for the trigger between each one.
- */
 export const LayerPicker = ({
   layers,
   selected,
@@ -51,8 +41,6 @@ export const LayerPicker = ({
 }: LayerPickerProps) => {
   const [open, setOpen] = useState(false)
   const current = layers[selected] ?? layers[0]
-  /* Topmost first, as a layer stack reads, while each row keeps the index it
-     has in the composition. */
   const stack = layers.map((layer, index) => ({ layer, index })).reverse()
 
   return (
@@ -84,9 +72,6 @@ export const LayerPicker = ({
       <PopoverContent
         align="start"
         side="top"
-        /* Pointer opens leave focus on the trigger so the first row does not
-           light up with a focus ring; keyboard opens keep the default hop
-           into the list. */
         initialFocus={(openType) => openType === "keyboard"}
         className="max-h-[min(24rem,var(--available-height))] w-[min(17rem,calc(100vw-1.5rem))] gap-2 overflow-y-auto overscroll-contain bg-card p-2"
       >
@@ -101,7 +86,6 @@ export const LayerPicker = ({
               key={layer.id}
               layer={layer}
               selected={index === selected}
-              /* The gauge the insets sit in is the composition itself. */
               removable={index !== 0}
               onSelect={() => onSelect(index)}
               onRemove={() => onRemove(index)}
@@ -143,8 +127,6 @@ const LayerRow = ({
   onSelect,
   onRemove,
 }: LayerRowProps) => {
-  /* The layer on its own, without whatever it is nested with, so the
-     thumbnail is of this gauge and nothing else. */
   const spec = useMemo(() => buildSpec(layer.values), [layer.values])
 
   return (

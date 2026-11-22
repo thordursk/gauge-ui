@@ -1,9 +1,3 @@
-/**
- * Dependency-free value animation for the gauge: a damped spring and a
- * cubic-bezier tween, both stepped per frame. Pure functions only; the hook
- * that drives them lives in `use-animated-value.ts`.
- */
-
 /** A named curve, CSS-style cubic-bezier control points, or your own function. */
 export type GaugeEasing =
   | "linear"
@@ -49,8 +43,6 @@ export const resolveTransition = (
   if (!transition) return null
   return transition === true ? DEFAULT_TRANSITION : transition
 }
-
-/* ---------- spring ---------- */
 
 export type SpringPhysics = { stiffness: number; damping: number; mass: number }
 
@@ -110,8 +102,6 @@ export const stepSpring = (
     : { state: { value, velocity }, done }
 }
 
-/* ---------- tween ---------- */
-
 const namedCurves: Record<
   Exclude<
     GaugeEasing,
@@ -138,7 +128,6 @@ export const cubicBezier = (x1: number, y1: number, x2: number, y2: number) => {
   return (x: number) => {
     if (x <= 0) return 0
     if (x >= 1) return 1
-    // Newton's method, falling back to bisection where the curve is flat.
     let t = x
     for (let i = 0; i < 8; i++) {
       const dx = bezier(t, x1, x2) - x

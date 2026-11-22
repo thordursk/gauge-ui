@@ -79,8 +79,6 @@ export const GaugeArc = ({
   const { min, max, value, scale, positionOf } = gauge
   const tail = from ?? gauge.from
   let head = to ?? value
-  /* A range on a closed ring is read forward from its start, so the far end
-     is carried round past the seam when it sits below the start. */
   const forward =
     gauge.range && gauge.wrap && from === undefined && to === undefined
   if (forward) head = tail + foldValue(head - tail, 0, Math.abs(max - min))
@@ -92,8 +90,6 @@ export const GaugeArc = ({
   if (wrap || forward) {
     const span = max - min
     if (span <= 0) return null
-    /* Positions past the end carry on round a ring, and come back in at
-       the start of a bar. */
     const sweep = scale.end - scale.start
     const perUnit = sweep / span
     a0 = scale.start + ((((lo - min) % span) + span) % span) * perUnit
@@ -158,8 +154,6 @@ export const GaugeStack = ({
   const start = from ?? gauge.from
   const fill = value - start
 
-  /* Each part runs from the end of the one before: its own cutoff, or its
-     share of the fill. */
   const ends = parts.reduce<number[]>(
     (acc, p) => [
       ...acc,
@@ -222,15 +216,11 @@ export const GaugeZones = ({
   const { min, max, scale, positionOf } = useGauge()
   if (zones.length === 0) return null
 
-  /* Segments are drawn with butt caps and rounded where asked with a disc of
-     the stroke width, which is exactly the shape a round cap adds. Drawing
-     the discs separately lets the joints and the outer ends differ. */
   const dot = (position: number, color: string, key: string) => {
     const { x, y } = scale.point(position, offset)
     return <circle key={key} cx={x} cy={y} r={width / 2} fill={color} />
   }
 
-  /* Each zone runs from the previous cutoff to its own, clamped to the domain. */
   const segments = zones.reduce<{ from: number; to: number }[]>(
     (acc, zone, i) => {
       const from = i === 0 ? min : acc[i - 1].to
