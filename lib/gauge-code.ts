@@ -1,3 +1,4 @@
+import { RADIUS } from "@/lib/gauge-panels"
 import {
   barPadding,
   type GaugeInsetSpec,
@@ -409,7 +410,7 @@ const insetElement = (
       max: domain.max,
       ...geometry(domain),
       radius:
-        domain.shape === "linear" || domain.radius === 200
+        domain.shape === "linear" || domain.radius === RADIUS
           ? undefined
           : domain.radius,
       transition: inset.spec.transition
