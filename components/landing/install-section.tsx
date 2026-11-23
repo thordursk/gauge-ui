@@ -4,12 +4,16 @@ import { HugeiconsIcon } from "@hugeicons/react"
 
 import { CopyButton } from "@/components/copy-button"
 import { PromptPicker } from "@/components/landing/prompt-picker"
+import { SetupPrompt } from "@/components/landing/setup-prompt"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { repoUrl, siteUrl } from "@/lib/site"
 
-const REGISTRY_URL = "https://gauge-ui.dev/r/gauge.json"
+const REGISTRY_URL = `${siteUrl}/r/gauge.json`
+
+const setupPrompt = `Set up gauge-ui in this project: composable SVG gauge primitives for React, distributed as a shadcn registry. With the project's package manager, run shadcn@latest add ${REGISTRY_URL} (run shadcn@latest init first if there is no components.json). Check that the files landed in components/gauge and that the project still type-checks. The API reference is in ${repoUrl}#readme.`
 
 const runners = [
   { id: "npm", command: `npx shadcn@latest add ${REGISTRY_URL}` },
@@ -61,66 +65,79 @@ export const InstallSection = () => (
       </h2>
     </div>
 
-    <div className="flex flex-col gap-4">
-      <Step n={1}>Add it with the shadcn CLI</Step>
-      <Tabs defaultValue="npm" className="gap-3">
-        <TabsList>
-          {runners.map((runner) => (
-            <TabsTrigger key={runner.id} value={runner.id}>
-              {runner.id}
-            </TabsTrigger>
-          ))}
+    <Tabs defaultValue="agent" className="gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Step n={1}>Add it to your project</Step>
+        <TabsList aria-label="Setup method">
+          <TabsTrigger value="agent">Agent</TabsTrigger>
+          <TabsTrigger value="manual">Manual</TabsTrigger>
         </TabsList>
-        {runners.map((runner) => (
-          <TabsContent key={runner.id} value={runner.id}>
-            <Card size="sm" className="p-2 shadow-none">
-              <CardContent className="flex items-center gap-2 px-2">
-                <code className="min-w-0 flex-1 overflow-x-auto font-mono text-sm whitespace-nowrap">
-                  <span className="text-muted-foreground select-none">$ </span>
-                  {runner.command}
-                </code>
-                <CopyButton value={runner.command} label="Copy command" />
-              </CardContent>
-            </Card>
-          </TabsContent>
-        ))}
-      </Tabs>
-    </div>
+      </div>
+      <TabsContent value="agent">
+        <SetupPrompt prompt={setupPrompt} />
+      </TabsContent>
+      <TabsContent value="manual">
+        <Tabs defaultValue="npm" className="gap-3">
+          <TabsList>
+            {runners.map((runner) => (
+              <TabsTrigger key={runner.id} value={runner.id}>
+                {runner.id}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          {runners.map((runner) => (
+            <TabsContent key={runner.id} value={runner.id}>
+              <Card size="sm" className="p-2 shadow-none">
+                <CardContent className="flex items-center gap-2 px-2">
+                  <code className="min-w-0 flex-1 overflow-x-auto font-mono text-sm whitespace-nowrap">
+                    <span className="text-muted-foreground select-none">
+                      ${" "}
+                    </span>
+                    {runner.command}
+                  </code>
+                  <CopyButton value={runner.command} label="Copy command" />
+                </CardContent>
+              </Card>
+            </TabsContent>
+          ))}
+        </Tabs>
+      </TabsContent>
+    </Tabs>
 
-    <div className="flex flex-col gap-4">
-      <Step n={2}>Build your gauge</Step>
-      <Tabs defaultValue="agent" className="gap-3">
-        <TabsList>
+    <Tabs defaultValue="agent" className="gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Step n={2}>Build your gauge</Step>
+        <TabsList aria-label="Build method">
           <TabsTrigger value="agent">Ask your agent</TabsTrigger>
           <TabsTrigger value="studio">Use the studio</TabsTrigger>
         </TabsList>
-        <TabsContent value="agent">
-          <PromptPicker prompts={prompts} />
-        </TabsContent>
-        <TabsContent value="studio">
-          <Card size="sm" className="shadow-none">
-            <CardContent className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <CardDescription className="leading-relaxed">
-                Design your own gauge in the studio, tweak it live, then copy
-                the code into your project.
-              </CardDescription>
-              <Button
-                variant="outline"
-                nativeButton={false}
-                render={<Link href="/studio" />}
-                className="shrink-0"
-              >
-                Open the studio
-                <HugeiconsIcon
-                  icon={ArrowRight02Icon}
-                  strokeWidth={2}
-                  data-icon="inline-end"
-                />
-              </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
+      </div>
+      <TabsContent value="agent">
+        <PromptPicker prompts={prompts} />
+      </TabsContent>
+      <TabsContent value="studio">
+        <Card size="sm" className="shadow-none">
+          <CardContent className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <CardDescription className="leading-relaxed">
+              Design your own gauge in the studio, tweak it live, then copy the
+              code into your project.
+            </CardDescription>
+            <Button
+              variant="outline"
+              nativeButton={false}
+              render={<Link href="/studio" />}
+              className="shrink-0"
+            >
+              Open the studio
+              <HugeiconsIcon
+                icon={ArrowRight02Icon}
+                strokeWidth={2}
+                data-icon="inline-end"
+              />
+            </Button>
+          </CardContent>
+        </Card>
+      </TabsContent>
+    </Tabs>
   </section>
 )
